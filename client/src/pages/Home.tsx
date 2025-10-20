@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UploadZone } from "@/components/UploadZone";
@@ -17,10 +17,29 @@ export default function Home() {
   const { toast } = useToast();
 
   // Fetch current contract data
-  const { data: currentContract, refetch: refetchContract } = useQuery<Contract>({
+  const { data: currentContract, isLoading: isLoadingContract, error: contractError } = useQuery<Contract>({
     queryKey: ["/api/contracts", currentContractId],
+    queryFn: async () => {
+      if (!currentContractId) throw new Error("No contract ID");
+      const res = await fetch(`/api/contracts/${currentContractId}`);
+      if (!res.ok) throw new Error("Failed to fetch contract");
+      return res.json();
+    },
     enabled: !!currentContractId,
+    retry: 1,
   });
+
+  // Handle contract fetch errors
+  useEffect(() => {
+    if (contractError && currentContractId) {
+      toast({
+        title: "Error",
+        description: "Failed to load contract data. Please try uploading again.",
+        variant: "destructive",
+      });
+      setCurrentContractId(null);
+    }
+  }, [contractError, currentContractId, toast]);
 
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
@@ -62,6 +81,12 @@ export default function Home() {
 
   const { data: queries = [] } = useQuery<Query[]>({
     queryKey: ["/api/contracts", currentContractId, "queries"],
+    queryFn: async () => {
+      if (!currentContractId) throw new Error("No contract ID");
+      const res = await fetch(`/api/contracts/${currentContractId}/queries`);
+      if (!res.ok) throw new Error("Failed to fetch queries");
+      return res.json();
+    },
     enabled: !!currentContractId,
   });
 
@@ -140,7 +165,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl px-6 py-8 md:px-12 lg:px-16">
-        {!currentContract ? (
+        {!currentContractId ? (
           <div className="space-y-6">
             <div className="text-center space-y-2 mb-8">
               <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -172,14 +197,16 @@ export default function Home() {
               {extractedData && <ExportButtons onExport={handleExport} />}
             </div>
 
-            <FilePreviewCard
-              fileName={currentContract.fileName}
-              fileSize={currentContract.fileSize}
-              status={uploadMutation.isPending ? "processing" : "complete"}
-              onRemove={handleRemoveFile}
-            />
+            {currentContract && (
+              <FilePreviewCard
+                fileName={currentContract.fileName}
+                fileSize={currentContract.fileSize}
+                status="complete"
+                onRemove={handleRemoveFile}
+              />
+            )}
 
-            {uploadMutation.isPending ? (
+            {(uploadMutation.isPending || isLoadingContract) ? (
               <div className="flex items-center justify-center min-h-[400px]">
                 <div className="text-center space-y-4">
                   <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
