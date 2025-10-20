@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UploadZone } from "@/components/UploadZone";
 import { FilePreviewCard } from "@/components/FilePreviewCard";
@@ -6,73 +7,140 @@ import { ExtractedDataSection } from "@/components/ExtractedDataSection";
 import { QueryInterface } from "@/components/QueryInterface";
 import { ExportButtons } from "@/components/ExportButtons";
 import { EmptyState } from "@/components/EmptyState";
-import { Calendar, DoorOpen, AlertTriangle, FileText } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Calendar, DoorOpen, AlertTriangle } from "lucide-react";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import type { Contract, Query, ExtractedData } from "@shared/schema";
 
 export default function Home() {
-  const [file, setFile] = useState<File | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [hasExtractedData, setHasExtractedData] = useState(false);
+  const [currentContractId, setCurrentContractId] = useState<string | null>(null);
+  const { toast } = useToast();
 
-  const handleFileSelect = (selectedFile: File) => {
-    setFile(selectedFile);
-    setIsProcessing(true);
-    
-    // Simulate processing
-    setTimeout(() => {
-      setIsProcessing(false);
-      setHasExtractedData(true);
-    }, 2000);
+  // Fetch current contract data
+  const { data: currentContract, refetch: refetchContract } = useQuery<Contract>({
+    queryKey: ["/api/contracts", currentContractId],
+    enabled: !!currentContractId,
+  });
+
+  const uploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch("/api/contracts/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Upload failed");
+      }
+
+      return response.json() as Promise<Contract>;
+    },
+    onSuccess: (contract) => {
+      setCurrentContractId(contract.id);
+      queryClient.invalidateQueries({ queryKey: ["/api/contracts"] });
+      // Invalidate and refetch the contract to ensure we have latest data
+      queryClient.invalidateQueries({ queryKey: ["/api/contracts", contract.id] });
+      toast({
+        title: "Success",
+        description: "Contract analyzed successfully",
+      });
+    },
+    onError: (error) => {
+      // Reset state on error
+      setCurrentContractId(null);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to upload contract",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const { data: queries = [] } = useQuery<Query[]>({
+    queryKey: ["/api/contracts", currentContractId, "queries"],
+    enabled: !!currentContractId,
+  });
+
+  const queryMutation = useMutation({
+    mutationFn: async (question: string) => {
+      if (!currentContractId) throw new Error("No contract selected");
+      
+      const res = await apiRequest("POST", `/api/contracts/${currentContractId}/query`, { question });
+      return res.json() as Promise<Query>;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/contracts", currentContractId, "queries"] 
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to process query",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleFileSelect = (file: File) => {
+    uploadMutation.mutate(file);
   };
 
   const handleRemoveFile = () => {
-    setFile(null);
-    setHasExtractedData(false);
-    setIsProcessing(false);
+    setCurrentContractId(null);
   };
 
-  const formatFileSize = (bytes: number) => {
-    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  const handleQuery = (question: string) => {
+    queryMutation.mutate(question);
   };
 
-  // Mock extracted data
-  const keyDates = [
-    { label: "Contract Start Date", value: "January 15, 2025", confidence: 98 },
-    { label: "Completion Date", value: "December 31, 2025", confidence: 95 },
-    { label: "Payment Due Date", value: "30 days from invoice", confidence: 92 },
-    { label: "Milestone Review", value: "Quarterly (March, June, September, December)", confidence: 89 },
-  ];
+  const handleExport = (format: "json" | "csv") => {
+    if (!currentContract?.extractedData) return;
 
-  const accessDetails = [
-    { label: "Site Access Hours", value: "Monday-Friday, 7:00 AM - 6:00 PM", confidence: 96 },
-    { label: "Access Restrictions", value: "Permit required for heavy machinery", confidence: 88 },
-    { label: "Key Holder", value: "John Smith, Site Manager", confidence: 94 },
-    { label: "Emergency Contact", value: "+1 (555) 123-4567", confidence: 91 },
-  ];
+    const data = currentContract.extractedData as ExtractedData;
 
-  const damages = [
-    { label: "Liquidated Damages", value: "$5,000 per day delay", confidence: 97 },
-    { label: "Late Payment Fee", value: "2% per month", confidence: 93 },
-    { label: "Performance Bond", value: "10% of contract value", confidence: 91 },
-    { label: "Warranty Period", value: "12 months from completion", confidence: 87 },
-  ];
+    if (format === "json") {
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${currentContract.fileName.replace(".pdf", "")}-extracted.json`;
+      a.click();
+    } else {
+      let csv = "Category,Label,Value,Confidence\n";
+      
+      for (const [category, items] of Object.entries(data)) {
+        for (const item of items as Array<{ label: string; value: string | null; confidence: number }>) {
+          csv += `"${category}","${item.label}","${item.value || ""}",${item.confidence}\n`;
+        }
+      }
 
-  const mockQueries = [
-    {
-      question: "What is the penalty for late completion?",
-      answer: "$5,000 per day for each day of delay after the completion date.",
-      source: "Section 8.3, Page 12",
-    },
-    {
-      question: "When does the contract start?",
-      answer: "The contract commencement date is January 15, 2025.",
-      source: "Section 2.1, Page 3",
-    },
-  ];
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${currentContract.fileName.replace(".pdf", "")}-extracted.csv`;
+      a.click();
+    }
+
+    toast({
+      title: "Success",
+      description: `Data exported as ${format.toUpperCase()}`,
+    });
+  };
+
+  const extractedData = currentContract?.extractedData as ExtractedData | undefined;
 
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto max-w-7xl px-6 py-8 md:px-12 lg:px-16">
-        {!file ? (
+        {!currentContract ? (
           <div className="space-y-6">
             <div className="text-center space-y-2 mb-8">
               <h1 className="text-3xl font-bold tracking-tight text-foreground">
@@ -101,17 +169,17 @@ export default function Home() {
                   AI-powered extraction and analysis
                 </p>
               </div>
-              {hasExtractedData && <ExportButtons onExport={(format) => console.log("Export:", format)} />}
+              {extractedData && <ExportButtons onExport={handleExport} />}
             </div>
 
             <FilePreviewCard
-              fileName={file.name}
-              fileSize={formatFileSize(file.size)}
-              status={isProcessing ? "processing" : "complete"}
+              fileName={currentContract.fileName}
+              fileSize={currentContract.fileSize}
+              status={uploadMutation.isPending ? "processing" : "complete"}
               onRemove={handleRemoveFile}
             />
 
-            {isProcessing ? (
+            {uploadMutation.isPending ? (
               <div className="flex items-center justify-center min-h-[400px]">
                 <div className="text-center space-y-4">
                   <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
@@ -120,7 +188,7 @@ export default function Home() {
                   </p>
                 </div>
               </div>
-            ) : hasExtractedData ? (
+            ) : extractedData ? (
               <Tabs defaultValue="overview" className="w-full">
                 <TabsList className="w-full justify-start">
                   <TabsTrigger value="overview" data-testid="tab-overview">
@@ -136,26 +204,38 @@ export default function Home() {
                     <ExtractedDataSection
                       title="Key Dates"
                       icon={<Calendar className="h-5 w-5 text-primary" />}
-                      data={keyDates}
+                      data={extractedData.keyDates}
                     />
                     <ExtractedDataSection
                       title="Access Details"
                       icon={<DoorOpen className="h-5 w-5 text-primary" />}
-                      data={accessDetails}
+                      data={extractedData.accessDetails}
                     />
                     <ExtractedDataSection
                       title="Damages & Penalties"
                       icon={<AlertTriangle className="h-5 w-5 text-chart-3" />}
-                      data={damages}
+                      data={extractedData.damages}
                     />
                   </div>
                 </TabsContent>
 
                 <TabsContent value="query" className="mt-6">
                   <QueryInterface
-                    onQuery={(query) => console.log("Query:", query)}
-                    recentQueries={mockQueries}
+                    onQuery={handleQuery}
+                    recentQueries={queries.map(q => ({
+                      question: q.question,
+                      answer: q.answer,
+                      source: q.source || "Unknown",
+                    }))}
                   />
+                  {queryMutation.isPending && (
+                    <div className="mt-4 text-center">
+                      <div className="inline-block h-6 w-6 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Processing your question...
+                      </p>
+                    </div>
+                  )}
                 </TabsContent>
               </Tabs>
             ) : null}

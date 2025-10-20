@@ -1,10 +1,12 @@
 import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
-import * as pdfParse from "pdf-parse";
 import { storage } from "./storage";
 import { extractContractData, answerContractQuery } from "./openai";
 import { insertContractSchema, insertQuerySchema } from "@shared/schema";
+
+// @ts-ignore - pdf-parse doesn't have proper TypeScript/ESM support
+const pdfParse = (await import("pdf-parse")).default;
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -32,16 +34,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pdfData = await pdfParse(req.file.buffer);
       const fullText = pdfData.text;
 
+      if (!fullText || fullText.trim().length === 0) {
+        return res.status(400).json({ error: "Could not extract text from PDF" });
+      }
+
       // Extract data using AI
       const extractedData = await extractContractData(fullText);
 
-      // Save to storage
-      const contract = await storage.createContract({
+      // Validate and save to storage using schema
+      const contractData = insertContractSchema.parse({
         fileName: req.file.originalname,
         fileSize: `${(req.file.size / (1024 * 1024)).toFixed(1)} MB`,
         fullText,
         extractedData,
       });
+
+      const contract = await storage.createContract(contractData);
 
       res.json(contract);
     } catch (error) {
@@ -91,10 +99,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Query contract
   app.post("/api/contracts/:id/query", async (req, res) => {
     try {
+      // Validate request body
+      if (!req.body || typeof req.body !== "object") {
+        return res.status(400).json({ error: "Invalid request body" });
+      }
+
       const { question } = req.body;
       
-      if (!question || typeof question !== "string") {
-        return res.status(400).json({ error: "Question is required" });
+      if (!question || typeof question !== "string" || question.trim().length === 0) {
+        return res.status(400).json({ error: "Question is required and must be a non-empty string" });
       }
 
       const contract = await storage.getContract(req.params.id);
@@ -112,13 +125,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         question
       );
 
-      // Save query
-      const query = await storage.createQuery({
+      // Validate and save query using schema
+      const queryData = insertQuerySchema.parse({
         contractId: req.params.id,
-        question,
+        question: question.trim(),
         answer,
         source,
       });
+
+      const query = await storage.createQuery(queryData);
 
       res.json(query);
     } catch (error) {
