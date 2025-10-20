@@ -1,37 +1,80 @@
-import { type User, type InsertUser } from "@shared/schema";
+import {
+  type Contract,
+  type InsertContract,
+  type Query,
+  type InsertQuery,
+} from "@shared/schema";
 import { randomUUID } from "crypto";
 
-// modify the interface with any CRUD methods
-// you might need
-
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  createContract(contract: InsertContract): Promise<Contract>;
+  getContract(id: string): Promise<Contract | undefined>;
+  getAllContracts(): Promise<Contract[]>;
+  deleteContract(id: string): Promise<void>;
+  
+  createQuery(query: InsertQuery): Promise<Query>;
+  getQueriesByContract(contractId: string): Promise<Query[]>;
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User>;
+  private contracts: Map<string, Contract>;
+  private queries: Map<string, Query>;
 
   constructor() {
-    this.users = new Map();
+    this.contracts = new Map();
+    this.queries = new Map();
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async createContract(insertContract: InsertContract): Promise<Contract> {
+    const id = randomUUID();
+    const contract: Contract = {
+      ...insertContract,
+      id,
+      uploadedAt: new Date(),
+      extractedData: insertContract.extractedData ?? null,
+      fullText: insertContract.fullText ?? null,
+    };
+    this.contracts.set(id, contract);
+    return contract;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
+  async getContract(id: string): Promise<Contract | undefined> {
+    return this.contracts.get(id);
+  }
+
+  async getAllContracts(): Promise<Contract[]> {
+    return Array.from(this.contracts.values()).sort(
+      (a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime()
     );
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
+  async deleteContract(id: string): Promise<void> {
+    this.contracts.delete(id);
+    // Also delete related queries
+    const queryEntries = Array.from(this.queries.entries());
+    for (const [queryId, query] of queryEntries) {
+      if (query.contractId === id) {
+        this.queries.delete(queryId);
+      }
+    }
+  }
+
+  async createQuery(insertQuery: InsertQuery): Promise<Query> {
     const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+    const query: Query = {
+      ...insertQuery,
+      id,
+      createdAt: new Date(),
+      source: insertQuery.source ?? null,
+    };
+    this.queries.set(id, query);
+    return query;
+  }
+
+  async getQueriesByContract(contractId: string): Promise<Query[]> {
+    return Array.from(this.queries.values())
+      .filter((query) => query.contractId === contractId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 }
 
