@@ -39,6 +39,7 @@ export type Query = typeof queries.$inferSelect;
 export interface ExtractedData {
   keyDates: Array<{ label: string; value: string | null; confidence: number }>;
   accessDates: Array<{ partOfSite: string; date: string }>;
+  completionDates: Array<{ section: string; completionDate: string }>;
   accessDetails: Array<{ label: string; value: string | null; confidence: number }>;
   damages: Array<{ label: string; value: string | null; confidence: number }>;
 }

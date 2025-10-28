@@ -5,6 +5,7 @@ import { UploadZone } from "@/components/UploadZone";
 import { FilePreviewCard } from "@/components/FilePreviewCard";
 import { ExtractedDataSection } from "@/components/ExtractedDataSection";
 import { AccessDatesTable } from "@/components/AccessDatesTable";
+import { CompletionDatesTable } from "@/components/CompletionDatesTable";
 import { QueryInterface } from "@/components/QueryInterface";
 import { ExportButtons } from "@/components/ExportButtons";
 import { EmptyState } from "@/components/EmptyState";
@@ -230,6 +231,10 @@ export default function Home() {
                 <TabsContent value="overview" className="mt-6 space-y-6">
                   {extractedData?.accessDates && extractedData.accessDates.length > 0 && (
                     <AccessDatesTable data={extractedData.accessDates} />
+                  )}
+                  
+                  {extractedData?.completionDates && extractedData.completionDates.length > 0 && (
+                    <CompletionDatesTable data={extractedData.completionDates} />
                   )}
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

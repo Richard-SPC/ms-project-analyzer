@@ -27,6 +27,9 @@ Respond with JSON in this exact format:
   "accessDates": [
     {"partOfSite": "Site area or description", "date": "Access date"}
   ],
+  "completionDates": [
+    {"section": "Section name or overall completion", "completionDate": "Completion date"}
+  ],
   "accessDetails": [
     {"label": "Site Location", "value": "location details", "confidence": 0-100},
     {"label": "Working Hours", "value": "hours or restrictions", "confidence": 0-100},
@@ -44,6 +47,7 @@ Respond with JSON in this exact format:
 IMPORTANT: 
 - Extract actual information from the contract text
 - For accessDates, look for site access dates or phased access schedules. Extract each area/phase with its corresponding access date as separate entries.
+- For completionDates, look for completion dates including overall completion date and any sectional completion dates. If there's only one completion date, list it as "Overall Completion". For sectional completions, extract each section with its completion date.
 - If you find relevant information, include it even if the label doesn't match exactly
 - Set confidence based on clarity: 90-100 for explicit dates/amounts, 70-89 for clear descriptions, 50-69 for implied information, below 50 for uncertain
 - Only set value to null and confidence to 0 if the information truly cannot be found`,
@@ -66,6 +70,7 @@ IMPORTANT:
     const extractedData: ExtractedData = {
       keyDates: Array.isArray(result.keyDates) ? result.keyDates : [],
       accessDates: Array.isArray(result.accessDates) ? result.accessDates : [],
+      completionDates: Array.isArray(result.completionDates) ? result.completionDates : [],
       accessDetails: Array.isArray(result.accessDetails) ? result.accessDetails : [],
       damages: Array.isArray(result.damages) ? result.damages : [],
     };
