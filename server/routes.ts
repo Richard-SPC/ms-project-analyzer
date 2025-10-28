@@ -1,12 +1,15 @@
 import type { Express, Request } from "express";
 import { createServer, type Server } from "http";
+import { createRequire } from "module";
 import multer from "multer";
 import { storage } from "./storage";
 import { extractContractData, answerContractQuery } from "./openai";
 import { insertContractSchema, insertQuerySchema } from "@shared/schema";
 
-// @ts-ignore - pdf-parse doesn't have proper TypeScript/ESM support
-const pdfParse = (await import("pdf-parse")).default;
+// Use createRequire for CommonJS modules  
+const require = createRequire(import.meta.url);
+// pdf-parse v1 uses function-based API
+const pdfParse = require("pdf-parse");
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -30,9 +33,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "No file uploaded" });
       }
 
-      // Parse PDF
-      const pdfData = await pdfParse(req.file.buffer);
-      const fullText = pdfData.text;
+      // Parse PDF using pdf-parse v1 API
+      let pdfData;
+      let fullText;
+      
+      try {
+        pdfData = await pdfParse(req.file.buffer);
+        fullText = pdfData.text;
+      } catch (pdfError) {
+        console.error("PDF parsing error:", pdfError);
+        return res.status(400).json({ 
+          error: "Failed to parse PDF file. Please ensure the file is a valid PDF document." 
+        });
+      }
 
       if (!fullText || fullText.trim().length === 0) {
         return res.status(400).json({ error: "Could not extract text from PDF" });
@@ -54,6 +67,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(contract);
     } catch (error) {
       console.error("Error processing contract:", error);
+      
+      // Check if this is a PDF parsing error that escaped the inner catch
+      if (error instanceof Error && 
+          (error.message.includes("PDF") || 
+           error.message.includes("FormatError") ||
+           error.message.includes("Command token") ||
+           error.name === "FormatError")) {
+        return res.status(400).json({
+          error: "Failed to parse PDF file. Please ensure the file is a valid PDF document."
+        });
+      }
+      
       res.status(500).json({
         error: error instanceof Error ? error.message : "Failed to process contract",
       });
