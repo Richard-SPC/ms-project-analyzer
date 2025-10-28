@@ -40,6 +40,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         pdfData = await pdfParse(req.file.buffer);
         fullText = pdfData.text;
+        console.log(`✓ Extracted ${fullText.length} characters from PDF`);
+        console.log("First 500 chars:", fullText.substring(0, 500));
       } catch (pdfError) {
         console.error("PDF parsing error:", pdfError);
         return res.status(400).json({ 

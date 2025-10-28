@@ -45,6 +45,7 @@ If a field cannot be found, set value to null and confidence to 0.`,
     });
 
     const result = JSON.parse(response.choices[0].message.content || "{}");
+    console.log("✓ OpenAI extracted data:", JSON.stringify(result, null, 2));
     return result as ExtractedData;
   } catch (error) {
     console.error("Failed to extract contract data:", error);
