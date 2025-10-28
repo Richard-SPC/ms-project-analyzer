@@ -6,8 +6,9 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function extractContractData(text: string): Promise<ExtractedData> {
   try {
+    console.log(`Sending ${text.length} characters to OpenAI for extraction...`);
     const response = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-4-turbo",
       messages: [
         {
           role: "system",
@@ -52,9 +53,19 @@ IMPORTANT:
       max_completion_tokens: 2048,
     });
 
-    const result = JSON.parse(response.choices[0].message.content || "{}");
+    const content = response.choices[0].message.content || "{}";
+    console.log("OpenAI raw response:", content.substring(0, 500));
+    const result = JSON.parse(content);
     console.log("✓ OpenAI extracted data:", JSON.stringify(result, null, 2));
-    return result as ExtractedData;
+    
+    // Validate and ensure proper structure
+    const extractedData: ExtractedData = {
+      keyDates: Array.isArray(result.keyDates) ? result.keyDates : [],
+      accessDetails: Array.isArray(result.accessDetails) ? result.accessDetails : [],
+      damages: Array.isArray(result.damages) ? result.damages : [],
+    };
+    
+    return extractedData;
   } catch (error) {
     console.error("Failed to extract contract data:", error);
     
@@ -79,7 +90,7 @@ export async function answerContractQuery(
 ): Promise<{ answer: string; source: string }> {
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-5",
+      model: "gpt-4-turbo",
       messages: [
         {
           role: "system",

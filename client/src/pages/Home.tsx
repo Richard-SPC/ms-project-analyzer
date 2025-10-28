@@ -231,17 +231,17 @@ export default function Home() {
                     <ExtractedDataSection
                       title="Key Dates"
                       icon={<Calendar className="h-5 w-5 text-primary" />}
-                      data={extractedData.keyDates}
+                      data={extractedData?.keyDates || []}
                     />
                     <ExtractedDataSection
                       title="Access Details"
                       icon={<DoorOpen className="h-5 w-5 text-primary" />}
-                      data={extractedData.accessDetails}
+                      data={extractedData?.accessDetails || []}
                     />
                     <ExtractedDataSection
                       title="Damages & Penalties"
                       icon={<AlertTriangle className="h-5 w-5 text-chart-3" />}
-                      data={extractedData.damages}
+                      data={extractedData?.damages || []}
                     />
                   </div>
                 </TabsContent>

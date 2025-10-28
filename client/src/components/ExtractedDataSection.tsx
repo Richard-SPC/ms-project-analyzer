@@ -21,7 +21,7 @@ export function ExtractedDataSection({
   data,
   className,
 }: ExtractedDataSectionProps) {
-  const hasData = data.some((item) => item.value !== null);
+  const hasData = data && Array.isArray(data) && data.some((item) => item.value !== null);
 
   return (
     <Card className={cn("", className)} data-testid={`section-${title.toLowerCase().replace(/\s+/g, '-')}`}>
