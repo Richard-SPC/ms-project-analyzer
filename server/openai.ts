@@ -11,33 +11,41 @@ export async function extractContractData(text: string): Promise<ExtractedData> 
       messages: [
         {
           role: "system",
-          content: `You are an expert at analyzing construction contracts. Extract key information and provide confidence scores (0-100) for each extraction. Respond with JSON in this exact format:
+          content: `You are an expert at analyzing construction contracts including NEC, JCT, and FIDIC contracts. 
+
+Extract key information from the contract and provide confidence scores (0-100) for each extraction based on how clearly the information is stated in the contract.
+
+Respond with JSON in this exact format:
 {
   "keyDates": [
-    {"label": "Contract Start Date", "value": "date or null", "confidence": 0-100},
-    {"label": "Completion Date", "value": "date or null", "confidence": 0-100},
-    {"label": "Payment Due Date", "value": "date or null", "confidence": 0-100},
-    {"label": "Milestone Review", "value": "date or null", "confidence": 0-100}
+    {"label": "Contract Start Date", "value": "date or description", "confidence": 0-100},
+    {"label": "Completion Date", "value": "date or description", "confidence": 0-100},
+    {"label": "Key Milestone", "value": "date or description", "confidence": 0-100},
+    {"label": "Notice Period", "value": "period or description", "confidence": 0-100}
   ],
   "accessDetails": [
-    {"label": "Site Access Hours", "value": "hours or null", "confidence": 0-100},
-    {"label": "Access Restrictions", "value": "restrictions or null", "confidence": 0-100},
-    {"label": "Key Holder", "value": "name or null", "confidence": 0-100},
-    {"label": "Emergency Contact", "value": "contact or null", "confidence": 0-100}
+    {"label": "Site Location", "value": "location details", "confidence": 0-100},
+    {"label": "Working Hours", "value": "hours or restrictions", "confidence": 0-100},
+    {"label": "Access Requirements", "value": "requirements or restrictions", "confidence": 0-100},
+    {"label": "Site Contact", "value": "name or role", "confidence": 0-100}
   ],
   "damages": [
-    {"label": "Liquidated Damages", "value": "amount or null", "confidence": 0-100},
-    {"label": "Late Payment Fee", "value": "fee or null", "confidence": 0-100},
-    {"label": "Performance Bond", "value": "amount or null", "confidence": 0-100},
-    {"label": "Warranty Period", "value": "period or null", "confidence": 0-100}
+    {"label": "Liquidated Damages", "value": "amount per day/week or description", "confidence": 0-100},
+    {"label": "Delay Damages", "value": "amount or description", "confidence": 0-100},
+    {"label": "Performance Bond", "value": "amount or percentage", "confidence": 0-100},
+    {"label": "Retention Amount", "value": "amount or percentage", "confidence": 0-100}
   ]
 }
 
-If a field cannot be found, set value to null and confidence to 0.`,
+IMPORTANT: 
+- Extract actual information from the contract text
+- If you find relevant information, include it even if the label doesn't match exactly
+- Set confidence based on clarity: 90-100 for explicit dates/amounts, 70-89 for clear descriptions, 50-69 for implied information, below 50 for uncertain
+- Only set value to null and confidence to 0 if the information truly cannot be found`,
         },
         {
           role: "user",
-          content: `Extract the following information from this construction contract:\n\n${text.substring(0, 12000)}`,
+          content: `Analyze this construction contract and extract the key dates, access details, and damages information:\n\n${text.substring(0, 30000)}`,
         },
       ],
       response_format: { type: "json_object" },
