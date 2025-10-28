@@ -1,6 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface DataItem {
   label: string;
@@ -33,30 +41,41 @@ export function ExtractedDataSection({
       </CardHeader>
       <CardContent>
         {hasData ? (
-          <div className="space-y-4">
-            {data.map((item, index) => (
-              <div key={index} className="space-y-1">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                    {item.label}
-                  </p>
-                  {item.confidence && (
-                    <Badge variant="secondary" className="text-xs">
-                      {item.confidence}% confidence
-                    </Badge>
-                  )}
-                </div>
-                {item.value ? (
-                  <p className="text-sm font-medium text-foreground">
-                    {item.value}
-                  </p>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">
-                    Not found
-                  </p>
-                )}
-              </div>
-            ))}
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[30%]">Field</TableHead>
+                  <TableHead>Value</TableHead>
+                  <TableHead className="w-[120px] text-right">Confidence</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {data.map((item, index) => (
+                  <TableRow key={index} data-testid={`row-${title.toLowerCase().replace(/\s+/g, '-')}-${index}`}>
+                    <TableCell className="font-medium text-sm">
+                      {item.label}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {item.value ? (
+                        <span className="text-foreground">{item.value}</span>
+                      ) : (
+                        <span className="text-muted-foreground italic">Not found</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {item.confidence && item.confidence > 0 ? (
+                        <Badge variant="secondary" className="text-xs">
+                          {item.confidence}%
+                        </Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         ) : (
           <div className="flex min-h-[100px] items-center justify-center rounded-md border-2 border-dashed border-border">
