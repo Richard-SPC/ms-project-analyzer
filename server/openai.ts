@@ -48,6 +48,18 @@ If a field cannot be found, set value to null and confidence to 0.`,
     return result as ExtractedData;
   } catch (error) {
     console.error("Failed to extract contract data:", error);
+    
+    // Check for OpenAI-specific errors
+    if (error && typeof error === 'object' && 'status' in error) {
+      const apiError = error as { status: number; code?: string; message?: string };
+      if (apiError.status === 429 || apiError.code === 'insufficient_quota') {
+        throw new Error("OpenAI API quota exceeded. Please check your OpenAI account billing and usage limits.");
+      }
+      if (apiError.status === 401) {
+        throw new Error("OpenAI API authentication failed. Please check your API key.");
+      }
+    }
+    
     throw new Error("Failed to extract contract data");
   }
 }
@@ -86,6 +98,18 @@ If the answer cannot be found in the contract, say so clearly and set source to 
     };
   } catch (error) {
     console.error("Failed to answer contract query:", error);
+    
+    // Check for OpenAI-specific errors
+    if (error && typeof error === 'object' && 'status' in error) {
+      const apiError = error as { status: number; code?: string; message?: string };
+      if (apiError.status === 429 || apiError.code === 'insufficient_quota') {
+        throw new Error("OpenAI API quota exceeded. Please check your OpenAI account billing and usage limits.");
+      }
+      if (apiError.status === 401) {
+        throw new Error("OpenAI API authentication failed. Please check your API key.");
+      }
+    }
+    
     throw new Error("Failed to answer query");
   }
 }

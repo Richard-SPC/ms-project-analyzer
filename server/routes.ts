@@ -79,6 +79,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Check for OpenAI quota/auth errors
+      if (error instanceof Error && 
+          (error.message.includes("quota exceeded") || 
+           error.message.includes("authentication failed"))) {
+        return res.status(503).json({
+          error: error.message
+        });
+      }
+      
       res.status(500).json({
         error: error instanceof Error ? error.message : "Failed to process contract",
       });
@@ -163,6 +172,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(query);
     } catch (error) {
       console.error("Error processing query:", error);
+      
+      // Check for OpenAI quota/auth errors
+      if (error instanceof Error && 
+          (error.message.includes("quota exceeded") || 
+           error.message.includes("authentication failed"))) {
+        return res.status(503).json({
+          error: error.message
+        });
+      }
+      
       res.status(500).json({
         error: error instanceof Error ? error.message : "Failed to process query",
       });
