@@ -108,8 +108,17 @@ export default function Projects() {
         });
         setUploadOpen(false);
         setUploadFile(null);
+      } else if (data.success && data.project) {
+        // Successfully uploaded and created project from XML file
+        queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+        toast({
+          title: "Project imported",
+          description: data.message || `Successfully imported "${data.project.name}"`,
+        });
+        setUploadOpen(false);
+        setUploadFile(null);
       } else if (data.success) {
-        // Successfully uploaded XML file
+        // Successfully uploaded file (legacy response)
         queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
         toast({
           title: "File uploaded",

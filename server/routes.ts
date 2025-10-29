@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
 import { parseMppFile, getProjectNameFromFileName } from "./mppParser";
+import { parseProjectXml } from "./xmlParser";
 import { 
   insertProjectSchema, 
   insertTaskSchema, 
@@ -287,15 +288,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ error: "Invalid XML file" });
         }
 
-        // Parse basic project info from XML (simplified - can be enhanced later)
-        const projectName = getProjectNameFromFileName(fileName);
-        
-        res.json({ 
-          success: true, 
-          fileName: req.file.originalname,
-          projectName,
-          xmlContent 
-        });
+        try {
+          // Parse Microsoft Project XML
+          const parsedData = await parseProjectXml(xmlContent, fileName);
+          
+          // Create the project in the database
+          const createdProject = await storage.createProject(parsedData.project);
+          
+          // Create tasks linked to the project
+          const createdTasks = [];
+          for (const task of parsedData.tasks) {
+            const taskWithProject = { ...task, projectId: createdProject.id };
+            const createdTask = await storage.createTask(taskWithProject);
+            createdTasks.push(createdTask);
+          }
+          
+          res.json({ 
+            success: true, 
+            fileName: req.file.originalname,
+            project: createdProject,
+            tasksCreated: createdTasks.length,
+            message: `Successfully imported project "${createdProject.name}" with ${createdTasks.length} tasks`
+          });
+        } catch (parseError) {
+          console.error("Error parsing XML:", parseError);
+          return res.status(400).json({ 
+            error: parseError instanceof Error ? parseError.message : "Failed to parse XML file" 
+          });
+        }
       } else {
         return res.status(400).json({ 
           error: "Unsupported file format. Please upload XML or MPP files." 
