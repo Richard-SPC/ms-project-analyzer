@@ -25,6 +25,7 @@ type FormData = z.infer<typeof formSchema>;
 export default function Projects() {
   const [open, setOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
   const { toast } = useToast();
 
   const { data: projects, isLoading } = useQuery<Project[]>({
@@ -78,6 +79,47 @@ export default function Projects() {
     },
   });
 
+  const uploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      
+      const res = await fetch("/api/projects/upload", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Failed to upload file");
+      }
+      
+      return await res.json();
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "File uploaded",
+        description: `Successfully uploaded ${data.fileName}`,
+      });
+      setUploadOpen(false);
+      setUploadFile(null);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleUpload = () => {
+    if (uploadFile) {
+      uploadMutation.mutate(uploadFile);
+    }
+  };
+
   const onSubmit = (data: FormData) => {
     createMutation.mutate(data);
   };
@@ -103,13 +145,32 @@ export default function Projects() {
                 <DialogDescription>Upload a .xml file from Microsoft Project</DialogDescription>
               </DialogHeader>
               <div className="py-4">
-                <Input type="file" accept=".xml" data-testid="input-file-upload" />
+                <Input 
+                  type="file" 
+                  accept=".xml" 
+                  onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                  data-testid="input-file-upload" 
+                />
+                {uploadFile && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Selected: {uploadFile.name}
+                  </p>
+                )}
               </div>
               <DialogFooter>
-                <Button variant="outline" onClick={() => setUploadOpen(false)} data-testid="button-cancel-upload">
+                <Button variant="outline" onClick={() => {
+                  setUploadOpen(false);
+                  setUploadFile(null);
+                }} data-testid="button-cancel-upload">
                   Cancel
                 </Button>
-                <Button data-testid="button-upload">Upload</Button>
+                <Button 
+                  onClick={handleUpload} 
+                  disabled={!uploadFile || uploadMutation.isPending}
+                  data-testid="button-upload"
+                >
+                  {uploadMutation.isPending ? "Uploading..." : "Upload"}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
