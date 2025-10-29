@@ -270,17 +270,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Handle MPP file
         const result = await parseMppFile(req.file.buffer, fileName);
         
-        if (!result.success) {
-          return res.status(400).json({ 
-            error: result.message,
-            fileName: result.fileName,
-            fileSize: result.fileSize,
-            requiresConversion: true
-          });
-        }
-
-        // If we successfully parsed (future enhancement), create project
-        res.json(result);
+        // Return 200 with structured response so frontend can display guidance properly
+        res.json({ 
+          success: result.success,
+          message: result.message,
+          fileName: result.fileName,
+          fileSize: result.fileSize,
+          requiresConversion: !result.success
+        });
       } else if (isXml) {
         // Handle XML file
         const xmlContent = req.file.buffer.toString('utf-8');

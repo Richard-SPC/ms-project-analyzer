@@ -91,20 +91,40 @@ export default function Projects() {
       });
       
       if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Failed to upload file");
+        const errorData = await res.json().catch(() => ({ error: "Failed to upload file" }));
+        throw new Error(errorData.error || errorData.message || "Failed to upload file");
       }
       
       return await res.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
-      toast({
-        title: "File uploaded",
-        description: `Successfully uploaded ${data.fileName}`,
-      });
-      setUploadOpen(false);
-      setUploadFile(null);
+      if (data.requiresConversion) {
+        // MPP file that needs conversion
+        toast({
+          title: "Conversion Required",
+          description: data.message,
+          variant: "default",
+          duration: 10000,
+        });
+        setUploadOpen(false);
+        setUploadFile(null);
+      } else if (data.success) {
+        // Successfully uploaded XML file
+        queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+        toast({
+          title: "File uploaded",
+          description: `Successfully uploaded ${data.fileName}`,
+        });
+        setUploadOpen(false);
+        setUploadFile(null);
+      } else {
+        // Some other issue
+        toast({
+          title: "Upload issue",
+          description: data.message || "Please check the file and try again",
+          variant: "destructive",
+        });
+      }
     },
     onError: (error: Error) => {
       toast({

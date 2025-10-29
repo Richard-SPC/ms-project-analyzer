@@ -45,13 +45,14 @@ export async function parseMppFile(buffer: Buffer, fileName: string): Promise<Mp
       success: false,
       message: `MPP file detected: "${fileName}" (${(buffer.length / 1024 / 1024).toFixed(2)} MB).
 
-⚠️  Full MPP parsing requires additional dependencies not currently installed.
+Full MPP parsing requires additional dependencies not currently installed.
 
-📝 To import this project, please convert it to XML format in Microsoft Project:
-   1. Open your project in Microsoft Project
-   2. File → Save As
-   3. Choose "XML Format (*.xml)" from the file type dropdown
-   4. Save and upload the XML file
+To import this project, please convert it to XML format in Microsoft Project:
+
+1. Open your project in Microsoft Project
+2. File > Save As
+3. Choose "XML Format (*.xml)" from the file type dropdown
+4. Save and upload the XML file
 
 The XML format contains all the same project data (tasks, dates, dependencies, resources) and is fully supported by this application.`,
       fileName,
