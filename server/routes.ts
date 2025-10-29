@@ -1,203 +1,242 @@
-import type { Express, Request } from "express";
+import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { createRequire } from "module";
 import multer from "multer";
 import { storage } from "./storage";
-import { extractContractData, answerContractQuery } from "./openai";
-import { insertContractSchema, insertQuerySchema } from "@shared/schema";
-
-// Use createRequire for CommonJS modules  
-const require = createRequire(import.meta.url);
-// pdf-parse v1 uses function-based API
-const pdfParse = require("pdf-parse");
+import { 
+  insertProjectSchema, 
+  insertTaskSchema, 
+  insertDcmaAssessmentSchema, 
+  insertNecComplianceSchema 
+} from "@shared/schema";
 
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB
+    fileSize: 50 * 1024 * 1024, // 50MB for project files
   },
   fileFilter: (req: any, file: any, cb: any) => {
-    if (file.mimetype === "application/pdf") {
+    if (file.mimetype === "text/xml" || file.mimetype === "application/xml" || file.originalname.endsWith(".xml")) {
       cb(null, true);
     } else {
-      cb(new Error("Only PDF files are allowed"));
+      cb(new Error("Only XML files are allowed"));
     }
   },
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Upload and analyze contract
-  app.post("/api/contracts/upload", upload.single("file"), async (req, res) => {
+  // Project routes
+  app.get("/api/projects", async (req, res) => {
+    try {
+      const projects = await storage.getAllProjects();
+      res.json(projects);
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      res.status(500).json({ error: "Failed to fetch projects" });
+    }
+  });
+
+  app.get("/api/projects/:id", async (req, res) => {
+    try {
+      const project = await storage.getProject(parseInt(req.params.id));
+      if (!project) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+      res.json(project);
+    } catch (error) {
+      console.error("Error fetching project:", error);
+      res.status(500).json({ error: "Failed to fetch project" });
+    }
+  });
+
+  app.post("/api/projects", async (req, res) => {
+    try {
+      const projectData = insertProjectSchema.parse(req.body);
+      const project = await storage.createProject(projectData);
+      res.json(project);
+    } catch (error) {
+      console.error("Error creating project:", error);
+      res.status(400).json({ 
+        error: error instanceof Error ? error.message : "Failed to create project" 
+      });
+    }
+  });
+
+  app.patch("/api/projects/:id", async (req, res) => {
+    try {
+      const project = await storage.updateProject(parseInt(req.params.id), req.body);
+      if (!project) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+      res.json(project);
+    } catch (error) {
+      console.error("Error updating project:", error);
+      res.status(400).json({ 
+        error: error instanceof Error ? error.message : "Failed to update project" 
+      });
+    }
+  });
+
+  app.delete("/api/projects/:id", async (req, res) => {
+    try {
+      await storage.deleteProject(parseInt(req.params.id));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      res.status(500).json({ error: "Failed to delete project" });
+    }
+  });
+
+  // Task routes
+  app.get("/api/projects/:projectId/tasks", async (req, res) => {
+    try {
+      const tasks = await storage.getTasksByProject(parseInt(req.params.projectId));
+      res.json(tasks);
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      res.status(500).json({ error: "Failed to fetch tasks" });
+    }
+  });
+
+  app.post("/api/tasks", async (req, res) => {
+    try {
+      const taskData = insertTaskSchema.parse(req.body);
+      const task = await storage.createTask(taskData);
+      res.json(task);
+    } catch (error) {
+      console.error("Error creating task:", error);
+      res.status(400).json({ 
+        error: error instanceof Error ? error.message : "Failed to create task" 
+      });
+    }
+  });
+
+  app.patch("/api/tasks/:id", async (req, res) => {
+    try {
+      const task = await storage.updateTask(parseInt(req.params.id), req.body);
+      if (!task) {
+        return res.status(404).json({ error: "Task not found" });
+      }
+      res.json(task);
+    } catch (error) {
+      console.error("Error updating task:", error);
+      res.status(400).json({ 
+        error: error instanceof Error ? error.message : "Failed to update task" 
+      });
+    }
+  });
+
+  app.delete("/api/tasks/:id", async (req, res) => {
+    try {
+      await storage.deleteTask(parseInt(req.params.id));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      res.status(500).json({ error: "Failed to delete task" });
+    }
+  });
+
+  // DCMA Assessment routes
+  app.get("/api/projects/:projectId/dcma-assessments", async (req, res) => {
+    try {
+      const assessments = await storage.getDcmaAssessmentsByProject(parseInt(req.params.projectId));
+      res.json(assessments);
+    } catch (error) {
+      console.error("Error fetching DCMA assessments:", error);
+      res.status(500).json({ error: "Failed to fetch DCMA assessments" });
+    }
+  });
+
+  app.get("/api/projects/:projectId/dcma-assessments/latest", async (req, res) => {
+    try {
+      const assessment = await storage.getLatestDcmaAssessment(parseInt(req.params.projectId));
+      if (!assessment) {
+        return res.status(404).json({ error: "No DCMA assessment found" });
+      }
+      res.json(assessment);
+    } catch (error) {
+      console.error("Error fetching latest DCMA assessment:", error);
+      res.status(500).json({ error: "Failed to fetch latest DCMA assessment" });
+    }
+  });
+
+  app.post("/api/dcma-assessments", async (req, res) => {
+    try {
+      const assessmentData = insertDcmaAssessmentSchema.parse(req.body);
+      const assessment = await storage.createDcmaAssessment(assessmentData);
+      res.json(assessment);
+    } catch (error) {
+      console.error("Error creating DCMA assessment:", error);
+      res.status(400).json({ 
+        error: error instanceof Error ? error.message : "Failed to create DCMA assessment" 
+      });
+    }
+  });
+
+  // NEC Compliance routes
+  app.get("/api/projects/:projectId/nec-compliance", async (req, res) => {
+    try {
+      const compliances = await storage.getNecComplianceByProject(parseInt(req.params.projectId));
+      res.json(compliances);
+    } catch (error) {
+      console.error("Error fetching NEC compliance:", error);
+      res.status(500).json({ error: "Failed to fetch NEC compliance" });
+    }
+  });
+
+  app.get("/api/projects/:projectId/nec-compliance/latest", async (req, res) => {
+    try {
+      const compliance = await storage.getLatestNecCompliance(parseInt(req.params.projectId));
+      if (!compliance) {
+        return res.status(404).json({ error: "No NEC compliance check found" });
+      }
+      res.json(compliance);
+    } catch (error) {
+      console.error("Error fetching latest NEC compliance:", error);
+      res.status(500).json({ error: "Failed to fetch latest NEC compliance" });
+    }
+  });
+
+  app.post("/api/nec-compliance", async (req, res) => {
+    try {
+      const complianceData = insertNecComplianceSchema.parse(req.body);
+      const compliance = await storage.createNecCompliance(complianceData);
+      res.json(compliance);
+    } catch (error) {
+      console.error("Error creating NEC compliance:", error);
+      res.status(400).json({ 
+        error: error instanceof Error ? error.message : "Failed to create NEC compliance check" 
+      });
+    }
+  });
+
+  // File upload route for Microsoft Project XML files
+  app.post("/api/projects/upload", upload.single("file"), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
       }
 
-      // Parse PDF using pdf-parse v1 API
-      let pdfData;
-      let fullText;
+      const xmlContent = req.file.buffer.toString('utf-8');
       
-      try {
-        pdfData = await pdfParse(req.file.buffer);
-        fullText = pdfData.text;
-        console.log(`✓ Extracted ${fullText.length} characters from PDF`);
-        console.log("First 500 chars:", fullText.substring(0, 500));
-      } catch (pdfError) {
-        console.error("PDF parsing error:", pdfError);
-        return res.status(400).json({ 
-          error: "Failed to parse PDF file. Please ensure the file is a valid PDF document." 
-        });
+      // Basic XML validation
+      if (!xmlContent.includes('<?xml')) {
+        return res.status(400).json({ error: "Invalid XML file" });
       }
 
-      if (!fullText || fullText.trim().length === 0) {
-        return res.status(400).json({ error: "Could not extract text from PDF" });
-      }
-
-      // Extract data using AI
-      const extractedData = await extractContractData(fullText);
-
-      // Validate and save to storage using schema
-      const contractData = insertContractSchema.parse({
+      // Parse basic project info from XML (simplified - can be enhanced later)
+      const projectName = req.file.originalname.replace('.xml', '');
+      
+      res.json({ 
+        success: true, 
         fileName: req.file.originalname,
-        fileSize: `${(req.file.size / (1024 * 1024)).toFixed(1)} MB`,
-        fullText,
-        extractedData,
+        projectName,
+        xmlContent 
       });
-
-      const contract = await storage.createContract(contractData);
-
-      res.json(contract);
     } catch (error) {
-      console.error("Error processing contract:", error);
-      
-      // Check if this is a PDF parsing error that escaped the inner catch
-      if (error instanceof Error && 
-          (error.message.includes("PDF") || 
-           error.message.includes("FormatError") ||
-           error.message.includes("Command token") ||
-           error.name === "FormatError")) {
-        return res.status(400).json({
-          error: "Failed to parse PDF file. Please ensure the file is a valid PDF document."
-        });
-      }
-      
-      // Check for OpenAI quota/auth errors
-      if (error instanceof Error && 
-          (error.message.includes("quota exceeded") || 
-           error.message.includes("authentication failed"))) {
-        return res.status(503).json({
-          error: error.message
-        });
-      }
-      
-      res.status(500).json({
-        error: error instanceof Error ? error.message : "Failed to process contract",
+      console.error("Error processing file:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Failed to process file" 
       });
-    }
-  });
-
-  // Get all contracts
-  app.get("/api/contracts", async (req, res) => {
-    try {
-      const contracts = await storage.getAllContracts();
-      res.json(contracts);
-    } catch (error) {
-      console.error("Error fetching contracts:", error);
-      res.status(500).json({ error: "Failed to fetch contracts" });
-    }
-  });
-
-  // Get single contract
-  app.get("/api/contracts/:id", async (req, res) => {
-    try {
-      const contract = await storage.getContract(req.params.id);
-      if (!contract) {
-        return res.status(404).json({ error: "Contract not found" });
-      }
-      res.json(contract);
-    } catch (error) {
-      console.error("Error fetching contract:", error);
-      res.status(500).json({ error: "Failed to fetch contract" });
-    }
-  });
-
-  // Delete contract
-  app.delete("/api/contracts/:id", async (req, res) => {
-    try {
-      await storage.deleteContract(req.params.id);
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Error deleting contract:", error);
-      res.status(500).json({ error: "Failed to delete contract" });
-    }
-  });
-
-  // Query contract
-  app.post("/api/contracts/:id/query", async (req, res) => {
-    try {
-      // Validate request body
-      if (!req.body || typeof req.body !== "object") {
-        return res.status(400).json({ error: "Invalid request body" });
-      }
-
-      const { question } = req.body;
-      
-      if (!question || typeof question !== "string" || question.trim().length === 0) {
-        return res.status(400).json({ error: "Question is required and must be a non-empty string" });
-      }
-
-      const contract = await storage.getContract(req.params.id);
-      if (!contract) {
-        return res.status(404).json({ error: "Contract not found" });
-      }
-
-      if (!contract.fullText) {
-        return res.status(400).json({ error: "Contract text not available" });
-      }
-
-      // Get answer from AI
-      const { answer, source } = await answerContractQuery(
-        contract.fullText,
-        question
-      );
-
-      // Validate and save query using schema
-      const queryData = insertQuerySchema.parse({
-        contractId: req.params.id,
-        question: question.trim(),
-        answer,
-        source,
-      });
-
-      const query = await storage.createQuery(queryData);
-
-      res.json(query);
-    } catch (error) {
-      console.error("Error processing query:", error);
-      
-      // Check for OpenAI quota/auth errors
-      if (error instanceof Error && 
-          (error.message.includes("quota exceeded") || 
-           error.message.includes("authentication failed"))) {
-        return res.status(503).json({
-          error: error.message
-        });
-      }
-      
-      res.status(500).json({
-        error: error instanceof Error ? error.message : "Failed to process query",
-      });
-    }
-  });
-
-  // Get queries for contract
-  app.get("/api/contracts/:id/queries", async (req, res) => {
-    try {
-      const queries = await storage.getQueriesByContract(req.params.id);
-      res.json(queries);
-    } catch (error) {
-      console.error("Error fetching queries:", error);
-      res.status(500).json({ error: "Failed to fetch queries" });
     }
   });
 
