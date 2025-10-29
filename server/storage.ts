@@ -87,7 +87,11 @@ export class MemStorage implements IStorage {
     const project = this.projects.get(id);
     if (!project) return undefined;
     
-    const updated: Project = { ...project, ...updates };
+    const updated: Project = { 
+      ...project, 
+      ...updates,
+      status: updates.status ?? project.status,
+    };
     this.projects.set(id, updated);
     return updated;
   }
@@ -149,7 +153,12 @@ export class MemStorage implements IStorage {
     const task = this.tasks.get(id);
     if (!task) return undefined;
     
-    const updated: Task = { ...task, ...updates };
+    const updated: Task = { 
+      ...task, 
+      ...updates,
+      isCriticalPath: updates.isCriticalPath ?? task.isCriticalPath,
+      isMilestone: updates.isMilestone ?? task.isMilestone,
+    };
     this.tasks.set(id, updated);
     return updated;
   }
