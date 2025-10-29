@@ -1,17 +1,19 @@
-# Construction Contract Analyzer
+# Microsoft Project Programme Analyzer
 
 ## Overview
 
-A professional web application designed for construction and legal professionals to extract and analyze key information from construction contract PDFs. The system uses AI-powered extraction to identify critical dates, access terms, and damages clauses with confidence scoring, enabling quick contract review and analysis.
+A professional web application for construction project managers and planners to upload, analyze, and assess Microsoft Project schedules against industry standards. The system provides automated DCMA 14-point compliance assessment and NEC contract compliance checking with detailed findings and metrics.
 
 **Core Functionality:**
-- PDF contract upload and text extraction
-- AI-powered data extraction using OpenAI GPT-5
-- Structured presentation of key contract terms (dates, access details, damages)
-- Natural language query interface for contract questions
-- Data export capabilities (JSON/CSV)
+- Microsoft Project file upload (.mpp/.xml) and parsing
+- Automated DCMA 14-point schedule quality assessment with real data analysis
+- NEC contract compliance checking
+- Project and task management with relationship tracking
+- Manual project data entry with task dependencies
+- Multi-project/programme tracking
+- Detailed compliance reports with specific findings and percentages
 
-**Target Users:** Construction managers, legal professionals, and contract administrators who need to quickly extract and verify specific information from construction contracts.
+**Target Users:** Construction project managers, planners, schedulers, and contract administrators who need to assess schedule quality and compliance against DCMA and NEC standards.
 
 ## User Preferences
 
@@ -55,24 +57,30 @@ Preferred communication style: Simple, everyday language.
 
 **API Design:**
 - RESTful endpoints under `/api` prefix
-- File upload handling via multer middleware (10MB PDF limit)
+- File upload handling via multer middleware (50MB limit for .mpp/.xml files)
 - JSON response format with error handling middleware
 - Request/response logging for API endpoints only
 
-**PDF Processing Pipeline:**
-1. Client uploads PDF via multipart/form-data
-2. Server validates file type (PDF only) and size
-3. pdf-parse library extracts raw text from PDF
-4. Text sent to OpenAI for structured data extraction
-5. Validated data stored in database
-6. Response returned to client with contract ID
+**Project File Processing Pipeline:**
+1. Client uploads .mpp or .xml file via multipart/form-data
+2. Server validates file type and size
+3. XML parser extracts project metadata and task structure
+4. Tasks with predecessors, durations, dates, resources are created
+5. Data stored in in-memory storage (MemStorage)
+6. Response returned to client with project ID
 
-**AI Integration:**
-- OpenAI GPT-5 API for contract data extraction
-- Structured JSON output with confidence scores (0-100)
-- Fixed schema for three categories: keyDates, accessDetails, damages
-- Each category contains 4 labeled fields with value and confidence
-- Text truncated to 12,000 characters for API cost/performance balance
+**DCMA Analysis Engine:**
+- Automated compliance analysis against 14 DCMA criteria
+- Analyzes real project and task data (not manual checkboxes)
+- Key criteria implemented:
+  - Logic completeness: validates predecessors/successors, identifies disconnected tasks
+  - High float detection: flags tasks with >44 days total float
+  - Resource assignments: checks ≥95% of tasks have resources
+  - High duration: identifies tasks >44 days
+  - Critical path validation
+  - Missed tasks: identifies past-due incomplete tasks
+- Returns detailed findings with counts, percentages, and specific metrics
+- Each criterion provides pass/fail with explanatory details
 
 ### Data Storage
 
@@ -83,19 +91,43 @@ Preferred communication style: Simple, everyday language.
 
 **Schema Design:**
 
-*Contracts Table:*
-- UUID primary key (auto-generated)
-- File metadata (name, size)
-- Upload timestamp
-- Full extracted text (stored for query capability)
-- Extracted data as JSONB (structured AI output)
-
-*Queries Table:*
-- UUID primary key
-- Foreign key to contracts
-- Question/answer pairs
-- Optional source citation
+*Projects Table:*
+- Serial ID primary key
+- Project name and description
+- Start and end dates
+- Status (active, completed, on-hold)
+- NEC compliance status
+- Project manager
 - Creation timestamp
+
+*Tasks Table:*
+- Serial ID primary key
+- Foreign key to projects
+- Task name and WBS code
+- Duration, start/end dates
+- Percent complete
+- Predecessors array (task dependencies)
+- Resources array
+- Critical path flag
+- Total float (in days)
+- Milestone flag
+
+*DCMA Assessments Table:*
+- Serial ID primary key
+- Foreign key to projects
+- Assessment date
+- 14 boolean fields for DCMA criteria results
+- Overall score (0-14)
+- Pass/fail status
+- Notes
+
+*NEC Compliance Table:*
+- Serial ID primary key
+- Foreign key to projects
+- Assessment date
+- 8 boolean fields for NEC compliance criteria
+- Overall compliance status
+- Notes
 
 **Storage Abstraction:**
 - IStorage interface for potential database swapping
@@ -109,14 +141,9 @@ Preferred communication style: Simple, everyday language.
 
 ### External Dependencies
 
-**AI Services:**
-- OpenAI API (GPT-5 model)
-- Used for contract data extraction and question answering
-- Requires OPENAI_API_KEY environment variable
-
 **Database:**
-- Neon Serverless PostgreSQL
-- Requires DATABASE_URL environment variable
+- PostgreSQL (configured for in-memory storage in development)
+- Neon Serverless PostgreSQL for production (optional)
 - Connection via @neondatabase/serverless driver
 
 **Third-Party Libraries:**
@@ -128,7 +155,8 @@ Preferred communication style: Simple, everyday language.
 - Validation: zod, drizzle-zod
 - Styling: tailwindcss, clsx, tailwind-merge, class-variance-authority
 - Date handling: date-fns
-- PDF parsing: pdf-parse
+- XML parsing: xml2js (for Microsoft Project XML files)
+- File upload: multer (for .mpp/.xml file handling)
 
 *Development Tools:*
 - TypeScript for type safety
@@ -138,12 +166,61 @@ Preferred communication style: Simple, everyday language.
 
 **Environment Configuration:**
 - NODE_ENV for environment detection
-- DATABASE_URL for PostgreSQL connection
-- OPENAI_API_KEY for AI features
+- DATABASE_URL for PostgreSQL connection (optional)
 - All sensitive config via environment variables
 
 **Build & Deployment:**
 - Development: Concurrent Vite dev server + tsx for backend
 - Production: Static frontend build + bundled Node.js server
-- Database migrations via drizzle-kit push command
+- Database migrations via drizzle-kit push command (when using PostgreSQL)
 - Client assets served from dist/public in production
+
+## Recent Changes
+
+### October 29, 2025 - Automated DCMA Analysis Implementation
+
+**Major Feature: Automated DCMA Compliance Analysis**
+- Transformed DCMA Assessment from manual checkbox system to fully automated analysis
+- Created `dcmaAnalyzer.ts` service that analyzes real project task data against all 14 DCMA criteria
+- Implemented sophisticated logic completeness check that:
+  - Builds successor map by scanning predecessor relationships
+  - Identifies legitimate boundary tasks (start tasks with no predecessors, end tasks with no successors)
+  - Excludes boundary tasks from violation count
+  - Detects disconnected tasks (no predecessors AND no successors)
+  - Calculates percentage based on internal tasks only
+  - Passes if ≤5% of internal tasks have incomplete logic
+
+**API Enhancements:**
+- Added GET `/api/projects/:projectId/dcma-analysis` endpoint for automated analysis
+- Added POST `/api/projects/:projectId/tasks` endpoint for creating tasks under specific projects
+- Enhanced date handling in schemas to accept ISO date strings and convert to Date objects
+
+**DCMA Criteria Implemented:**
+1. Logic completeness - validates task connections, identifies disconnected tasks
+2. Lead/lag validation - placeholder (data not in current schema)
+3. Hard constraints - placeholder (data not in current schema)
+4. Negative lags - placeholder (data not in current schema)
+5. High duration - identifies tasks >44 days
+6. Invalid dates - validates date ranges
+7. Resource assignments - checks ≥95% of tasks have resources
+8. Missed tasks - identifies past-due incomplete tasks
+9. High float - flags tasks with >44 days total float
+10. Critical path test - validates critical path exists
+11. Critical path length - checks project timeline alignment
+12. Baseline exists - verifies baseline dates
+13. SVI/BV validation - placeholder (requires earned value data)
+14. BCWS validation - placeholder (requires earned value data)
+
+**UI Improvements:**
+- Removed manual DCMA checkboxes from assessment creation
+- Added "Run Analysis" button for each project
+- Display detailed findings with specific metrics (e.g., "5 of 150 tasks (3.3%) have excessive float")
+- Show breakdown of start tasks, end tasks, and internal task violations
+- Maintain assessment history with detailed criterion-by-criterion results
+
+**Technical Details:**
+- Analysis engine returns structured findings object with counts, percentages, and pass/fail status
+- Criteria that pass the threshold show detailed success metrics
+- Criteria that fail show specific violation counts and affected task numbers
+- Overall score calculated as sum of passed criteria (0-14)
+- Assessment passes if score ≥10 (configurable threshold)
