@@ -74,22 +74,58 @@ export function analyzeDcmaCompliance(
     }
   });
   
-  // Count tasks missing either predecessors or successors (excluding milestones)
-  const tasksWithoutLogic = tasks.filter(t => {
-    if (t.isMilestone) return false; // milestones are exempt
-    
+  // Count tasks with incomplete logic (excluding milestones and legitimate boundary tasks)
+  // DCMA criterion 1: "All activities except for the first and last shall have 
+  // at least one predecessor and at least one successor"
+  
+  // Identify legitimate boundary tasks that are allowed to lack connections
+  // Start tasks: no predecessors BUT must have successors (to avoid counting disconnected tasks)
+  const startTaskIds = new Set(
+    tasks.filter(t => {
+      if (t.isMilestone) return false;
+      const hasPredecessors = t.predecessors && t.predecessors.length > 0;
+      const hasSuccessors = tasksWithSuccessors.has(t.id.toString());
+      return !hasPredecessors && hasSuccessors; // Valid start: no preds, has succs
+    }).map(t => t.id.toString())
+  );
+  
+  // End tasks: no successors BUT must have predecessors (to avoid counting disconnected tasks)
+  const endTaskIds = new Set(
+    tasks.filter(t => {
+      if (t.isMilestone) return false;
+      const hasPredecessors = t.predecessors && t.predecessors.length > 0;
+      const hasSuccessors = tasksWithSuccessors.has(t.id.toString());
+      return hasPredecessors && !hasSuccessors; // Valid end: has preds, no succs
+    }).map(t => t.id.toString())
+  );
+  
+  // All boundary tasks (allowed to lack one side of logic)
+  const boundaryTaskIds = new Set([...startTaskIds, ...endTaskIds]);
+  
+  // Filter to get internal tasks only (non-milestone, non-boundary)
+  const internalTasks = tasks.filter(t => 
+    !t.isMilestone && !boundaryTaskIds.has(t.id.toString())
+  );
+  
+  // Count internal tasks missing predecessors or successors
+  const internalTasksWithMissingLogic = internalTasks.filter(t => {
     const hasPredecessors = t.predecessors && t.predecessors.length > 0;
     const hasSuccessors = tasksWithSuccessors.has(t.id.toString());
     
+    // Internal tasks must have BOTH predecessors and successors
     return !hasPredecessors || !hasSuccessors;
   }).length;
   
-  const logicPercentage = (tasksWithoutLogic / tasks.length) * 100;
+  // Calculate percentage based on internal tasks only
+  const logicPercentage = internalTasks.length > 0 
+    ? (internalTasksWithMissingLogic / internalTasks.length) * 100
+    : 0;
   const logicComplete = logicPercentage <= 5;
+  
   findings.logicComplete = {
     passed: logicComplete,
-    details: `${tasksWithoutLogic} of ${tasks.length} tasks (${logicPercentage.toFixed(1)}%) lack proper logic relationships (missing predecessors or successors)`,
-    count: tasksWithoutLogic,
+    details: `${internalTasksWithMissingLogic} of ${internalTasks.length} internal tasks (${logicPercentage.toFixed(1)}%) missing logic; ${startTaskIds.size} start tasks, ${endTaskIds.size} end tasks (boundary tasks excluded)`,
+    count: internalTasksWithMissingLogic,
     percentage: logicPercentage,
   };
 
