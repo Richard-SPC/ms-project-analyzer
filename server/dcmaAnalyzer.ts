@@ -62,14 +62,33 @@ export function analyzeDcmaCompliance(
   }
 
   // 1. Logic is Complete - All tasks should have predecessors/successors
-  const tasksWithoutLogic = tasks.filter(
-    (t) => !t.isMilestone && (!t.predecessors || t.predecessors.length === 0)
-  ).length;
+  // Build a map of which tasks are referenced as successors
+  const taskIds = new Set(tasks.map(t => t.id.toString()));
+  const tasksWithSuccessors = new Set<string>();
+  
+  tasks.forEach(task => {
+    if (task.predecessors && task.predecessors.length > 0) {
+      task.predecessors.forEach(predId => {
+        tasksWithSuccessors.add(predId);
+      });
+    }
+  });
+  
+  // Count tasks missing either predecessors or successors (excluding milestones)
+  const tasksWithoutLogic = tasks.filter(t => {
+    if (t.isMilestone) return false; // milestones are exempt
+    
+    const hasPredecessors = t.predecessors && t.predecessors.length > 0;
+    const hasSuccessors = tasksWithSuccessors.has(t.id.toString());
+    
+    return !hasPredecessors || !hasSuccessors;
+  }).length;
+  
   const logicPercentage = (tasksWithoutLogic / tasks.length) * 100;
   const logicComplete = logicPercentage <= 5;
   findings.logicComplete = {
     passed: logicComplete,
-    details: `${tasksWithoutLogic} of ${tasks.length} tasks (${logicPercentage.toFixed(1)}%) lack proper logic relationships`,
+    details: `${tasksWithoutLogic} of ${tasks.length} tasks (${logicPercentage.toFixed(1)}%) lack proper logic relationships (missing predecessors or successors)`,
     count: tasksWithoutLogic,
     percentage: logicPercentage,
   };
