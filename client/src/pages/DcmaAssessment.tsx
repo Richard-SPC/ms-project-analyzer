@@ -7,12 +7,14 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel } fr
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertDcmaAssessmentSchema, type Project, type DcmaAssessment } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { FileCheck, Plus, CheckCircle2, XCircle } from "lucide-react";
+import { FileCheck, Plus, CheckCircle2, XCircle, Info, AlertCircle } from "lucide-react";
 import { z } from "zod";
 
 const formSchema = insertDcmaAssessmentSchema.extend({
@@ -22,20 +24,104 @@ const formSchema = insertDcmaAssessmentSchema.extend({
 type FormData = z.infer<typeof formSchema>;
 
 const dcmaCriteria = [
-  { key: "logicComplete", label: "1. Logic is complete" },
-  { key: "leadLagsValid", label: "2. Leads & lags are valid" },
-  { key: "hardConstraintsValid", label: "3. Hard constraints are valid" },
-  { key: "negativeLagsValid", label: "4. Negative lags are valid" },
-  { key: "highDurationValid", label: "5. High duration activities are valid" },
-  { key: "invalidDatesValid", label: "6. Invalid dates are valid" },
-  { key: "resourcesAssigned", label: "7. Resources are assigned" },
-  { key: "missedTasksValid", label: "8. Missed tasks are valid" },
-  { key: "highFloatValid", label: "9. High float tasks are valid" },
-  { key: "criticalPathTest", label: "10. Critical path test" },
-  { key: "criticalPathLength", label: "11. Critical path length is valid" },
-  { key: "baselineExists", label: "12. Baseline exists" },
-  { key: "sviBvValid", label: "13. SVI/BV is valid" },
-  { key: "bcwsValid", label: "14. BCWS is valid" },
+  { 
+    key: "logicComplete", 
+    label: "1. Logic is complete",
+    description: "All activities (except start/finish milestones) must have at least one predecessor and one successor relationship.",
+    details: "Ensures schedule logic flow is complete with no 'dangling' activities. Activities without predecessors may start too early; activities without successors may not drive the end date. Industry standard: ≤5% of total activities may lack logic.",
+    threshold: "≤5% of activities missing predecessors/successors"
+  },
+  { 
+    key: "leadLagsValid", 
+    label: "2. Leads & lags are valid",
+    description: "Lead and lag durations on dependencies should be minimal, justified, and properly documented.",
+    details: "Excessive leads/lags can mask scheduling issues or create unrealistic dependencies. Leads allow successors to start before predecessors finish; lags delay the start of successors. Best practice: ≤10% of relationships should have leads/lags.",
+    threshold: "≤10% of relationships with leads/lags"
+  },
+  { 
+    key: "hardConstraintsValid", 
+    label: "3. Hard constraints are valid",
+    description: "Minimize use of hard date constraints (Must Start On, Must Finish On, Start No Earlier Than, etc.).",
+    details: "Hard constraints override logic-driven scheduling and reduce schedule flexibility. They prevent the schedule from responding dynamically to changes. Acceptable constraints include project start/finish and externally imposed milestones.",
+    threshold: "≤5% of activities with hard constraints"
+  },
+  { 
+    key: "negativeLagsValid", 
+    label: "4. Negative lags are valid",
+    description: "Negative lag relationships (leads) should be minimized and properly justified with documentation.",
+    details: "Negative lags are mathematically equivalent to leads but can indicate unrealistic assumptions about task overlap or parallel work. They often hide poor planning or overly optimistic estimates. Industry best practice is to eliminate them entirely.",
+    threshold: "0% of relationships with negative lags (ideal)"
+  },
+  { 
+    key: "highDurationValid", 
+    label: "5. High duration activities are valid",
+    description: "Activities should not have excessively long durations that prevent meaningful status tracking.",
+    details: "Tasks longer than 44 working days (approximately 2 months) are difficult to track accurately and may hide problems. Long-duration tasks should be broken into smaller, measurable work packages. Exceptions may include level-of-effort activities.",
+    threshold: "≤5% of activities with duration >44 days"
+  },
+  { 
+    key: "invalidDatesValid", 
+    label: "6. Invalid dates are valid",
+    description: "All activity dates should be realistic, fall within the project timeline, and use proper calendars.",
+    details: "Checks for activities with dates outside the project start/finish window, weekend/holiday work on non-working calendars, or illogical sequences. Invalid dates often indicate data entry errors or calendar misconfigurations.",
+    threshold: "0% of activities with invalid dates"
+  },
+  { 
+    key: "resourcesAssigned", 
+    label: "7. Resources are assigned",
+    description: "All activities should have resources (labor, equipment, materials) assigned to enable resource analysis.",
+    details: "Resource assignments enable resource loading analysis, identification of over-allocation, and cost tracking. Activities without resources cannot be analyzed for resource conflicts. Industry standard: ≥95% of activities should have resource assignments.",
+    threshold: "≥95% of activities with resources assigned"
+  },
+  { 
+    key: "missedTasksValid", 
+    label: "8. Missed tasks are valid",
+    description: "Activities scheduled in the past should be 100% complete or have valid explanations for delays.",
+    details: "Incomplete tasks with finish dates in the past indicate schedule slippage and require corrective action. The schedule must accurately reflect current project status. Missed tasks affect critical path validity and forecast accuracy.",
+    threshold: "≤5% of past-due activities incomplete"
+  },
+  { 
+    key: "highFloatValid", 
+    label: "9. High float tasks are valid",
+    description: "Activities with excessive total float (slack time) should be reviewed for logic errors or improper constraints.",
+    details: "Tasks with >44 days of float may indicate missing logic relationships, incorrect calendars, or activities not properly integrated into the schedule network. High float can also indicate tasks that don't drive project completion.",
+    threshold: "≤5% of activities with float >44 days"
+  },
+  { 
+    key: "criticalPathTest", 
+    label: "10. Critical path test",
+    description: "Verify that a valid critical path exists and is properly identified throughout the schedule network.",
+    details: "The critical path defines the longest sequence of dependent activities driving project completion. The longest path test ensures the critical path is properly calculated with no logic breaks. Critical path should be continuous from project start to finish.",
+    threshold: "Continuous critical path from start to finish"
+  },
+  { 
+    key: "criticalPathLength", 
+    label: "11. Critical path length is valid",
+    description: "The critical path duration should be reasonable and consistent with project scope and constraints.",
+    details: "Validates that the critical path length aligns with contract milestones, project objectives, and historical performance data. An unrealistically short critical path may indicate overly optimistic planning; an excessively long path suggests inefficient planning.",
+    threshold: "Critical path aligns with contract milestones ±10%"
+  },
+  { 
+    key: "baselineExists", 
+    label: "12. Baseline exists",
+    description: "A performance measurement baseline must exist for schedule variance analysis and earned value management.",
+    details: "The baseline schedule represents the approved plan against which progress is measured. Without a baseline, schedule variance analysis and trend forecasting are impossible. Baseline should be established before work begins and maintained throughout the project.",
+    threshold: "Baseline exists and is properly maintained"
+  },
+  { 
+    key: "sviBvValid", 
+    label: "13. SVI/BV is valid",
+    description: "Schedule Variance Index (SVI) and Budget Variance (BV) should be within acceptable thresholds.",
+    details: "SVI measures schedule efficiency (SV/PV). SVI <0.95 indicates behind schedule; >1.0 indicates ahead. BV tracks budget variance. Acceptable range: SVI 0.95-1.05. These metrics are critical for earned value management and forecasting.",
+    threshold: "0.95 ≤ SVI ≤ 1.05"
+  },
+  { 
+    key: "bcwsValid", 
+    label: "14. BCWS is valid",
+    description: "Budgeted Cost of Work Scheduled (BCWS/PV) must be properly configured for earned value calculations.",
+    details: "BCWS represents the time-phased budget baseline. It must equal the total project budget (BAC) and align with the schedule. Proper BCWS configuration enables accurate earned value analysis, variance tracking, and forecasting of estimate at completion.",
+    threshold: "BCWS = BAC with proper time-phasing"
+  },
 ];
 
 export default function DcmaAssessment() {
@@ -155,10 +241,24 @@ export default function DcmaAssessment() {
                               data-testid={`checkbox-${criterion.key}`}
                             />
                           </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel className="text-sm font-normal cursor-pointer">
-                              {criterion.label}
-                            </FormLabel>
+                          <div className="space-y-1 leading-none flex-1">
+                            <div className="flex items-center gap-2">
+                              <FormLabel className="text-sm font-normal cursor-pointer flex-1">
+                                {criterion.label}
+                              </FormLabel>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Info className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-help" />
+                                </TooltipTrigger>
+                                <TooltipContent side="left" className="max-w-sm">
+                                  <p className="font-semibold mb-1">{criterion.label}</p>
+                                  <p className="text-sm mb-2">{criterion.description}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    <span className="font-semibold">Threshold:</span> {criterion.threshold}
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </div>
                           </div>
                         </FormItem>
                       )}
@@ -265,6 +365,51 @@ export default function DcmaAssessment() {
                       );
                     })}
                   </div>
+                  
+                  <Accordion type="single" collapsible className="mt-4">
+                    <AccordionItem value="details">
+                      <AccordionTrigger className="text-sm font-medium">
+                        <div className="flex items-center gap-2">
+                          <AlertCircle className="h-4 w-4" />
+                          View Detailed Criteria Information
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <div className="space-y-4 pt-2">
+                          {dcmaCriteria.map((criterion) => {
+                            const value = assessment[criterion.key as keyof DcmaAssessment];
+                            return (
+                              <div key={criterion.key} className="border-l-2 pl-3 py-2" 
+                                   style={{ borderColor: value ? '#16a34a' : '#ef4444' }}>
+                                <div className="flex items-start gap-2 mb-1">
+                                  {value ? (
+                                    <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                                  ) : (
+                                    <XCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+                                  )}
+                                  <div className="flex-1">
+                                    <h4 className="text-sm font-semibold">{criterion.label}</h4>
+                                  </div>
+                                </div>
+                                <p className="text-sm text-muted-foreground mb-2 ml-6">
+                                  {criterion.description}
+                                </p>
+                                <p className="text-xs text-muted-foreground ml-6">
+                                  {criterion.details}
+                                </p>
+                                <div className="mt-2 ml-6 bg-muted/50 rounded-md px-3 py-2">
+                                  <p className="text-xs">
+                                    <span className="font-semibold">Industry Threshold:</span> {criterion.threshold}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
+
                   {assessment.notes && (
                     <div className="mt-4 pt-4 border-t">
                       <p className="text-sm text-muted-foreground">Notes:</p>
