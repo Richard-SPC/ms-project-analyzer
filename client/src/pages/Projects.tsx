@@ -98,6 +98,7 @@ export default function Projects() {
       return await res.json();
     },
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       toast({
         title: "File uploaded",
         description: `Successfully uploaded ${data.fileName}`,
