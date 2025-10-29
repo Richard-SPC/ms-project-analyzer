@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import multer from "multer";
 import { storage } from "./storage";
+import { parseMppFile, getProjectNameFromFileName } from "./mppParser";
 import { 
   insertProjectSchema, 
   insertTaskSchema, 
@@ -15,10 +16,13 @@ const upload = multer({
     fileSize: 50 * 1024 * 1024, // 50MB for project files
   },
   fileFilter: (req: any, file: any, cb: any) => {
-    if (file.mimetype === "text/xml" || file.mimetype === "application/xml" || file.originalname.endsWith(".xml")) {
+    const isXml = file.mimetype === "text/xml" || file.mimetype === "application/xml" || file.originalname.endsWith(".xml");
+    const isMpp = file.mimetype === "application/vnd.ms-project" || file.originalname.endsWith(".mpp");
+    
+    if (isXml || isMpp) {
       cb(null, true);
     } else {
-      cb(new Error("Only XML files are allowed"));
+      cb(new Error("Only XML and MPP files are allowed"));
     }
   },
 });
@@ -251,29 +255,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // File upload route for Microsoft Project XML files
+  // File upload route for Microsoft Project files (XML and MPP)
   app.post("/api/projects/upload", upload.single("file"), async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
       }
 
-      const xmlContent = req.file.buffer.toString('utf-8');
-      
-      // Basic XML validation
-      if (!xmlContent.includes('<?xml')) {
-        return res.status(400).json({ error: "Invalid XML file" });
-      }
+      const fileName = req.file.originalname;
+      const isMpp = fileName.toLowerCase().endsWith('.mpp');
+      const isXml = fileName.toLowerCase().endsWith('.xml');
 
-      // Parse basic project info from XML (simplified - can be enhanced later)
-      const projectName = req.file.originalname.replace('.xml', '');
-      
-      res.json({ 
-        success: true, 
-        fileName: req.file.originalname,
-        projectName,
-        xmlContent 
-      });
+      if (isMpp) {
+        // Handle MPP file
+        const result = await parseMppFile(req.file.buffer, fileName);
+        
+        if (!result.success) {
+          return res.status(400).json({ 
+            error: result.message,
+            fileName: result.fileName,
+            fileSize: result.fileSize,
+            requiresConversion: true
+          });
+        }
+
+        // If we successfully parsed (future enhancement), create project
+        res.json(result);
+      } else if (isXml) {
+        // Handle XML file
+        const xmlContent = req.file.buffer.toString('utf-8');
+        
+        // Basic XML validation
+        if (!xmlContent.includes('<?xml')) {
+          return res.status(400).json({ error: "Invalid XML file" });
+        }
+
+        // Parse basic project info from XML (simplified - can be enhanced later)
+        const projectName = getProjectNameFromFileName(fileName);
+        
+        res.json({ 
+          success: true, 
+          fileName: req.file.originalname,
+          projectName,
+          xmlContent 
+        });
+      } else {
+        return res.status(400).json({ 
+          error: "Unsupported file format. Please upload XML or MPP files." 
+        });
+      }
     } catch (error) {
       console.error("Error processing file:", error);
       res.status(500).json({ 

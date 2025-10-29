@@ -143,12 +143,12 @@ export default function Projects() {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle>Upload Microsoft Project File</DialogTitle>
-                <DialogDescription>Upload a .xml file from Microsoft Project</DialogDescription>
+                <DialogDescription>Upload a .xml or .mpp file from Microsoft Project</DialogDescription>
               </DialogHeader>
               <div className="py-4">
                 <Input 
                   type="file" 
-                  accept=".xml" 
+                  accept=".xml,.mpp" 
                   onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
                   data-testid="input-file-upload" 
                 />
