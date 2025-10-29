@@ -180,9 +180,9 @@ export function analyzeDcmaCompliance(
 
   // 11. Critical Path Length is Valid
   // Check if critical path aligns with project dates
-  const criticalPathLength = project.startDate && project.endDate;
+  const criticalPathLength = !!(project.startDate && project.endDate);
   findings.criticalPathLength = {
-    passed: !!criticalPathLength,
+    passed: criticalPathLength,
     details: criticalPathLength
       ? "Critical path length aligns with project timeline"
       : "Project start/end dates not defined",
