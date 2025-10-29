@@ -103,6 +103,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/projects/:projectId/tasks", async (req, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      
+      // Ensure the project exists
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+      
+      // Add projectId to the request body if not present
+      const taskData = insertTaskSchema.parse({
+        ...req.body,
+        projectId: projectId
+      });
+      
+      const task = await storage.createTask(taskData);
+      res.json(task);
+    } catch (error) {
+      console.error("Error creating task:", error);
+      res.status(400).json({ 
+        error: error instanceof Error ? error.message : "Failed to create task" 
+      });
+    }
+  });
+
   app.post("/api/tasks", async (req, res) => {
     try {
       const taskData = insertTaskSchema.parse(req.body);
