@@ -41,5 +41,5 @@ export interface ExtractedData {
   accessDates: Array<{ partOfSite: string; date: string }>;
   completionDates: Array<{ section: string; completionDate: string }>;
   accessDetails: Array<{ label: string; value: string | null; confidence: number }>;
-  damages: Array<{ label: string; value: string | null; confidence: number }>;
+  damages: Array<{ type: string; amount: string }>;
 }

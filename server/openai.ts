@@ -37,10 +37,7 @@ Respond with JSON in this exact format:
     {"label": "Site Contact", "value": "name or role", "confidence": 0-100}
   ],
   "damages": [
-    {"label": "Liquidated Damages", "value": "amount per day/week or description", "confidence": 0-100},
-    {"label": "Delay Damages", "value": "amount or description", "confidence": 0-100},
-    {"label": "Performance Bond", "value": "amount or percentage", "confidence": 0-100},
-    {"label": "Retention Amount", "value": "amount or percentage", "confidence": 0-100}
+    {"type": "Damage or penalty type", "amount": "Amount, percentage, or description"}
   ]
 }
 
@@ -48,6 +45,7 @@ IMPORTANT:
 - Extract actual information from the contract text
 - For accessDates, look for site access dates or phased access schedules. Extract each area/phase with its corresponding access date as separate entries.
 - For completionDates, look for completion dates including overall completion date and any sectional completion dates. If there's only one completion date, list it as "Overall Completion". For sectional completions, extract each section with its completion date.
+- For damages, extract all types of damages, penalties, bonds, and retention amounts. Include liquidated damages, delay damages, performance bonds, retention amounts, and any other financial penalties or securities.
 - If you find relevant information, include it even if the label doesn't match exactly
 - Set confidence based on clarity: 90-100 for explicit dates/amounts, 70-89 for clear descriptions, 50-69 for implied information, below 50 for uncertain
 - Only set value to null and confidence to 0 if the information truly cannot be found`,

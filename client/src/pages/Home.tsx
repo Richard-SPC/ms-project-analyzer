@@ -6,11 +6,12 @@ import { FilePreviewCard } from "@/components/FilePreviewCard";
 import { ExtractedDataSection } from "@/components/ExtractedDataSection";
 import { AccessDatesTable } from "@/components/AccessDatesTable";
 import { CompletionDatesTable } from "@/components/CompletionDatesTable";
+import { DamagesTable } from "@/components/DamagesTable";
 import { QueryInterface } from "@/components/QueryInterface";
 import { ExportButtons } from "@/components/ExportButtons";
 import { EmptyState } from "@/components/EmptyState";
 import { useToast } from "@/hooks/use-toast";
-import { Calendar, DoorOpen, AlertTriangle } from "lucide-react";
+import { Calendar, DoorOpen } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import type { Contract, Query, ExtractedData } from "@shared/schema";
 
@@ -237,7 +238,11 @@ export default function Home() {
                     <CompletionDatesTable data={extractedData.completionDates} />
                   )}
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {extractedData?.damages && extractedData.damages.length > 0 && (
+                    <DamagesTable data={extractedData.damages} />
+                  )}
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <ExtractedDataSection
                       title="Key Dates"
                       icon={<Calendar className="h-5 w-5 text-primary" />}
@@ -247,11 +252,6 @@ export default function Home() {
                       title="Access Details"
                       icon={<DoorOpen className="h-5 w-5 text-primary" />}
                       data={extractedData?.accessDetails || []}
-                    />
-                    <ExtractedDataSection
-                      title="Damages & Penalties"
-                      icon={<AlertTriangle className="h-5 w-5 text-chart-3" />}
-                      data={extractedData?.damages || []}
                     />
                   </div>
                 </TabsContent>
