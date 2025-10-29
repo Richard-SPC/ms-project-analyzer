@@ -136,6 +136,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // DCMA Assessment routes
+  app.get("/api/dcma-assessments", async (req, res) => {
+    try {
+      // Get all assessments across all projects
+      const allProjects = await storage.getAllProjects();
+      const allAssessments = [];
+      
+      for (const project of allProjects) {
+        const assessments = await storage.getDcmaAssessmentsByProject(project.id);
+        allAssessments.push(...assessments);
+      }
+      
+      // Sort by assessment date, newest first
+      allAssessments.sort((a, b) => b.assessmentDate.getTime() - a.assessmentDate.getTime());
+      
+      res.json(allAssessments);
+    } catch (error) {
+      console.error("Error fetching all DCMA assessments:", error);
+      res.status(500).json({ error: "Failed to fetch DCMA assessments" });
+    }
+  });
+
   app.get("/api/projects/:projectId/dcma-assessments", async (req, res) => {
     try {
       const assessments = await storage.getDcmaAssessmentsByProject(parseInt(req.params.projectId));
@@ -173,6 +194,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // NEC Compliance routes
+  app.get("/api/nec-compliance", async (req, res) => {
+    try {
+      // Get all compliance checks across all projects
+      const allProjects = await storage.getAllProjects();
+      const allCompliances = [];
+      
+      for (const project of allProjects) {
+        const compliances = await storage.getNecComplianceByProject(project.id);
+        allCompliances.push(...compliances);
+      }
+      
+      // Sort by assessment date, newest first
+      allCompliances.sort((a, b) => b.assessmentDate.getTime() - a.assessmentDate.getTime());
+      
+      res.json(allCompliances);
+    } catch (error) {
+      console.error("Error fetching all NEC compliance checks:", error);
+      res.status(500).json({ error: "Failed to fetch NEC compliance checks" });
+    }
+  });
+
   app.get("/api/projects/:projectId/nec-compliance", async (req, res) => {
     try {
       const compliances = await storage.getNecComplianceByProject(parseInt(req.params.projectId));
