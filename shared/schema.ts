@@ -1,45 +1,111 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const contracts = pgTable("contracts", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  fileName: text("file_name").notNull(),
-  fileSize: text("file_size").notNull(),
-  uploadedAt: timestamp("uploaded_at").notNull().defaultNow(),
-  extractedData: jsonb("extracted_data"),
-  fullText: text("full_text"),
+// Projects table - represents individual Microsoft Project files or programs
+export const projects = pgTable("projects", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  status: text("status").notNull().default("active"), // active, completed, on-hold
+  necCompliant: boolean("nec_compliant"),
+  projectManager: text("project_manager"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-export const queries = pgTable("queries", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  contractId: varchar("contract_id").notNull().references(() => contracts.id),
-  question: text("question").notNull(),
-  answer: text("answer").notNull(),
-  source: text("source"),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+// Tasks table - individual project tasks/activities
+export const tasks = pgTable("tasks", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  wbsCode: text("wbs_code"), // Work Breakdown Structure code
+  duration: integer("duration"), // in days
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  percentComplete: decimal("percent_complete", { precision: 5, scale: 2 }).default("0"),
+  predecessors: text("predecessors").array(), // task dependencies
+  resources: text("resources").array(),
+  isCriticalPath: boolean("is_critical_path").default(false),
+  totalFloat: integer("total_float"), // in days
+  isMilestone: boolean("is_milestone").default(false),
 });
 
-export const insertContractSchema = createInsertSchema(contracts).omit({
-  id: true,
-  uploadedAt: true,
+// DCMA 14-point assessments
+export const dcmaAssessments = pgTable("dcma_assessments", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  assessmentDate: timestamp("assessment_date").defaultNow().notNull(),
+  
+  // 14 DCMA metrics (boolean pass/fail for each)
+  logicComplete: boolean("logic_complete"), // 1. Logic is complete
+  leadLagsValid: boolean("lead_lags_valid"), // 2. Leads & lags are valid
+  hardConstraintsValid: boolean("hard_constraints_valid"), // 3. Hard constraints are valid
+  negativeLagsValid: boolean("negative_lags_valid"), // 4. Negative lags are valid
+  highDurationValid: boolean("high_duration_valid"), // 5. High duration activities are valid
+  invalidDatesValid: boolean("invalid_dates_valid"), // 6. Invalid dates are valid
+  resourcesAssigned: boolean("resources_assigned"), // 7. Resources are assigned
+  missedTasksValid: boolean("missed_tasks_valid"), // 8. Missed tasks are valid
+  highFloatValid: boolean("high_float_valid"), // 9. High float tasks are valid
+  criticalPathTest: boolean("critical_path_test"), // 10. Critical path test
+  criticalPathLength: boolean("critical_path_length"), // 11. Critical path length is valid
+  baselineExists: boolean("baseline_exists"), // 12. Baseline exists
+  sviBvValid: boolean("svi_bv_valid"), // 13. SVI/BV is valid
+  bcwsValid: boolean("bcws_valid"), // 14. BCWS is valid
+  
+  overallScore: integer("overall_score"), // 0-14
+  passed: boolean("passed"), // true if score >= threshold
+  notes: text("notes"),
 });
 
-export const insertQuerySchema = createInsertSchema(queries).omit({
+// NEC Compliance checks
+export const necCompliance = pgTable("nec_compliance", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  assessmentDate: timestamp("assessment_date").defaultNow().notNull(),
+  
+  // NEC compliance criteria
+  programmeDefined: boolean("programme_defined"), // Is there a defined programme?
+  acceptedProgramme: boolean("accepted_programme"), // Has the programme been accepted?
+  regularUpdates: boolean("regular_updates"), // Are regular updates provided?
+  earlyWarningsManaged: boolean("early_warnings_managed"), // Are early warnings properly managed?
+  compensationEventsTracked: boolean("compensation_events_tracked"), // Are compensation events tracked?
+  keyDatesIdentified: boolean("key_dates_identified"), // Are key dates identified?
+  completionDateRealistic: boolean("completion_date_realistic"), // Is the completion date realistic?
+  resourcesAdequate: boolean("resources_adequate"), // Are resources adequate?
+  
+  overallCompliant: boolean("overall_compliant"),
+  notes: text("notes"),
+});
+
+// Insert schemas
+export const insertProjectSchema = createInsertSchema(projects).omit({
   id: true,
   createdAt: true,
 });
 
-export type InsertContract = z.infer<typeof insertContractSchema>;
-export type Contract = typeof contracts.$inferSelect;
-export type InsertQuery = z.infer<typeof insertQuerySchema>;
-export type Query = typeof queries.$inferSelect;
+export const insertTaskSchema = createInsertSchema(tasks).omit({
+  id: true,
+});
 
-export interface ExtractedData {
-  keyDates: Array<{ label: string; value: string | null; confidence: number }>;
-  accessDates: Array<{ partOfSite: string; date: string }>;
-  completionDates: Array<{ section: string; completionDate: string }>;
-  accessDetails: Array<{ label: string; value: string | null; confidence: number }>;
-  damages: Array<{ type: string; amount: string }>;
-}
+export const insertDcmaAssessmentSchema = createInsertSchema(dcmaAssessments).omit({
+  id: true,
+});
+
+export const insertNecComplianceSchema = createInsertSchema(necCompliance).omit({
+  id: true,
+});
+
+// Types
+export type Project = typeof projects.$inferSelect;
+export type InsertProject = z.infer<typeof insertProjectSchema>;
+
+export type Task = typeof tasks.$inferSelect;
+export type InsertTask = z.infer<typeof insertTaskSchema>;
+
+export type DcmaAssessment = typeof dcmaAssessments.$inferSelect;
+export type InsertDcmaAssessment = z.infer<typeof insertDcmaAssessmentSchema>;
+
+export type NecCompliance = typeof necCompliance.$inferSelect;
+export type InsertNecCompliance = z.infer<typeof insertNecComplianceSchema>;
