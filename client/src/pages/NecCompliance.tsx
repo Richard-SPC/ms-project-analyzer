@@ -21,7 +21,7 @@ const necCriteria = [
     key: "acceptedProgramme", 
     label: "Has the programme been accepted?",
     description: "The programme must be formally accepted and baselined for performance measurement.",
-    details: "Acceptance is indicated by project status (active or completed) and proper baseline establishment. At least 90% of tasks should have baseline dates for meaningful variance analysis."
+    details: "Acceptance is indicated by comprehensive baseline coverage. At least 90% of tasks should have start and end dates, demonstrating a formally accepted and baselined programme."
   },
   { 
     key: "regularUpdates", 

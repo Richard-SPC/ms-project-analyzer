@@ -64,21 +64,22 @@ export function analyzeNecCompliance(
   };
 
   // 2. Has the programme been accepted?
-  // Check if baseline dates exist or project is in active status
+  // Check if tasks have proper dates indicating a baselined/accepted programme
+  // An accepted programme should have comprehensive date coverage
   const tasksWithBaseline = tasks.filter(t => {
-    // In our schema we don't have explicit baseline fields, but we can check if tasks have proper dates
-    // and the project is in active or completed status
+    // Tasks with both start and end dates indicate a properly baselined schedule
     return t.startDate && t.endDate;
   });
-  const hasBaseline = project.status === "active" || project.status === "completed";
   const baselineCoverage = tasks.length > 0 ? (tasksWithBaseline.length / tasks.length) * 100 : 0;
-  const acceptedProgramme = hasBaseline && baselineCoverage >= 90;
+  // Programme is considered accepted if it has good date coverage (≥90%)
+  // This indicates formal acceptance and baseline establishment
+  const acceptedProgramme = baselineCoverage >= 90;
   
   findings.acceptedProgramme = {
     passed: acceptedProgramme,
     details: acceptedProgramme
-      ? `Programme appears accepted: Project status is "${project.status}" and ${tasksWithBaseline.length} of ${tasks.length} tasks (${baselineCoverage.toFixed(1)}%) have baseline dates.`
-      : `Programme not fully accepted: Project status is "${project.status}" and ${tasksWithBaseline.length} of ${tasks.length} tasks (${baselineCoverage.toFixed(1)}%) have dates (requires ≥90%).`,
+      ? `Programme appears accepted: ${tasksWithBaseline.length} of ${tasks.length} tasks (${baselineCoverage.toFixed(1)}%) have baseline dates, indicating formal programme acceptance.`
+      : `Programme acceptance unclear: ${tasksWithBaseline.length} of ${tasks.length} tasks (${baselineCoverage.toFixed(1)}%) have dates (requires ≥90% for accepted baseline).`,
     count: tasksWithBaseline.length,
     percentage: baselineCoverage,
   };

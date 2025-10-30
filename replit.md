@@ -177,6 +177,41 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### October 30, 2025 - Automated NEC Compliance Analysis Implementation
+
+**Major Feature: Automated NEC Compliance Analysis**
+- Transformed NEC Compliance from manual checkbox system to fully automated analysis
+- Created `necAnalyzer.ts` service that analyzes real project task data against 8 NEC contract compliance criteria
+- Automated analysis examines schedule quality, programme acceptance, updates, risk management, and resource adequacy
+
+**NEC Criteria Implemented:**
+1. Programme Defined - checks project dates and task date coverage (≥90%)
+2. Accepted Programme - validates comprehensive baseline coverage (≥90% tasks with dates)
+3. Regular Updates - verifies progress tracking on tasks (≥80%)
+4. Early Warnings Managed - checks for high float and missed tasks (≤15%)
+5. Compensation Events Tracked - validates contingency planning (moderate float ≥5%)
+6. Key Dates Identified - ensures milestone tasks exist
+7. Completion Date Realistic - validates critical path alignment (≤30 days variance)
+8. Resources Adequate - checks resource assignments (≥80%)
+
+**API Enhancements:**
+- Added GET `/api/projects/:projectId/nec-analysis` endpoint for automated NEC analysis
+- Returns detailed findings with counts, percentages, and explanatory text for each criterion
+- Overall compliance status based on all 8 criteria passing
+
+**UI Improvements:**
+- Removed manual NEC checkboxes from compliance creation
+- Added "Run Analysis" button for each project
+- Display detailed findings in accordion-based results dialog
+- Show specific metrics (e.g., "5 of 8 tasks (62.5%) have progress tracking")
+- Maintain assessment history with detailed criterion-by-criterion results
+
+**Technical Details:**
+- Analysis engine returns structured findings object similar to DCMA analyzer
+- Each criterion provides pass/fail status with detailed explanatory text
+- Overall compliant only if all 8 criteria pass
+- Assessments can be saved with optional notes for future reference
+
 ### October 29, 2025 - Automated DCMA Analysis Implementation
 
 **Major Feature: Automated DCMA Compliance Analysis**
