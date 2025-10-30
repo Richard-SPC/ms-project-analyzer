@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { parseMppFile, getProjectNameFromFileName } from "./mppParser";
 import { parseProjectXml } from "./xmlParser";
 import { analyzeDcmaCompliance } from "./dcmaAnalyzer";
+import { analyzeNecCompliance } from "./necAnalyzer";
 import { 
   insertProjectSchema, 
   insertTaskSchema, 
@@ -293,6 +294,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching latest NEC compliance:", error);
       res.status(500).json({ error: "Failed to fetch latest NEC compliance" });
+    }
+  });
+
+  // Run automated NEC compliance analysis on a project
+  app.get("/api/projects/:projectId/nec-analysis", async (req, res) => {
+    try {
+      const projectId = parseInt(req.params.projectId);
+      
+      // Get project
+      const project = await storage.getProject(projectId);
+      if (!project) {
+        return res.status(404).json({ error: "Project not found" });
+      }
+
+      // Get all tasks for the project
+      const tasks = await storage.getTasksByProject(projectId);
+      
+      // Run automated analysis
+      const analysisResult = analyzeNecCompliance(project, tasks);
+      
+      res.json(analysisResult);
+    } catch (error) {
+      console.error("Error running NEC analysis:", error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : "Failed to run NEC analysis" 
+      });
     }
   });
 
