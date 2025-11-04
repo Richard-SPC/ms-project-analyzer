@@ -33,8 +33,11 @@ export function analyzeDcmaCompliance(
 ): DcmaAnalysisResult {
   const findings: DcmaAnalysisResult["findings"] = {};
   
-  // If no tasks, most checks will fail
-  if (tasks.length === 0) {
+  // Filter out summary tasks - they shouldn't be analyzed for DCMA compliance
+  const workTasks = tasks.filter(t => !t.isSummary);
+  
+  // If no work tasks (excluding summaries), most checks will fail
+  if (workTasks.length === 0) {
     return {
       logicComplete: false,
       leadLagsValid: false,
@@ -55,7 +58,9 @@ export function analyzeDcmaCompliance(
       findings: {
         noTasks: {
           passed: false,
-          details: "No tasks found in project. Cannot perform DCMA analysis.",
+          details: tasks.length > 0 
+            ? `All ${tasks.length} tasks are summary tasks. Cannot perform DCMA analysis on summary tasks.`
+            : "No tasks found in project. Cannot perform DCMA analysis.",
         },
       },
     };
@@ -63,10 +68,10 @@ export function analyzeDcmaCompliance(
 
   // 1. Logic is Complete - All tasks should have predecessors/successors
   // Build a map of which tasks are referenced as successors
-  const taskIds = new Set(tasks.map(t => t.id.toString()));
+  const taskIds = new Set(workTasks.map(t => t.id.toString()));
   const tasksWithSuccessors = new Set<string>();
   
-  tasks.forEach(task => {
+  workTasks.forEach(task => {
     if (task.predecessors && task.predecessors.length > 0) {
       task.predecessors.forEach(predId => {
         tasksWithSuccessors.add(predId);
@@ -81,7 +86,7 @@ export function analyzeDcmaCompliance(
   // Identify legitimate boundary tasks that are allowed to lack connections
   // Start tasks: no predecessors BUT must have successors (to avoid counting disconnected tasks)
   const startTaskIds = new Set(
-    tasks.filter(t => {
+    workTasks.filter(t => {
       if (t.isMilestone) return false;
       const hasPredecessors = t.predecessors && t.predecessors.length > 0;
       const hasSuccessors = tasksWithSuccessors.has(t.id.toString());
@@ -91,7 +96,7 @@ export function analyzeDcmaCompliance(
   
   // End tasks: no successors BUT must have predecessors (to avoid counting disconnected tasks)
   const endTaskIds = new Set(
-    tasks.filter(t => {
+    workTasks.filter(t => {
       if (t.isMilestone) return false;
       const hasPredecessors = t.predecessors && t.predecessors.length > 0;
       const hasSuccessors = tasksWithSuccessors.has(t.id.toString());
@@ -103,7 +108,7 @@ export function analyzeDcmaCompliance(
   const boundaryTaskIds = new Set([...startTaskIds, ...endTaskIds]);
   
   // Filter to get internal tasks only (non-milestone, non-boundary)
-  const internalTasks = tasks.filter(t => 
+  const internalTasks = workTasks.filter(t => 
     !t.isMilestone && !boundaryTaskIds.has(t.id.toString())
   );
   
@@ -153,19 +158,19 @@ export function analyzeDcmaCompliance(
   };
 
   // 5. High Duration Activities are Valid - ≤5% tasks >44 days
-  const highDurationTasks = tasks.filter((t) => t.duration && t.duration > 44).length;
-  const highDurationPercentage = (highDurationTasks / tasks.length) * 100;
+  const highDurationTasks = workTasks.filter((t) => t.duration && t.duration > 44).length;
+  const highDurationPercentage = (highDurationTasks / workTasks.length) * 100;
   const highDurationValid = highDurationPercentage <= 5;
   findings.highDurationValid = {
     passed: highDurationValid,
-    details: `${highDurationTasks} of ${tasks.length} tasks (${highDurationPercentage.toFixed(1)}%) exceed 44 days duration`,
+    details: `${highDurationTasks} of ${workTasks.length} tasks (${highDurationPercentage.toFixed(1)}%) exceed 44 days duration`,
     count: highDurationTasks,
     percentage: highDurationPercentage,
   };
 
   // 6. Invalid Dates are Valid - All dates within project window
   const now = new Date();
-  const invalidDateTasks = tasks.filter((t) => {
+  const invalidDateTasks = workTasks.filter((t) => {
     if (!t.startDate || !t.endDate) return false;
     const start = new Date(t.startDate);
     const end = new Date(t.endDate);
@@ -180,52 +185,52 @@ export function analyzeDcmaCompliance(
   const invalidDatesValid = invalidDateTasks === 0;
   findings.invalidDatesValid = {
     passed: invalidDatesValid,
-    details: `${invalidDateTasks} of ${tasks.length} tasks have invalid or out-of-range dates`,
+    details: `${invalidDateTasks} of ${workTasks.length} tasks have invalid or out-of-range dates`,
     count: invalidDateTasks,
   };
 
   // 7. Resources are Assigned - ≥95% tasks should have resources
-  const tasksWithResources = tasks.filter(
+  const tasksWithResources = workTasks.filter(
     (t) => t.resources && t.resources.length > 0
   ).length;
-  const resourcePercentage = (tasksWithResources / tasks.length) * 100;
+  const resourcePercentage = (tasksWithResources / workTasks.length) * 100;
   const resourcesAssigned = resourcePercentage >= 95;
   findings.resourcesAssigned = {
     passed: resourcesAssigned,
-    details: `${tasksWithResources} of ${tasks.length} tasks (${resourcePercentage.toFixed(1)}%) have resources assigned`,
+    details: `${tasksWithResources} of ${workTasks.length} tasks (${resourcePercentage.toFixed(1)}%) have resources assigned`,
     count: tasksWithResources,
     percentage: resourcePercentage,
   };
 
   // 8. Missed Tasks are Valid - Past-due incomplete tasks ≤5%
-  const missedTasks = tasks.filter((t) => {
+  const missedTasks = workTasks.filter((t) => {
     if (!t.endDate) return false;
     const end = new Date(t.endDate);
     const pctComplete = parseFloat(t.percentComplete?.toString() || "0");
     return end < now && pctComplete < 100;
   }).length;
-  const missedPercentage = (missedTasks / tasks.length) * 100;
+  const missedPercentage = (missedTasks / workTasks.length) * 100;
   const missedTasksValid = missedPercentage <= 5;
   findings.missedTasksValid = {
     passed: missedTasksValid,
-    details: `${missedTasks} of ${tasks.length} tasks (${missedPercentage.toFixed(1)}%) are past due but incomplete`,
+    details: `${missedTasks} of ${workTasks.length} tasks (${missedPercentage.toFixed(1)}%) are past due but incomplete`,
     count: missedTasks,
     percentage: missedPercentage,
   };
 
   // 9. High Float Tasks are Valid - ≤5% tasks with >44 days float
-  const highFloatTasks = tasks.filter((t) => t.totalFloat && t.totalFloat > 44).length;
-  const highFloatPercentage = (highFloatTasks / tasks.length) * 100;
+  const highFloatTasks = workTasks.filter((t) => t.totalFloat && t.totalFloat > 44).length;
+  const highFloatPercentage = (highFloatTasks / workTasks.length) * 100;
   const highFloatValid = highFloatPercentage <= 5;
   findings.highFloatValid = {
     passed: highFloatValid,
-    details: `${highFloatTasks} of ${tasks.length} tasks (${highFloatPercentage.toFixed(1)}%) have excessive float (>44 days)`,
+    details: `${highFloatTasks} of ${workTasks.length} tasks (${highFloatPercentage.toFixed(1)}%) have excessive float (>44 days)`,
     count: highFloatTasks,
     percentage: highFloatPercentage,
   };
 
   // 10. Critical Path Test - Continuous critical path exists
-  const criticalPathTasks = tasks.filter((t) => t.isCriticalPath).length;
+  const criticalPathTasks = workTasks.filter((t) => t.isCriticalPath).length;
   const criticalPathTest = criticalPathTasks > 0;
   findings.criticalPathTest = {
     passed: criticalPathTest,

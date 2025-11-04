@@ -43,8 +43,11 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
       : [projectData.Tasks.Task];
 
     for (const xmlTask of taskList) {
-      // Skip summary tasks (those with children) or null tasks
+      // Skip null tasks
       if (!xmlTask || !xmlTask.Name) continue;
+      
+      // Detect if this is a summary task
+      const isSummary = xmlTask.Summary === '1' || xmlTask.Summary === 'true' || xmlTask.Summary === true;
 
       // Parse task dates
       const taskStart = xmlTask.Start ? new Date(xmlTask.Start) : undefined;
@@ -108,6 +111,7 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
         isCriticalPath: xmlTask.Critical === '1' || xmlTask.Critical === 'true' || xmlTask.Critical === true,
         totalFloat: xmlTask.TotalSlack ? parseInt(String(xmlTask.TotalSlack)) : undefined,
         isMilestone: xmlTask.Milestone === '1' || xmlTask.Milestone === 'true' || xmlTask.Milestone === true,
+        isSummary,
       });
     }
   }

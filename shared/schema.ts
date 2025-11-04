@@ -30,6 +30,7 @@ export const tasks = pgTable("tasks", {
   isCriticalPath: boolean("is_critical_path").default(false),
   totalFloat: integer("total_float"), // in days
   isMilestone: boolean("is_milestone").default(false),
+  isSummary: boolean("is_summary").default(false), // summary tasks group subtasks
 });
 
 // DCMA 14-point assessments

@@ -26,8 +26,11 @@ export function analyzeNecCompliance(
 ): NecAnalysisResult {
   const findings: NecAnalysisResult["findings"] = {};
   
-  // If no tasks, most checks will fail
-  if (tasks.length === 0) {
+  // Filter out summary tasks - they shouldn't be analyzed for compliance
+  const workTasks = tasks.filter(t => !t.isSummary);
+  
+  // If no work tasks (excluding summaries), most checks will fail
+  if (workTasks.length === 0) {
     return {
       programmeDefined: false,
       acceptedProgramme: false,
@@ -41,7 +44,9 @@ export function analyzeNecCompliance(
       findings: {
         noTasks: {
           passed: false,
-          details: "No tasks found in project. Cannot perform NEC compliance analysis.",
+          details: tasks.length > 0 
+            ? `All ${tasks.length} tasks are summary tasks. Cannot perform NEC compliance analysis on summary tasks.`
+            : "No tasks found in project. Cannot perform NEC compliance analysis.",
         },
       },
     };
@@ -50,15 +55,15 @@ export function analyzeNecCompliance(
   // 1. Is there a defined programme?
   // Check if project has start/end dates and tasks with dates
   const hasProjectDates = project.startDate && project.endDate;
-  const tasksWithDates = tasks.filter(t => t.startDate && t.endDate);
-  const datesCoverage = tasks.length > 0 ? (tasksWithDates.length / tasks.length) * 100 : 0;
+  const tasksWithDates = workTasks.filter(t => t.startDate && t.endDate);
+  const datesCoverage = workTasks.length > 0 ? (tasksWithDates.length / workTasks.length) * 100 : 0;
   const programmeDefined = hasProjectDates && datesCoverage >= 90;
   
   findings.programmeDefined = {
     passed: programmeDefined,
     details: programmeDefined
-      ? `Programme is defined with project dates and ${tasksWithDates.length} of ${tasks.length} tasks (${datesCoverage.toFixed(1)}%) have start/end dates.`
-      : `Programme incomplete: ${!hasProjectDates ? 'Project dates missing. ' : ''}${tasksWithDates.length} of ${tasks.length} tasks (${datesCoverage.toFixed(1)}%) have dates (requires ≥90%).`,
+      ? `Programme is defined with project dates and ${tasksWithDates.length} of ${workTasks.length} tasks (${datesCoverage.toFixed(1)}%) have start/end dates.`
+      : `Programme incomplete: ${!hasProjectDates ? 'Project dates missing. ' : ''}${tasksWithDates.length} of ${workTasks.length} tasks (${datesCoverage.toFixed(1)}%) have dates (requires ≥90%).`,
     count: tasksWithDates.length,
     percentage: datesCoverage,
   };
@@ -66,11 +71,11 @@ export function analyzeNecCompliance(
   // 2. Has the programme been accepted?
   // Check if tasks have proper dates indicating a baselined/accepted programme
   // An accepted programme should have comprehensive date coverage
-  const tasksWithBaseline = tasks.filter(t => {
+  const tasksWithBaseline = workTasks.filter(t => {
     // Tasks with both start and end dates indicate a properly baselined schedule
     return t.startDate && t.endDate;
   });
-  const baselineCoverage = tasks.length > 0 ? (tasksWithBaseline.length / tasks.length) * 100 : 0;
+  const baselineCoverage = workTasks.length > 0 ? (tasksWithBaseline.length / workTasks.length) * 100 : 0;
   // Programme is considered accepted if it has good date coverage (≥90%)
   // This indicates formal acceptance and baseline establishment
   const acceptedProgramme = baselineCoverage >= 90;
@@ -78,54 +83,54 @@ export function analyzeNecCompliance(
   findings.acceptedProgramme = {
     passed: acceptedProgramme,
     details: acceptedProgramme
-      ? `Programme appears accepted: ${tasksWithBaseline.length} of ${tasks.length} tasks (${baselineCoverage.toFixed(1)}%) have baseline dates, indicating formal programme acceptance.`
-      : `Programme acceptance unclear: ${tasksWithBaseline.length} of ${tasks.length} tasks (${baselineCoverage.toFixed(1)}%) have dates (requires ≥90% for accepted baseline).`,
+      ? `Programme appears accepted: ${tasksWithBaseline.length} of ${workTasks.length} tasks (${baselineCoverage.toFixed(1)}%) have baseline dates, indicating formal programme acceptance.`
+      : `Programme acceptance unclear: ${tasksWithBaseline.length} of ${workTasks.length} tasks (${baselineCoverage.toFixed(1)}%) have dates (requires ≥90% for accepted baseline).`,
     count: tasksWithBaseline.length,
     percentage: baselineCoverage,
   };
 
   // 3. Are regular updates provided?
   // Check if tasks have progress tracking (percent complete values)
-  const tasksWithProgress = tasks.filter(t => {
+  const tasksWithProgress = workTasks.filter(t => {
     const percentComplete = parseFloat(t.percentComplete?.toString() || "0");
     // Consider a task tracked if it has any progress value or is 0% (intentional tracking)
     return t.percentComplete !== null && t.percentComplete !== undefined;
   });
-  const progressCoverage = tasks.length > 0 ? (tasksWithProgress.length / tasks.length) * 100 : 0;
+  const progressCoverage = workTasks.length > 0 ? (tasksWithProgress.length / workTasks.length) * 100 : 0;
   const regularUpdates = progressCoverage >= 80;
   
   findings.regularUpdates = {
     passed: regularUpdates,
     details: regularUpdates
-      ? `Regular updates evident: ${tasksWithProgress.length} of ${tasks.length} tasks (${progressCoverage.toFixed(1)}%) have progress tracking.`
-      : `Insufficient progress tracking: ${tasksWithProgress.length} of ${tasks.length} tasks (${progressCoverage.toFixed(1)}%) tracked (requires ≥80%).`,
+      ? `Regular updates evident: ${tasksWithProgress.length} of ${workTasks.length} tasks (${progressCoverage.toFixed(1)}%) have progress tracking.`
+      : `Insufficient progress tracking: ${tasksWithProgress.length} of ${workTasks.length} tasks (${progressCoverage.toFixed(1)}%) tracked (requires ≥80%).`,
     count: tasksWithProgress.length,
     percentage: progressCoverage,
   };
 
   // 4. Are early warnings properly managed?
   // Check for high float tasks and missed tasks (potential warning indicators)
-  const highFloatTasks = tasks.filter(t => {
+  const highFloatTasks = workTasks.filter(t => {
     const totalFloat = t.totalFloat || 0;
     return totalFloat > 44; // DCMA standard threshold
   });
   
   const now = new Date();
-  const missedTasks = tasks.filter(t => {
+  const missedTasks = workTasks.filter(t => {
     if (!t.endDate) return false;
     const percentComplete = parseFloat(t.percentComplete?.toString() || "0");
     return new Date(t.endDate) < now && percentComplete < 100;
   });
   
   const totalWarningTasks = highFloatTasks.length + missedTasks.length;
-  const warningPercentage = tasks.length > 0 ? (totalWarningTasks / tasks.length) * 100 : 0;
+  const warningPercentage = workTasks.length > 0 ? (totalWarningTasks / workTasks.length) * 100 : 0;
   const earlyWarningsManaged = warningPercentage <= 15; // Allow up to 15% warning indicators
   
   findings.earlyWarningsManaged = {
     passed: earlyWarningsManaged,
     details: earlyWarningsManaged
-      ? `Early warnings managed: ${totalWarningTasks} of ${tasks.length} tasks (${warningPercentage.toFixed(1)}%) show warning indicators (${highFloatTasks.length} high float, ${missedTasks.length} missed).`
-      : `Early warnings need attention: ${totalWarningTasks} of ${tasks.length} tasks (${warningPercentage.toFixed(1)}%) show warning indicators (${highFloatTasks.length} high float, ${missedTasks.length} missed). Threshold is ≤15%.`,
+      ? `Early warnings managed: ${totalWarningTasks} of ${workTasks.length} tasks (${warningPercentage.toFixed(1)}%) show warning indicators (${highFloatTasks.length} high float, ${missedTasks.length} missed).`
+      : `Early warnings need attention: ${totalWarningTasks} of ${workTasks.length} tasks (${warningPercentage.toFixed(1)}%) show warning indicators (${highFloatTasks.length} high float, ${missedTasks.length} missed). Threshold is ≤15%.`,
     count: totalWarningTasks,
     percentage: warningPercentage,
   };
@@ -133,40 +138,40 @@ export function analyzeNecCompliance(
   // 5. Are compensation events tracked?
   // This is difficult to determine from schedule alone
   // We'll check if there are tasks with significant float that might represent contingency
-  const contingencyTasks = tasks.filter(t => {
+  const contingencyTasks = workTasks.filter(t => {
     const totalFloat = t.totalFloat || 0;
     return totalFloat > 10 && totalFloat <= 44; // Moderate float might indicate tracked contingencies
   });
-  const contingencyPercentage = tasks.length > 0 ? (contingencyTasks.length / tasks.length) * 100 : 0;
+  const contingencyPercentage = workTasks.length > 0 ? (contingencyTasks.length / workTasks.length) * 100 : 0;
   // This is a soft criterion - we'll pass if there's reasonable contingency in the schedule
-  const compensationEventsTracked = contingencyPercentage >= 5 || tasks.length < 20;
+  const compensationEventsTracked = contingencyPercentage >= 5 || workTasks.length < 20;
   
   findings.compensationEventsTracked = {
     passed: compensationEventsTracked,
     details: compensationEventsTracked
-      ? `Schedule includes contingency: ${contingencyTasks.length} of ${tasks.length} tasks (${contingencyPercentage.toFixed(1)}%) have moderate float for compensation events.`
-      : `Limited contingency tracking: ${contingencyTasks.length} of ${tasks.length} tasks (${contingencyPercentage.toFixed(1)}%) have float for events (suggests ≥5% for larger projects).`,
+      ? `Schedule includes contingency: ${contingencyTasks.length} of ${workTasks.length} tasks (${contingencyPercentage.toFixed(1)}%) have moderate float for compensation events.`
+      : `Limited contingency tracking: ${contingencyTasks.length} of ${workTasks.length} tasks (${contingencyPercentage.toFixed(1)}%) have float for events (suggests ≥5% for larger projects).`,
     count: contingencyTasks.length,
     percentage: contingencyPercentage,
   };
 
   // 6. Are key dates identified?
   // Check for milestone tasks
-  const milestoneTasks = tasks.filter(t => t.isMilestone);
-  const hasSufficientMilestones = milestoneTasks.length >= Math.min(3, Math.ceil(tasks.length / 20));
+  const milestoneTasks = workTasks.filter(t => t.isMilestone);
+  const hasSufficientMilestones = milestoneTasks.length >= Math.min(3, Math.ceil(workTasks.length / 20));
   const keyDatesIdentified = hasSufficientMilestones;
   
   findings.keyDatesIdentified = {
     passed: keyDatesIdentified,
     details: keyDatesIdentified
       ? `Key dates identified: ${milestoneTasks.length} milestone tasks mark important dates.`
-      : `Insufficient milestones: ${milestoneTasks.length} milestones found. Larger programmes should have at least ${Math.min(3, Math.ceil(tasks.length / 20))} key dates.`,
+      : `Insufficient milestones: ${milestoneTasks.length} milestones found. Larger programmes should have at least ${Math.min(3, Math.ceil(workTasks.length / 20))} key dates.`,
     count: milestoneTasks.length,
   };
 
   // 7. Is the completion date realistic?
   // Check if critical path length aligns with project end date
-  const criticalPathTasks = tasks.filter(t => t.isCriticalPath);
+  const criticalPathTasks = workTasks.filter(t => t.isCriticalPath);
   
   if (criticalPathTasks.length > 0 && project.endDate) {
     // Find the latest end date among critical path tasks
@@ -199,15 +204,15 @@ export function analyzeNecCompliance(
 
   // 8. Are resources adequate?
   // Check if sufficient tasks have resources assigned
-  const tasksWithResources = tasks.filter(t => t.resources && t.resources.length > 0);
-  const resourceCoverage = tasks.length > 0 ? (tasksWithResources.length / tasks.length) * 100 : 0;
+  const tasksWithResources = workTasks.filter(t => t.resources && t.resources.length > 0);
+  const resourceCoverage = workTasks.length > 0 ? (tasksWithResources.length / workTasks.length) * 100 : 0;
   const resourcesAdequate = resourceCoverage >= 80;
   
   findings.resourcesAdequate = {
     passed: resourcesAdequate,
     details: resourcesAdequate
-      ? `Resources adequate: ${tasksWithResources.length} of ${tasks.length} tasks (${resourceCoverage.toFixed(1)}%) have assigned resources.`
-      : `Insufficient resource allocation: ${tasksWithResources.length} of ${tasks.length} tasks (${resourceCoverage.toFixed(1)}%) have resources (requires ≥80%).`,
+      ? `Resources adequate: ${tasksWithResources.length} of ${workTasks.length} tasks (${resourceCoverage.toFixed(1)}%) have assigned resources.`
+      : `Insufficient resource allocation: ${tasksWithResources.length} of ${workTasks.length} tasks (${resourceCoverage.toFixed(1)}%) have resources (requires ≥80%).`,
     count: tasksWithResources.length,
     percentage: resourceCoverage,
   };

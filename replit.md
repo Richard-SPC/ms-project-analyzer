@@ -177,6 +177,27 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes
 
+### November 4, 2025 - Summary Task Filtering
+
+**Feature: Summary Task Exclusion from Analysis**
+- Added `isSummary` boolean field to tasks schema to track Microsoft Project summary tasks
+- Updated XML parser to detect and mark summary tasks from uploaded files
+- Modified DCMA analyzer to filter out summary tasks before analysis
+- Modified NEC analyzer to filter out summary tasks before analysis
+- All compliance metrics and percentages now calculated based on work tasks only
+
+**Technical Details:**
+- Summary tasks are filtered at the start of each analyzer function: `workTasks = tasks.filter(t => !t.isSummary)`
+- All task counts, percentages, and thresholds reference work tasks only
+- Helpful error message when all tasks are summary tasks
+- Both DCMA and NEC analyzers use consistent filtering approach
+
+**Rationale:**
+Summary tasks in Microsoft Project are organizational groupings that roll up subtask data. They should not be analyzed for compliance as they:
+- Don't represent actual work
+- Have calculated dates/durations from subtasks
+- Can artificially inflate or deflate compliance metrics
+
 ### October 30, 2025 - Automated NEC Compliance Analysis Implementation
 
 **Major Feature: Automated NEC Compliance Analysis**
