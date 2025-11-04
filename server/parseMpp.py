@@ -6,60 +6,78 @@ Outputs JSON format that can be consumed by Node.js
 
 import sys
 import json
-from mpxj import ProjectReader
+import jpype
 
 def parse_mpp_file(file_path):
     """Parse MPP file and return project data as JSON"""
     try:
+        # Import after JVM is started
+        from org.mpxj.reader import UniversalProjectReader
+        
         # Read the project file
-        project = ProjectReader(file_path)
+        project_file = UniversalProjectReader().read(file_path)
+        
+        # Get project properties
+        properties = project_file.getProjectProperties()
         
         # Extract project metadata
         project_data = {
-            "name": project.project_properties.get("project_title") or project.project_properties.get("subject") or "Untitled Project",
-            "startDate": str(project.project_properties.get("start_date")) if project.project_properties.get("start_date") else None,
-            "finishDate": str(project.project_properties.get("finish_date")) if project.project_properties.get("finish_date") else None,
-            "projectManager": project.project_properties.get("manager") or project.project_properties.get("author") or "",
-            "description": project.project_properties.get("comments") or project.project_properties.get("subject") or ""
+            "name": str(properties.getProjectTitle() or properties.getSubject() or "Untitled Project"),
+            "startDate": str(properties.getStartDate()) if properties.getStartDate() else None,
+            "finishDate": str(properties.getFinishDate()) if properties.getFinishDate() else None,
+            "projectManager": str(properties.getManager() or properties.getAuthor() or ""),
+            "description": str(properties.getComments() or properties.getSubject() or "")
         }
         
         # Extract tasks
         tasks_data = []
-        for task in project.tasks:
+        for task in project_file.getTasks():
             # Skip null tasks or tasks without names
-            if not task or not task.name:
+            if not task or not task.getName():
                 continue
             
             # Determine if this is a summary task
-            is_summary = task.summary if hasattr(task, 'summary') else False
+            is_summary = bool(task.getSummary()) if task.getSummary() is not None else False
             
             # Extract predecessors
             predecessors = []
-            if task.predecessors:
-                for pred in task.predecessors:
-                    if pred.source_task and pred.source_task.unique_id:
-                        predecessors.append(str(pred.source_task.unique_id))
+            if task.getPredecessors():
+                for pred in task.getPredecessors():
+                    source_task = pred.getSourceTask()
+                    if source_task and source_task.getUniqueID():
+                        predecessors.append(str(source_task.getUniqueID()))
             
             # Extract resources
             resources = []
-            if task.resource_assignments:
-                for assignment in task.resource_assignments:
-                    if assignment.resource and assignment.resource.name:
-                        resources.append(assignment.resource.name)
+            if task.getResourceAssignments():
+                for assignment in task.getResourceAssignments():
+                    resource = assignment.getResource()
+                    if resource and resource.getName():
+                        resources.append(str(resource.getName()))
+            
+            # Get duration in days
+            duration_val = None
+            if task.getDuration():
+                duration_val = int(task.getDuration().getDuration())
+            
+            # Get total float/slack in days
+            total_float = 0
+            if task.getTotalSlack():
+                total_float = float(task.getTotalSlack().getDuration())
             
             # Build task data
             task_data = {
-                "name": task.name,
-                "wbsCode": task.wbs or "",
-                "startDate": str(task.start) if task.start else None,
-                "endDate": str(task.finish) if task.finish else None,
-                "duration": int(task.duration.days) if task.duration else None,
-                "percentComplete": str(task.percent_complete) if task.percent_complete is not None else "0",
+                "name": str(task.getName()),
+                "wbsCode": str(task.getWBS() or ""),
+                "startDate": str(task.getStart()) if task.getStart() else None,
+                "endDate": str(task.getFinish()) if task.getFinish() else None,
+                "duration": duration_val,
+                "percentComplete": str(task.getPercentageComplete() or 0),
                 "predecessors": predecessors,
                 "resources": resources,
-                "isCriticalPath": task.critical if hasattr(task, 'critical') else False,
-                "totalFloat": float(task.total_slack.days) if task.total_slack else 0,
-                "isMilestone": task.milestone if hasattr(task, 'milestone') else False,
+                "isCriticalPath": bool(task.getCritical()) if task.getCritical() is not None else False,
+                "totalFloat": total_float,
+                "isMilestone": bool(task.getMilestone()) if task.getMilestone() is not None else False,
                 "isSummary": is_summary
             }
             
@@ -75,9 +93,11 @@ def parse_mpp_file(file_path):
         return result
         
     except Exception as e:
+        import traceback
         return {
             "success": False,
-            "error": str(e)
+            "error": str(e),
+            "traceback": traceback.format_exc()
         }
 
 def main():
@@ -85,9 +105,18 @@ def main():
         print(json.dumps({"success": False, "error": "No file path provided"}))
         sys.exit(1)
     
-    file_path = sys.argv[1]
-    result = parse_mpp_file(file_path)
-    print(json.dumps(result))
+    # Start the JVM (required for MPXJ)
+    if not jpype.isJVMStarted():
+        jpype.startJVM()
+    
+    try:
+        file_path = sys.argv[1]
+        result = parse_mpp_file(file_path)
+        print(json.dumps(result))
+    finally:
+        # Shutdown JVM
+        if jpype.isJVMStarted():
+            jpype.shutdownJVM()
 
 if __name__ == "__main__":
     main()

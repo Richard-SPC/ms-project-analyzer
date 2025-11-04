@@ -64,10 +64,13 @@ Preferred communication style: Simple, everyday language.
 **Project File Processing Pipeline:**
 1. Client uploads .mpp or .xml file via multipart/form-data
 2. Server validates file type and size
-3. XML parser extracts project metadata and task structure
+3. File parser extracts project metadata and task structure:
+   - **XML files**: Parsed using xml2js library
+   - **MPP files**: Parsed using MPXJ Python library (via Python subprocess)
 4. Tasks with predecessors, durations, dates, resources are created
-5. Data stored in in-memory storage (MemStorage)
-6. Response returned to client with project ID
+5. Summary tasks are automatically detected and marked with `isSummary` flag
+6. Data stored in in-memory storage (MemStorage)
+7. Response returned to client with project ID
 
 **DCMA Analysis Engine:**
 - Automated compliance analysis against 14 DCMA criteria
@@ -156,6 +159,7 @@ Preferred communication style: Simple, everyday language.
 - Styling: tailwindcss, clsx, tailwind-merge, class-variance-authority
 - Date handling: date-fns
 - XML parsing: xml2js (for Microsoft Project XML files)
+- MPP parsing: MPXJ Python library (mpxj, jpype1) via subprocess
 - File upload: multer (for .mpp/.xml file handling)
 
 *Development Tools:*
@@ -176,6 +180,34 @@ Preferred communication style: Simple, everyday language.
 - Client assets served from dist/public in production
 
 ## Recent Changes
+
+### November 4, 2025 - Full MPP File Support
+
+**Feature: Native Microsoft Project Binary File Parsing**
+- Added full .mpp file parsing using MPXJ open-source library
+- Installed Python 3.11 and MPXJ Python wrapper (mpxj, jpype1 packages)
+- Created Python parser script (`server/parseMpp.py`) that extracts project and task data
+- Updated `mppParser.ts` to call Python script via subprocess and parse JSON results
+- Updated upload route to create projects and tasks directly from .mpp files
+
+**Technical Implementation:**
+- MPXJ library provides comprehensive support for MS Project binary formats (MPP 98-2019)
+- Python script uses `UniversalProjectReader` to auto-detect file format
+- Extracts: project metadata, tasks, resources, predecessors, dates, durations, critical path, float
+- Summary tasks are automatically detected and marked with `isSummary` flag
+- Node.js backend spawns Python process, passes temp file path, receives JSON response
+- Same data model as XML parsing for consistency
+
+**User Experience:**
+- Upload .mpp files directly without conversion
+- Automatic parsing and project creation with all tasks
+- Full compliance analysis (DCMA & NEC) available immediately after upload
+- No external API dependencies - fully self-contained
+
+**Dependencies Added:**
+- Python 3.11 runtime
+- mpxj (Python package, version 14.5.2)
+- jpype1 (Java-Python bridge, version 1.6.0)
 
 ### November 4, 2025 - Summary Task Filtering
 
