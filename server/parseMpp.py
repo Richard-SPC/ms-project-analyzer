@@ -80,9 +80,15 @@ def parse_mpp_file(file_path):
             predecessors = []
             if task.getPredecessors():
                 for pred in task.getPredecessors():
-                    target_task = pred.getTargetTask()
-                    if target_task and target_task.getUniqueID():
-                        predecessors.append(str(target_task.getUniqueID()))
+                    # Get the predecessor task from the Relation object
+                    pred_task = pred.getTargetTask() if hasattr(pred, 'getTargetTask') else None
+                    if not pred_task and hasattr(pred, 'getTaskUniqueID'):
+                        # Alternative: get by unique ID
+                        task_id = pred.getTaskUniqueID()
+                        if task_id:
+                            predecessors.append(str(task_id))
+                    elif pred_task and pred_task.getUniqueID():
+                        predecessors.append(str(pred_task.getUniqueID()))
             
             # Extract resources
             resources = []
