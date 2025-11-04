@@ -348,16 +348,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isXml = fileName.toLowerCase().endsWith('.xml');
 
       if (isMpp) {
-        // Handle MPP file
+        // Handle MPP file using MPXJ Python parser
         const result = await parseMppFile(req.file.buffer, fileName);
         
-        // Return 200 with structured response so frontend can display guidance properly
+        if (!result.success || !result.project) {
+          return res.status(400).json({ 
+            success: false,
+            error: result.message || "Failed to parse MPP file",
+            fileName: result.fileName,
+            fileSize: result.fileSize,
+          });
+        }
+
+        // Create the project in the database
+        const createdProject = await storage.createProject(result.project);
+        
+        // Create tasks linked to the project
+        const createdTasks = [];
+        if (result.tasks) {
+          for (const task of result.tasks) {
+            const taskWithProject = { ...task, projectId: createdProject.id };
+            const createdTask = await storage.createTask(taskWithProject);
+            createdTasks.push(createdTask);
+          }
+        }
+        
         res.json({ 
-          success: result.success,
-          message: result.message,
-          fileName: result.fileName,
-          fileSize: result.fileSize,
-          requiresConversion: !result.success
+          success: true, 
+          fileName: req.file.originalname,
+          project: createdProject,
+          tasksCreated: createdTasks.length,
+          message: `Successfully imported project "${createdProject.name}" with ${createdTasks.length} tasks from MPP file`
         });
       } else if (isXml) {
         // Handle XML file

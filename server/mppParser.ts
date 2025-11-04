@@ -1,36 +1,62 @@
 /**
  * MPP File Parser
  * 
- * Microsoft Project MPP files are proprietary binary formats.
- * This parser provides basic file validation and metadata extraction.
- * For full parsing, users should export to XML format from MS Project.
+ * Parses Microsoft Project MPP files using MPXJ Python library
  */
+
+import { spawn } from 'child_process';
+import { writeFileSync, unlinkSync } from 'fs';
+import { join } from 'path';
+import { tmpdir } from 'os';
+import type { InsertProject, InsertTask } from '@shared/schema';
 
 interface MppParseResult {
   success: boolean;
-  message: string;
-  projectName?: string;
+  message?: string;
+  project?: Omit<InsertProject, 'id'>;
+  tasks?: Omit<InsertTask, 'id' | 'projectId'>[];
   fileName: string;
   fileSize: number;
-  tasks?: any[];
+}
+
+interface PythonParseResult {
+  success: boolean;
+  error?: string;
+  project?: {
+    name: string;
+    startDate: string | null;
+    finishDate: string | null;
+    projectManager: string;
+    description: string;
+  };
+  tasks?: Array<{
+    name: string;
+    wbsCode: string;
+    startDate: string | null;
+    endDate: string | null;
+    duration: number | null;
+    percentComplete: string;
+    predecessors: string[];
+    resources: string[];
+    isCriticalPath: boolean;
+    totalFloat: number;
+    isMilestone: boolean;
+    isSummary: boolean;
+  }>;
 }
 
 /**
- * Parse MPP file buffer
- * 
- * Note: Full MPP parsing requires Java-based libraries (MPXJ) or commercial APIs.
- * This function validates the file and provides guidance for conversion to XML.
+ * Parse MPP file buffer using MPXJ Python library
  */
 export async function parseMppFile(buffer: Buffer, fileName: string): Promise<MppParseResult> {
+  let tempFilePath: string | null = null;
+  
   try {
-    // Check if it's actually an MPP file by looking at the file signature
-    // MPP files are OLE2/CFB (Compound File Binary) format
+    // Validate MPP file signature
     const signature = buffer.slice(0, 8);
     const oleSignature = Buffer.from([0xD0, 0xCF, 0x11, 0xE0, 0xA1, 0xB1, 0x1A, 0xE1]);
     
-    const isValidMpp = signature.equals(oleSignature);
-    
-    if (!isValidMpp) {
+    if (!signature.equals(oleSignature)) {
       return {
         success: false,
         message: "Invalid MPP file format. File does not appear to be a valid Microsoft Project file.",
@@ -39,27 +65,77 @@ export async function parseMppFile(buffer: Buffer, fileName: string): Promise<Mp
       };
     }
 
-    // MPP files are complex binary formats that require specialized parsers
-    // Provide a helpful message to users
+    // Write buffer to temporary file
+    const tempFileName = `${Date.now()}-${fileName}`;
+    tempFilePath = join(tmpdir(), tempFileName);
+    writeFileSync(tempFilePath, buffer);
+
+    // Call Python script to parse MPP file
+    const pythonResult = await callPythonParser(tempFilePath);
+
+    // Clean up temp file
+    unlinkSync(tempFilePath);
+    tempFilePath = null;
+
+    if (!pythonResult.success) {
+      return {
+        success: false,
+        message: `Failed to parse MPP file: ${pythonResult.error || "Unknown error"}`,
+        fileName,
+        fileSize: buffer.length,
+      };
+    }
+
+    // Convert Python result to our format
+    if (!pythonResult.project || !pythonResult.tasks) {
+      return {
+        success: false,
+        message: "MPP file parsed but no project data found",
+        fileName,
+        fileSize: buffer.length,
+      };
+    }
+
+    const project: Omit<InsertProject, 'id'> = {
+      name: pythonResult.project.name || fileName.replace(/\.mpp$/i, ''),
+      description: pythonResult.project.description || '',
+      projectManager: pythonResult.project.projectManager || '',
+      status: 'active',
+      startDate: pythonResult.project.startDate ? new Date(pythonResult.project.startDate) : new Date(),
+      endDate: pythonResult.project.finishDate ? new Date(pythonResult.project.finishDate) : undefined,
+    };
+
+    const tasks: Omit<InsertTask, 'id' | 'projectId'>[] = pythonResult.tasks.map(task => ({
+      name: task.name,
+      wbsCode: task.wbsCode,
+      startDate: task.startDate ? new Date(task.startDate) : undefined,
+      endDate: task.endDate ? new Date(task.endDate) : undefined,
+      duration: task.duration,
+      percentComplete: task.percentComplete,
+      predecessors: task.predecessors,
+      resources: task.resources,
+      isCriticalPath: task.isCriticalPath,
+      totalFloat: task.totalFloat,
+      isMilestone: task.isMilestone,
+      isSummary: task.isSummary,
+    }));
+
     return {
-      success: false,
-      message: `MPP file detected: "${fileName}" (${(buffer.length / 1024 / 1024).toFixed(2)} MB).
-
-Full MPP parsing requires additional dependencies not currently installed.
-
-To import this project, please convert it to XML format in Microsoft Project:
-
-1. Open your project in Microsoft Project
-2. File > Save As
-3. Choose "XML Format (*.xml)" from the file type dropdown
-4. Save and upload the XML file
-
-The XML format contains all the same project data (tasks, dates, dependencies, resources) and is fully supported by this application.`,
+      success: true,
+      project,
+      tasks,
       fileName,
       fileSize: buffer.length,
     };
 
   } catch (error) {
+    // Clean up temp file if it exists
+    if (tempFilePath) {
+      try {
+        unlinkSync(tempFilePath);
+      } catch {}
+    }
+
     return {
       success: false,
       message: `Error processing MPP file: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -67,6 +143,54 @@ The XML format contains all the same project data (tasks, dates, dependencies, r
       fileSize: buffer.length,
     };
   }
+}
+
+/**
+ * Call Python parser script
+ */
+async function callPythonParser(filePath: string): Promise<PythonParseResult> {
+  return new Promise((resolve, reject) => {
+    const scriptPath = join(__dirname, 'parseMpp.py');
+    const pythonProcess = spawn('python3', [scriptPath, filePath]);
+
+    let stdout = '';
+    let stderr = '';
+
+    pythonProcess.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    pythonProcess.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    pythonProcess.on('close', (code) => {
+      if (code !== 0) {
+        resolve({
+          success: false,
+          error: `Python parser exited with code ${code}: ${stderr}`,
+        });
+        return;
+      }
+
+      try {
+        const result = JSON.parse(stdout);
+        resolve(result);
+      } catch (error) {
+        resolve({
+          success: false,
+          error: `Failed to parse Python output: ${error instanceof Error ? error.message : "Unknown error"}`,
+        });
+      }
+    });
+
+    pythonProcess.on('error', (error) => {
+      resolve({
+        success: false,
+        error: `Failed to spawn Python process: ${error.message}`,
+      });
+    });
+  });
 }
 
 /**
