@@ -6,7 +6,7 @@ Outputs JSON format that can be consumed by Node.js
 
 import sys
 import json
-import jpype
+import mpxj
 
 def parse_mpp_file(file_path):
     """Parse MPP file and return project data as JSON"""
@@ -105,9 +105,9 @@ def main():
         print(json.dumps({"success": False, "error": "No file path provided"}))
         sys.exit(1)
     
-    # Start the JVM (required for MPXJ)
-    if not jpype.isJVMStarted():
-        jpype.startJVM()
+    # Start the JVM with MPXJ classpath (required for MPXJ)
+    if not mpxj.isJVMStarted():
+        mpxj.startJVM()
     
     try:
         file_path = sys.argv[1]
@@ -115,8 +115,8 @@ def main():
         print(json.dumps(result))
     finally:
         # Shutdown JVM
-        if jpype.isJVMStarted():
-            jpype.shutdownJVM()
+        if mpxj.isJVMStarted():
+            mpxj.shutdownJVM()
 
 if __name__ == "__main__":
     main()
