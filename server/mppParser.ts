@@ -8,7 +8,12 @@ import { spawn, execSync } from 'child_process';
 import { writeFileSync, unlinkSync } from 'fs';
 import { join, dirname } from 'path';
 import { tmpdir } from 'os';
+import { fileURLToPath } from 'url';
 import type { InsertProject, InsertTask } from '@shared/schema';
+
+// Get __dirname equivalent in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 interface MppParseResult {
   success: boolean;
