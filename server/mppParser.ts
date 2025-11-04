@@ -193,6 +193,8 @@ async function callPythonParser(filePath: string): Promise<PythonParseResult> {
 
     pythonProcess.on('close', (code) => {
       if (code !== 0) {
+        console.error('Python stderr:', stderr);
+        console.error('Python stdout:', stdout);
         resolve({
           success: false,
           error: `Python parser exited with code ${code}: ${stderr}`,
@@ -204,6 +206,9 @@ async function callPythonParser(filePath: string): Promise<PythonParseResult> {
         const result = JSON.parse(stdout);
         resolve(result);
       } catch (error) {
+        console.error('Failed to parse Python output');
+        console.error('Python stdout:', stdout);
+        console.error('Python stderr:', stderr);
         resolve({
           success: false,
           error: `Failed to parse Python output: ${error instanceof Error ? error.message : "Unknown error"}`,
