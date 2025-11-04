@@ -80,9 +80,9 @@ def parse_mpp_file(file_path):
             predecessors = []
             if task.getPredecessors():
                 for pred in task.getPredecessors():
-                    source_task = pred.getSourceTask()
-                    if source_task and source_task.getUniqueID():
-                        predecessors.append(str(source_task.getUniqueID()))
+                    target_task = pred.getTargetTask()
+                    if target_task and target_task.getUniqueID():
+                        predecessors.append(str(target_task.getUniqueID()))
             
             # Extract resources
             resources = []

@@ -203,7 +203,23 @@ async function callPythonParser(filePath: string): Promise<PythonParseResult> {
       }
 
       try {
-        const result = JSON.parse(stdout);
+        // Extract JSON from stdout (filter out Log4j warnings and other noise)
+        // Find the first line that starts with '{'
+        const lines = stdout.split('\n');
+        const jsonLine = lines.find(line => line.trim().startsWith('{'));
+        
+        if (!jsonLine) {
+          console.error('No JSON found in Python output');
+          console.error('Python stdout:', stdout);
+          console.error('Python stderr:', stderr);
+          resolve({
+            success: false,
+            error: 'No JSON output found from Python parser',
+          });
+          return;
+        }
+        
+        const result = JSON.parse(jsonLine);
         resolve(result);
       } catch (error) {
         console.error('Failed to parse Python output');
