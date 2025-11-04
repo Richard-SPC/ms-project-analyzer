@@ -1,0 +1,23 @@
+version = 1
+revision = 3
+requires-python = ">=3.11"
+
+[[package]]
+name = "mpxj"
+version = "14.5.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/5a/f0/ab57a7ff1a8cf770797118124d133d274e47a19ac49e82c61b8124d218a2/mpxj-14.5.2.tar.gz", hash = "sha256:9540e1cbbe96d50ca03bb82b38776f5de630cfa9ef2419047620b7b07d76d3a2", size = 30056550, upload-time = "2025-10-22T07:10:53.525Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/a5/20/933590f80d51f21078dda629ee53e666cb35a45606ba48cf99a63232a018/mpxj-14.5.2-py3-none-any.whl", hash = "sha256:989e6d1143c0cca0a0ae57d96743b6aa0f79770a4f857bfdb0965485e4f529f4", size = 30071080, upload-time = "2025-10-22T07:10:30.44Z" },
+]
+
+[[package]]
+name = "repl-nix-workspace"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "mpxj" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "mpxj", specifier = ">=14.5.2" }]
