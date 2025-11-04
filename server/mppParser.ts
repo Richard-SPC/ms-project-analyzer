@@ -4,9 +4,9 @@
  * Parses Microsoft Project MPP files using MPXJ Python library
  */
 
-import { spawn } from 'child_process';
+import { spawn, execSync } from 'child_process';
 import { writeFileSync, unlinkSync } from 'fs';
-import { join } from 'path';
+import { join, dirname } from 'path';
 import { tmpdir } from 'os';
 import type { InsertProject, InsertTask } from '@shared/schema';
 
@@ -151,7 +151,29 @@ export async function parseMppFile(buffer: Buffer, fileName: string): Promise<Mp
 async function callPythonParser(filePath: string): Promise<PythonParseResult> {
   return new Promise((resolve, reject) => {
     const scriptPath = join(__dirname, 'parseMpp.py');
-    const pythonProcess = spawn('python3', [scriptPath, filePath]);
+    
+    // Set JAVA_HOME for jpype to find the JVM
+    // On Nix/Replit, Java is installed via nix and we need to locate it
+    let javaHome = process.env.JAVA_HOME;
+    
+    if (!javaHome) {
+      try {
+        const javaPath = execSync('which java', { encoding: 'utf-8' }).trim();
+        // Java binary is at /path/to/java/bin/java, so JAVA_HOME is two levels up
+        const javaBin = dirname(javaPath);
+        javaHome = dirname(javaBin);
+      } catch (error) {
+        // If we can't find Java, let the Python script fail with a clear error
+        console.warn('Could not locate Java installation');
+      }
+    }
+    
+    const env = {
+      ...process.env,
+      ...(javaHome && { JAVA_HOME: javaHome }),
+    };
+    
+    const pythonProcess = spawn('python3', [scriptPath, filePath], { env });
 
     let stdout = '';
     let stderr = '';
