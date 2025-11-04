@@ -6,7 +6,44 @@ Outputs JSON format that can be consumed by Node.js
 
 import sys
 import json
+import os
 import mpxj
+
+def find_jvm_path():
+    """Find the JVM library path"""
+    # Try JAVA_HOME first
+    java_home = os.environ.get('JAVA_HOME')
+    if java_home:
+        # Common JVM library locations relative to JAVA_HOME
+        possible_paths = [
+            os.path.join(java_home, 'lib', 'server', 'libjvm.so'),
+            os.path.join(java_home, 'lib', 'openjdk', 'lib', 'server', 'libjvm.so'),
+            os.path.join(java_home, 'jre', 'lib', 'amd64', 'server', 'libjvm.so'),
+        ]
+        for path in possible_paths:
+            if os.path.exists(path):
+                return path
+    
+    # Try to find via which java
+    try:
+        import subprocess
+        java_bin = subprocess.check_output(['which', 'java'], text=True).strip()
+        # Resolve symlinks
+        java_bin = os.path.realpath(java_bin)
+        # Java is typically at JAVA_HOME/bin/java
+        java_home = os.path.dirname(os.path.dirname(java_bin))
+        
+        possible_paths = [
+            os.path.join(java_home, 'lib', 'server', 'libjvm.so'),
+            os.path.join(java_home, 'lib', 'openjdk', 'lib', 'server', 'libjvm.so'),
+        ]
+        for path in possible_paths:
+            if os.path.exists(path):
+                return path
+    except:
+        pass
+    
+    return None
 
 def parse_mpp_file(file_path):
     """Parse MPP file and return project data as JSON"""
@@ -107,7 +144,22 @@ def main():
     
     # Start the JVM with MPXJ classpath (required for MPXJ)
     if not mpxj.isJVMStarted():
-        mpxj.startJVM()
+        # Find JVM library path
+        jvm_path = find_jvm_path()
+        
+        if jvm_path:
+            # Start JVM with explicit path
+            mpxj.startJVM(jvm_path)
+        else:
+            # Try default path (may fail)
+            try:
+                mpxj.startJVM()
+            except Exception as e:
+                print(json.dumps({
+                    "success": False, 
+                    "error": f"Could not start JVM: {str(e)}. Java may not be installed or JAVA_HOME not set correctly."
+                }))
+                sys.exit(1)
     
     try:
         file_path = sys.argv[1]
