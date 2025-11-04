@@ -349,9 +349,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (isMpp) {
         // Handle MPP file using MPXJ Python parser
+        console.log(`Parsing MPP file: ${fileName}`);
         const result = await parseMppFile(req.file.buffer, fileName);
         
         if (!result.success || !result.project) {
+          console.error("MPP parsing failed:", JSON.stringify(result, null, 2));
           return res.status(400).json({ 
             success: false,
             error: result.message || "Failed to parse MPP file",
@@ -359,6 +361,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             fileSize: result.fileSize,
           });
         }
+        
+        console.log(`MPP parsed successfully: ${result.tasks?.length || 0} tasks found`);
 
         // Create the project in the database
         const createdProject = await storage.createProject(result.project);
