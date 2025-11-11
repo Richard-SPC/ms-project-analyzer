@@ -167,11 +167,25 @@ export function analyzeDcmaCompliance(
   };
 
   // 3. Hard Constraints are Valid - Minimal hard constraints
-  // Not currently tracked in schema, assume valid
-  const hardConstraintsValid = true;
+  // DCMA criterion 3: Hard constraints should be minimally used (≤5%)
+  // Hard constraints: MSO, MFO, SNET, SNLT, FNET, FNLT (types 2-7)
+  // Flexible constraints: ASAP, ALAP (types 0-1) - not counted as hard
+  const hardConstraintTypes = ['MSO', 'MFO', 'SNET', 'SNLT', 'FNET', 'FNLT'];
+  
+  const tasksWithHardConstraints = workTasks.filter(t => 
+    t.constraintType && hardConstraintTypes.includes(t.constraintType)
+  ).length;
+  
+  const hardConstraintPercentage = workTasks.length > 0 
+    ? (tasksWithHardConstraints / workTasks.length) * 100 
+    : 0;
+  const hardConstraintsValid = hardConstraintPercentage <= 5;
+  
   findings.hardConstraintsValid = {
-    passed: true,
-    details: "Constraint data not available in current task structure",
+    passed: hardConstraintsValid,
+    details: `${tasksWithHardConstraints} of ${workTasks.length} tasks (${hardConstraintPercentage.toFixed(1)}%) have hard constraints`,
+    count: tasksWithHardConstraints,
+    percentage: hardConstraintPercentage,
   };
 
   // 4. Negative Lags are Valid

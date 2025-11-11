@@ -31,6 +31,7 @@ export const tasks = pgTable("tasks", {
   totalFloat: integer("total_float"), // in days
   isMilestone: boolean("is_milestone").default(false),
   isSummary: boolean("is_summary").default(false), // summary tasks group subtasks
+  constraintType: text("constraint_type"), // ASAP, ALAP, SNET, SNLT, FNET, FNLT, MSO, MFO
 });
 
 // DCMA 14-point assessments

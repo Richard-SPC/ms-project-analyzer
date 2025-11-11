@@ -115,6 +115,24 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
         }
       }
 
+      // Parse constraint type
+      // MS Project ConstraintType: 0=ASAP, 1=ALAP, 2=MSO, 3=MFO, 4=SNET, 5=SNLT, 6=FNET, 7=FNLT
+      let constraintType: string | undefined;
+      if (xmlTask.ConstraintType !== undefined) {
+        const constraintMap: { [key: string]: string } = {
+          '0': 'ASAP',  // As Soon As Possible (flexible)
+          '1': 'ALAP',  // As Late As Possible (flexible)
+          '2': 'MSO',   // Must Start On (HARD)
+          '3': 'MFO',   // Must Finish On (HARD)
+          '4': 'SNET',  // Start No Earlier Than (HARD)
+          '5': 'SNLT',  // Start No Later Than (HARD)
+          '6': 'FNET',  // Finish No Earlier Than (HARD)
+          '7': 'FNLT',  // Finish No Later Than (HARD)
+        };
+        const constraintCode = String(xmlTask.ConstraintType);
+        constraintType = constraintMap[constraintCode];
+      }
+
       // Parse resources
       const resources: string[] = [];
       if (xmlTask.Assignment) {
@@ -148,6 +166,7 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
         totalFloat: xmlTask.TotalSlack ? parseInt(String(xmlTask.TotalSlack)) : undefined,
         isMilestone: xmlTask.Milestone === '1' || xmlTask.Milestone === 'true' || xmlTask.Milestone === true,
         isSummary,
+        constraintType,
       });
     }
   }
