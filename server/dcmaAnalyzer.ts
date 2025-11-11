@@ -75,8 +75,10 @@ export function analyzeDcmaCompliance(
   
   workTasks.forEach(task => {
     if (task.predecessors && task.predecessors.length > 0) {
-      task.predecessors.forEach(predId => {
-        tasksWithSuccessors.add(predId);
+      task.predecessors.forEach(predStr => {
+        // Extract task ID from format "taskId|Type|Lag" or legacy "taskId"
+        const taskId = predStr.includes('|') ? predStr.split('|')[0] : predStr;
+        tasksWithSuccessors.add(taskId);
       });
     }
   });
@@ -132,11 +134,36 @@ export function analyzeDcmaCompliance(
   };
 
   // 2. Leads & Lags are Valid - Minimal use of leads/lags
-  // For now, we'll mark as true since we don't have lag data in schema
-  const leadLagsValid = true;
+  // DCMA criterion 2: Leads and lags should be minimally used
+  // Check predecessors for lag information (format: "taskId|Type|Lag")
+  let tasksWithLags = 0;
+  
+  for (const task of workTasks) {
+    if (task.predecessors && task.predecessors.length > 0) {
+      for (const predStr of task.predecessors) {
+        // Parse format: "5|FS|2" or "10|SS|-5" or "15|FS|0" (no lag)
+        if (predStr.includes('|')) {
+          const parts = predStr.split('|');
+          if (parts.length === 3) {
+            const lag = parseFloat(parts[2]);
+            if (lag !== 0) {
+              tasksWithLags++;
+              break; // Count task only once even if multiple predecessors have lags
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  const lagPercentage = workTasks.length > 0 ? (tasksWithLags / workTasks.length) * 100 : 0;
+  const leadLagsValid = lagPercentage <= 5; // DCMA threshold: ≤5% tasks with lags
+  
   findings.leadLagsValid = {
-    passed: true,
-    details: "Lead/lag data not available in current task structure",
+    passed: leadLagsValid,
+    details: `${tasksWithLags} of ${workTasks.length} tasks (${lagPercentage.toFixed(1)}%) have leads or lags`,
+    count: tasksWithLags,
+    percentage: lagPercentage,
   };
 
   // 3. Hard Constraints are Valid - Minimal hard constraints
@@ -148,10 +175,35 @@ export function analyzeDcmaCompliance(
   };
 
   // 4. Negative Lags are Valid
-  const negativeLagsValid = true;
+  // DCMA criterion 4: Negative lags (leads) should be minimally used
+  let tasksWithNegativeLags = 0;
+  
+  for (const task of workTasks) {
+    if (task.predecessors && task.predecessors.length > 0) {
+      for (const predStr of task.predecessors) {
+        // Parse format: "5|FS|2" or "10|SS|-5" or "15|FS|0"
+        if (predStr.includes('|')) {
+          const parts = predStr.split('|');
+          if (parts.length === 3) {
+            const lag = parseFloat(parts[2]);
+            if (lag < 0) {
+              tasksWithNegativeLags++;
+              break; // Count task only once
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  const negativeLagPercentage = workTasks.length > 0 ? (tasksWithNegativeLags / workTasks.length) * 100 : 0;
+  const negativeLagsValid = negativeLagPercentage <= 5; // DCMA threshold: ≤5% tasks with negative lags
+  
   findings.negativeLagsValid = {
-    passed: true,
-    details: "Negative lag data not available in current task structure",
+    passed: negativeLagsValid,
+    details: `${tasksWithNegativeLags} of ${workTasks.length} tasks (${negativeLagPercentage.toFixed(1)}%) have negative lags (leads)`,
+    count: tasksWithNegativeLags,
+    percentage: negativeLagPercentage,
   };
 
   // 5. High Duration Activities are Valid - ≤5% tasks >44 days

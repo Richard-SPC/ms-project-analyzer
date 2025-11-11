@@ -73,7 +73,8 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
         }
       }
 
-      // Parse predecessors
+      // Parse predecessors with lag information
+      // Format: "UID-Type-Lag" (e.g., "123-FS-2d" or "456-SS+5d")
       const predecessors: string[] = [];
       if (xmlTask.PredecessorLink) {
         const predList = Array.isArray(xmlTask.PredecessorLink)
@@ -82,7 +83,34 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
         
         for (const pred of predList) {
           if (pred.PredecessorUID) {
-            predecessors.push(String(pred.PredecessorUID));
+            const predUid = String(pred.PredecessorUID);
+            
+            // Parse relationship type (0=FF, 1=FS, 2=SS, 3=SF)
+            const typeMap: { [key: string]: string } = {
+              '0': 'FF',
+              '1': 'FS',
+              '2': 'SS',
+              '3': 'SF'
+            };
+            const typeCode = pred.Type ? String(pred.Type) : '1'; // Default to FS
+            const type = typeMap[typeCode] || 'FS';
+            
+            // Parse lag - MS Project ALWAYS stores LinkLag in tenths of minutes
+            // Regardless of LagFormat. LagFormat is for display only.
+            // 4800 = 8 hours/day * 60 minutes/hour * 10 (tenths of minutes)
+            let lagDays = 0;
+            if (pred.LinkLag) {
+              const lagValue = parseInt(String(pred.LinkLag)) || 0;
+              // Always divide by 4800 to convert tenths-of-minutes to days
+              lagDays = lagValue / 4800;
+              // Keep full precision to ensure small non-zero lags are detected
+              // Round to 4 decimal places only for storage
+              lagDays = Math.round(lagDays * 10000) / 10000;
+            }
+            
+            // Format: "UID|Type|Lag" using pipe to avoid conflicts with negative numbers
+            // (e.g., "123|FS|2" or "456|SS|-5" or "789|FS|0")
+            predecessors.push(`${predUid}|${type}|${lagDays}`);
           }
         }
       }

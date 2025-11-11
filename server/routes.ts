@@ -491,11 +491,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
             
             if (parsedTask.predecessors && parsedTask.predecessors.length > 0) {
               // Convert MS Project UIDs to database IDs
+              // Format: "UID|Type|Lag" (e.g., "4322|FS|2" or "456|SS|-5")
               const dbPredecessors: string[] = [];
-              for (const predUid of parsedTask.predecessors) {
-                const dbId = uidToDbId.get(predUid);
-                if (dbId !== undefined) {
-                  dbPredecessors.push(dbId.toString());
+              for (const predStr of parsedTask.predecessors) {
+                // Check for new pipe-delimited format
+                if (predStr.includes('|')) {
+                  const parts = predStr.split('|');
+                  if (parts.length === 3) {
+                    const uid = parts[0];
+                    const type = parts[1];
+                    const lag = parts[2];
+                    
+                    const dbId = uidToDbId.get(uid);
+                    if (dbId !== undefined) {
+                      // Rebuild with database ID
+                      dbPredecessors.push(`${dbId}|${type}|${lag}`);
+                    }
+                  }
+                } else {
+                  // Legacy format - just UID or dash-delimited
+                  const parts = predStr.split('-');
+                  if (parts.length >= 2) {
+                    const uid = parts[0];
+                    const typeAndLag = parts.slice(1).join('-');
+                    
+                    const dbId = uidToDbId.get(uid);
+                    if (dbId !== undefined) {
+                      dbPredecessors.push(`${dbId}-${typeAndLag}`);
+                    }
+                  } else {
+                    const dbId = uidToDbId.get(predStr);
+                    if (dbId !== undefined) {
+                      dbPredecessors.push(dbId.toString());
+                    }
+                  }
                 }
               }
               
