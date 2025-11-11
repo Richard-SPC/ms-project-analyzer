@@ -200,7 +200,7 @@ export function analyzeDcmaCompliance(
   };
 
   // 4. Negative Lags are Valid
-  // DCMA criterion 4: Negative lags (leads) should be minimally used
+  // DCMA criterion 4: NO negative lags (leads) allowed - zero tolerance
   let tasksWithNegativeLags = 0;
   
   for (const task of workTasks) {
@@ -222,11 +222,11 @@ export function analyzeDcmaCompliance(
   }
   
   const negativeLagPercentage = workTasks.length > 0 ? (tasksWithNegativeLags / workTasks.length) * 100 : 0;
-  const negativeLagsValid = negativeLagPercentage <= 5; // DCMA threshold: ≤5% tasks with negative lags
+  const negativeLagsValid = tasksWithNegativeLags === 0; // DCMA requirement: ZERO negative lags
   
   findings.negativeLagsValid = {
     passed: negativeLagsValid,
-    details: `${tasksWithNegativeLags} of ${workTasks.length} tasks (${negativeLagPercentage.toFixed(1)}%) have negative lags (leads)`,
+    details: `${tasksWithNegativeLags} of ${workTasks.length} tasks (${negativeLagPercentage.toFixed(1)}%) have negative lags (leads) - must be 0`,
     count: tasksWithNegativeLags,
     percentage: negativeLagPercentage,
   };
