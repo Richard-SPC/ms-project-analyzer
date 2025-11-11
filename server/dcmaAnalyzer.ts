@@ -172,9 +172,19 @@ export function analyzeDcmaCompliance(
   // Flexible constraints: ASAP, ALAP (types 0-1) - not counted as hard
   const hardConstraintTypes = ['MSO', 'MFO', 'SNET', 'SNLT', 'FNET', 'FNLT'];
   
-  const tasksWithHardConstraints = workTasks.filter(t => 
+  const tasksWithHardConstraintsDetails = workTasks.filter(t => 
     t.constraintType && hardConstraintTypes.includes(t.constraintType)
-  ).length;
+  );
+  
+  console.log('[DCMA Check 3] Total work tasks:', workTasks.length);
+  console.log('[DCMA Check 3] Tasks with hard constraints:', tasksWithHardConstraintsDetails.length);
+  console.log('[DCMA Check 3] Hard constraint details:', tasksWithHardConstraintsDetails.map(t => ({
+    name: t.name,
+    constraintType: t.constraintType,
+    isMilestone: t.isMilestone
+  })));
+  
+  const tasksWithHardConstraints = tasksWithHardConstraintsDetails.length;
   
   const hardConstraintPercentage = workTasks.length > 0 
     ? (tasksWithHardConstraints / workTasks.length) * 100 
