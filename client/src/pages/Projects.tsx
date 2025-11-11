@@ -166,18 +166,18 @@ export default function Projects() {
             <DialogTrigger asChild>
               <Button variant="outline" data-testid="button-upload-project">
                 <Upload className="mr-2 h-4 w-4" />
-                Upload XML
+                Upload File
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Upload Microsoft Project File</DialogTitle>
-                <DialogDescription>Upload a .xml or .mpp file from Microsoft Project</DialogDescription>
+                <DialogTitle>Upload Project File</DialogTitle>
+                <DialogDescription>Upload a Microsoft Project file (.mpp, .xml) or Excel export (.xlsx, .csv)</DialogDescription>
               </DialogHeader>
               <div className="py-4">
                 <Input 
                   type="file" 
-                  accept=".xml,.mpp" 
+                  accept=".xml,.mpp,.xlsx,.csv" 
                   onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
                   data-testid="input-file-upload" 
                 />

@@ -67,7 +67,7 @@ export async function parseExcelFile(filePath: string, fileName: string): Promis
     const project: InsertProject = {
       name: projectName,
       startDate: dates.startDate ? new Date(dates.startDate) : undefined,
-      finishDate: dates.finishDate ? new Date(dates.finishDate) : undefined,
+      endDate: dates.finishDate ? new Date(dates.finishDate) : undefined,
       projectManager: '',
       description: `Imported from ${fileName}`,
       necCompliant: false
