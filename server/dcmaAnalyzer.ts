@@ -23,6 +23,11 @@ export interface DcmaAnalysisResult {
       details: string;
       count?: number;
       percentage?: number;
+      failedTasks?: Array<{
+        id: number;
+        name: string;
+        reason?: string;
+      }>;
     };
   };
 }
@@ -131,15 +136,25 @@ export function analyzeDcmaCompliance(
     details: `${tasksWithMissingLogicCount} of ${analysisTasks.length} tasks (${logicPercentage.toFixed(1)}%) missing predecessor or successor`,
     count: tasksWithMissingLogicCount,
     percentage: logicPercentage,
+    failedTasks: tasksWithMissingLogic.map(t => ({
+      id: t.id,
+      name: t.name,
+      reason: (!t.predecessors || t.predecessors.length === 0) && !tasksWithSuccessors.has(t.id.toString())
+        ? 'Missing both predecessor and successor'
+        : (!t.predecessors || t.predecessors.length === 0)
+        ? 'Missing predecessor'
+        : 'Missing successor'
+    }))
   };
 
   // 2. Leads & Lags are Valid - Minimal use of leads/lags
   // DCMA criterion 2: Leads and lags should be minimally used
   // Check predecessors for lag information (format: "taskId|Type|Lag")
-  let tasksWithLags = 0;
+  const tasksWithLagsList: Array<{ task: Task; lagValues: number[] }> = [];
   
   for (const task of workTasks) {
     if (task.predecessors && task.predecessors.length > 0) {
+      const lagValues: number[] = [];
       for (const predStr of task.predecessors) {
         // Parse format: "5|FS|2" or "10|SS|-5" or "15|FS|0" (no lag)
         if (predStr.includes('|')) {
@@ -147,15 +162,18 @@ export function analyzeDcmaCompliance(
           if (parts.length === 3) {
             const lag = parseFloat(parts[2]);
             if (lag !== 0) {
-              tasksWithLags++;
-              break; // Count task only once even if multiple predecessors have lags
+              lagValues.push(lag);
             }
           }
         }
       }
+      if (lagValues.length > 0) {
+        tasksWithLagsList.push({ task, lagValues });
+      }
     }
   }
   
+  const tasksWithLags = tasksWithLagsList.length;
   const lagPercentage = workTasks.length > 0 ? (tasksWithLags / workTasks.length) * 100 : 0;
   const leadLagsValid = lagPercentage <= 5; // DCMA threshold: ≤5% tasks with lags
   
@@ -164,6 +182,11 @@ export function analyzeDcmaCompliance(
     details: `${tasksWithLags} of ${workTasks.length} tasks (${lagPercentage.toFixed(1)}%) have leads or lags`,
     count: tasksWithLags,
     percentage: lagPercentage,
+    failedTasks: tasksWithLagsList.map(({ task, lagValues }) => ({
+      id: task.id,
+      name: task.name,
+      reason: `Has lag(s): ${lagValues.map(v => v > 0 ? `+${v}` : v).join(', ')} days`
+    }))
   };
 
   // 3. Hard Constraints are Valid - Minimal hard constraints
@@ -177,14 +200,6 @@ export function analyzeDcmaCompliance(
     t.constraintType && hardConstraintTypes.includes(t.constraintType)
   );
   
-  console.log('[DCMA Check 3] Total work tasks:', workTasks.length);
-  console.log('[DCMA Check 3] Tasks with hard constraints:', tasksWithHardConstraintsDetails.length);
-  console.log('[DCMA Check 3] Hard constraint details:', tasksWithHardConstraintsDetails.map(t => ({
-    name: t.name,
-    constraintType: t.constraintType,
-    isMilestone: t.isMilestone
-  })));
-  
   const tasksWithHardConstraints = tasksWithHardConstraintsDetails.length;
   
   const hardConstraintPercentage = workTasks.length > 0 
@@ -197,14 +212,20 @@ export function analyzeDcmaCompliance(
     details: `${tasksWithHardConstraints} of ${workTasks.length} tasks (${hardConstraintPercentage.toFixed(1)}%) have hard constraints`,
     count: tasksWithHardConstraints,
     percentage: hardConstraintPercentage,
+    failedTasks: tasksWithHardConstraintsDetails.map(t => ({
+      id: t.id,
+      name: t.name,
+      reason: `Has hard constraint: ${t.constraintType}`
+    }))
   };
 
   // 4. Negative Lags are Valid
   // DCMA criterion 4: NO negative lags (leads) allowed - zero tolerance
-  let tasksWithNegativeLags = 0;
+  const tasksWithNegativeLagsList: Array<{ task: Task; negLagValues: number[] }> = [];
   
   for (const task of workTasks) {
     if (task.predecessors && task.predecessors.length > 0) {
+      const negLagValues: number[] = [];
       for (const predStr of task.predecessors) {
         // Parse format: "5|FS|2" or "10|SS|-5" or "15|FS|0"
         if (predStr.includes('|')) {
@@ -212,15 +233,18 @@ export function analyzeDcmaCompliance(
           if (parts.length === 3) {
             const lag = parseFloat(parts[2]);
             if (lag < 0) {
-              tasksWithNegativeLags++;
-              break; // Count task only once
+              negLagValues.push(lag);
             }
           }
         }
       }
+      if (negLagValues.length > 0) {
+        tasksWithNegativeLagsList.push({ task, negLagValues });
+      }
     }
   }
   
+  const tasksWithNegativeLags = tasksWithNegativeLagsList.length;
   const negativeLagPercentage = workTasks.length > 0 ? (tasksWithNegativeLags / workTasks.length) * 100 : 0;
   const negativeLagsValid = tasksWithNegativeLags === 0; // DCMA requirement: ZERO negative lags
   
@@ -229,22 +253,32 @@ export function analyzeDcmaCompliance(
     details: `${tasksWithNegativeLags} of ${workTasks.length} tasks (${negativeLagPercentage.toFixed(1)}%) have negative lags (leads) - must be 0`,
     count: tasksWithNegativeLags,
     percentage: negativeLagPercentage,
+    failedTasks: tasksWithNegativeLagsList.map(({ task, negLagValues }) => ({
+      id: task.id,
+      name: task.name,
+      reason: `Has negative lag(s): ${negLagValues.join(', ')} days`
+    }))
   };
 
   // 5. High Duration Activities are Valid - ≤5% tasks >44 days
-  const highDurationTasks = workTasks.filter((t) => t.duration && t.duration > 44).length;
-  const highDurationPercentage = (highDurationTasks / workTasks.length) * 100;
+  const highDurationTasksList = workTasks.filter((t) => t.duration && t.duration > 44);
+  const highDurationPercentage = (highDurationTasksList.length / workTasks.length) * 100;
   const highDurationValid = highDurationPercentage <= 5;
   findings.highDurationValid = {
     passed: highDurationValid,
-    details: `${highDurationTasks} of ${workTasks.length} tasks (${highDurationPercentage.toFixed(1)}%) exceed 44 days duration`,
-    count: highDurationTasks,
+    details: `${highDurationTasksList.length} of ${workTasks.length} tasks (${highDurationPercentage.toFixed(1)}%) exceed 44 days duration`,
+    count: highDurationTasksList.length,
     percentage: highDurationPercentage,
+    failedTasks: highDurationTasksList.map(t => ({
+      id: t.id,
+      name: t.name,
+      reason: `Duration: ${t.duration} days (exceeds 44 day limit)`
+    }))
   };
 
   // 6. Invalid Dates are Valid - All dates within project window
   const now = new Date();
-  const invalidDateTasks = workTasks.filter((t) => {
+  const invalidDateTasksList = workTasks.filter((t) => {
     if (!t.startDate || !t.endDate) return false;
     const start = new Date(t.startDate);
     const end = new Date(t.endDate);
@@ -255,18 +289,32 @@ export function analyzeDcmaCompliance(
     if (projEnd && end > projEnd) return true;
     if (start > end) return true;
     return false;
-  }).length;
-  const invalidDatesValid = invalidDateTasks === 0;
+  });
+  const invalidDatesValid = invalidDateTasksList.length === 0;
   findings.invalidDatesValid = {
     passed: invalidDatesValid,
-    details: `${invalidDateTasks} of ${workTasks.length} tasks have invalid or out-of-range dates`,
-    count: invalidDateTasks,
+    details: `${invalidDateTasksList.length} of ${workTasks.length} tasks have invalid or out-of-range dates`,
+    count: invalidDateTasksList.length,
+    failedTasks: invalidDateTasksList.map(t => {
+      const start = new Date(t.startDate!);
+      const end = new Date(t.endDate!);
+      const projStart = project.startDate ? new Date(project.startDate) : null;
+      const projEnd = project.endDate ? new Date(project.endDate) : null;
+      
+      let reason = '';
+      if (projStart && start < projStart) reason = `Start date before project start`;
+      else if (projEnd && end > projEnd) reason = `End date after project end`;
+      else if (start > end) reason = `Start date after end date`;
+      
+      return { id: t.id, name: t.name, reason };
+    })
   };
 
   // 7. Resources are Assigned - ≥95% tasks should have resources
-  const tasksWithResources = workTasks.filter(
-    (t) => t.resources && t.resources.length > 0
-  ).length;
+  const tasksWithoutResources = workTasks.filter(
+    (t) => !t.resources || t.resources.length === 0
+  );
+  const tasksWithResources = workTasks.length - tasksWithoutResources.length;
   const resourcePercentage = (tasksWithResources / workTasks.length) * 100;
   const resourcesAssigned = resourcePercentage >= 95;
   findings.resourcesAssigned = {
@@ -274,33 +322,52 @@ export function analyzeDcmaCompliance(
     details: `${tasksWithResources} of ${workTasks.length} tasks (${resourcePercentage.toFixed(1)}%) have resources assigned`,
     count: tasksWithResources,
     percentage: resourcePercentage,
+    failedTasks: tasksWithoutResources.map(t => ({
+      id: t.id,
+      name: t.name,
+      reason: 'No resources assigned'
+    }))
   };
 
   // 8. Missed Tasks are Valid - Past-due incomplete tasks ≤5%
-  const missedTasks = workTasks.filter((t) => {
+  const missedTasksList = workTasks.filter((t) => {
     if (!t.endDate) return false;
     const end = new Date(t.endDate);
     const pctComplete = parseFloat(t.percentComplete?.toString() || "0");
     return end < now && pctComplete < 100;
-  }).length;
-  const missedPercentage = (missedTasks / workTasks.length) * 100;
+  });
+  const missedPercentage = (missedTasksList.length / workTasks.length) * 100;
   const missedTasksValid = missedPercentage <= 5;
   findings.missedTasksValid = {
     passed: missedTasksValid,
-    details: `${missedTasks} of ${workTasks.length} tasks (${missedPercentage.toFixed(1)}%) are past due but incomplete`,
-    count: missedTasks,
+    details: `${missedTasksList.length} of ${workTasks.length} tasks (${missedPercentage.toFixed(1)}%) are past due but incomplete`,
+    count: missedTasksList.length,
     percentage: missedPercentage,
+    failedTasks: missedTasksList.map(t => {
+      const pctComplete = parseFloat(t.percentComplete?.toString() || "0");
+      const endDate = new Date(t.endDate!).toLocaleDateString();
+      return {
+        id: t.id,
+        name: t.name,
+        reason: `Past due (${endDate}), ${pctComplete.toFixed(0)}% complete`
+      };
+    })
   };
 
   // 9. High Float Tasks are Valid - ≤5% tasks with >44 days float
-  const highFloatTasks = workTasks.filter((t) => t.totalFloat && t.totalFloat > 44).length;
-  const highFloatPercentage = (highFloatTasks / workTasks.length) * 100;
+  const highFloatTasksList = workTasks.filter((t) => t.totalFloat && t.totalFloat > 44);
+  const highFloatPercentage = (highFloatTasksList.length / workTasks.length) * 100;
   const highFloatValid = highFloatPercentage <= 5;
   findings.highFloatValid = {
     passed: highFloatValid,
-    details: `${highFloatTasks} of ${workTasks.length} tasks (${highFloatPercentage.toFixed(1)}%) have excessive float (>44 days)`,
-    count: highFloatTasks,
+    details: `${highFloatTasksList.length} of ${workTasks.length} tasks (${highFloatPercentage.toFixed(1)}%) have excessive float (>44 days)`,
+    count: highFloatTasksList.length,
     percentage: highFloatPercentage,
+    failedTasks: highFloatTasksList.map(t => ({
+      id: t.id,
+      name: t.name,
+      reason: `Total float: ${t.totalFloat} days (exceeds 44 day limit)`
+    }))
   };
 
   // 10. Critical Path Test - Continuous critical path exists

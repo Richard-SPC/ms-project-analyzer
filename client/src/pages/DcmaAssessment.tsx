@@ -134,6 +134,11 @@ interface AnalysisResult {
       details: string;
       count?: number;
       percentage?: number;
+      failedTasks?: Array<{
+        id: number;
+        name: string;
+        reason?: string;
+      }>;
     };
   };
 }
@@ -432,6 +437,30 @@ export default function DcmaAssessment() {
                           <p className="text-sm text-muted-foreground mt-1">
                             {finding?.details || "No detailed findings available"}
                           </p>
+                          
+                          {finding?.failedTasks && finding.failedTasks.length > 0 && (
+                            <Accordion type="single" collapsible className="mt-2">
+                              <AccordionItem value="tasks" className="border-0">
+                                <AccordionTrigger className="text-xs py-1 hover:no-underline">
+                                  <span className="text-destructive font-medium">
+                                    View {finding.failedTasks.length} affected task{finding.failedTasks.length !== 1 ? 's' : ''}
+                                  </span>
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                  <div className="mt-2 space-y-1 max-h-48 overflow-y-auto">
+                                    {finding.failedTasks.map((task: any) => (
+                                      <div key={task.id} className="text-xs p-2 bg-muted/30 rounded border-l-2 border-destructive/30">
+                                        <div className="font-medium">{task.name}</div>
+                                        {task.reason && (
+                                          <div className="text-muted-foreground mt-0.5">{task.reason}</div>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </AccordionContent>
+                              </AccordionItem>
+                            </Accordion>
+                          )}
                         </div>
                       </div>
                     </div>

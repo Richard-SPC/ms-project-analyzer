@@ -46,7 +46,7 @@ Preferred communication style: Simple, everyday language.
 4. Data stored in in-memory storage (MemStorage).
 5. Response returned to client with project ID.
 
-**DCMA Analysis Engine:** Automated compliance analysis against 14 DCMA criteria using real project data, including logic completeness (with milestones), leads & lags (≤5%), hard constraints (MSO/MFO/SNLT/FNLT only, ≤5%), negative lags (zero tolerance), high float, resource assignments, high duration, critical path validation, and missed tasks. All checks include milestones in analysis and filter out summary tasks.
+**DCMA Analysis Engine:** Automated compliance analysis against 14 DCMA criteria using real project data, including logic completeness (with milestones), leads & lags (≤5%), hard constraints (MSO/MFO/SNLT/FNLT only, ≤5%), negative lags (zero tolerance), high float, resource assignments, high duration, critical path validation, and missed tasks. All checks include milestones in analysis and filter out summary tasks. Provides detailed task-level breakdowns showing which specific tasks failed each criterion with reasons.
 
 **NEC Analysis Engine:** Automated compliance analysis against 8 NEC contract criteria, checking schedule quality, programme acceptance, updates, risk management, key dates, completion date realism, and resource adequacy. Filters out summary tasks.
 
