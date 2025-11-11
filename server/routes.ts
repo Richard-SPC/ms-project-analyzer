@@ -463,12 +463,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Create the project in the database
           const createdProject = await storage.createProject(parsedData.project);
           
-          // Create tasks linked to the project
+          // First pass: Create all tasks and build UID -> database ID mapping
+          const uidToDbId = new Map<string, number>();
           const createdTasks = [];
+          
           for (const task of parsedData.tasks) {
-            const taskWithProject = { ...task, projectId: createdProject.id };
+            // Create task without predecessors first (we'll update them in second pass)
+            const { uid, predecessors, ...taskData } = task as any;
+            const taskWithProject = { 
+              ...taskData, 
+              projectId: createdProject.id,
+              predecessors: undefined // Clear predecessors for now
+            };
             const createdTask = await storage.createTask(taskWithProject);
             createdTasks.push(createdTask);
+            
+            // Map MS Project UID to database ID
+            if (uid) {
+              uidToDbId.set(uid, createdTask.id);
+            }
+          }
+          
+          // Second pass: Update predecessors with correct database IDs
+          for (let i = 0; i < parsedData.tasks.length; i++) {
+            const parsedTask = parsedData.tasks[i] as any;
+            const createdTask = createdTasks[i];
+            
+            if (parsedTask.predecessors && parsedTask.predecessors.length > 0) {
+              // Convert MS Project UIDs to database IDs
+              const dbPredecessors: string[] = [];
+              for (const predUid of parsedTask.predecessors) {
+                const dbId = uidToDbId.get(predUid);
+                if (dbId !== undefined) {
+                  dbPredecessors.push(dbId.toString());
+                }
+              }
+              
+              // Update task with converted predecessors
+              if (dbPredecessors.length > 0) {
+                await storage.updateTask(createdTask.id, { 
+                  predecessors: dbPredecessors 
+                });
+              }
+            }
           }
           
           res.json({ 

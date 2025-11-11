@@ -1,9 +1,13 @@
 import xml2js from 'xml2js';
 import type { InsertProject, InsertTask } from '@shared/schema';
 
+interface ParsedTask extends Omit<InsertTask, 'id' | 'projectId'> {
+  uid?: string; // MS Project UID for mapping predecessors
+}
+
 interface ParsedXmlData {
   project: Omit<InsertProject, 'id'>;
-  tasks: Omit<InsertTask, 'id' | 'projectId'>[];
+  tasks: ParsedTask[];
 }
 
 /**
@@ -35,7 +39,7 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
   };
 
   // Extract tasks
-  const tasks: Omit<InsertTask, 'id' | 'projectId'>[] = [];
+  const tasks: ParsedTask[] = [];
   
   if (projectData.Tasks && projectData.Tasks.Task) {
     const taskList = Array.isArray(projectData.Tasks.Task) 
@@ -45,6 +49,9 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
     for (const xmlTask of taskList) {
       // Skip null tasks
       if (!xmlTask || !xmlTask.Name) continue;
+      
+      // Extract MS Project UID for mapping predecessors later
+      const uid = xmlTask.UID ? String(xmlTask.UID) : undefined;
       
       // Detect if this is a summary task
       const isSummary = xmlTask.Summary === '1' || xmlTask.Summary === 'true' || xmlTask.Summary === true;
@@ -100,6 +107,7 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
         : 0;
 
       tasks.push({
+        uid, // Store MS Project UID temporarily
         name: String(xmlTask.Name),
         wbsCode: xmlTask.WBS ? String(xmlTask.WBS) : undefined,
         duration,
