@@ -50,7 +50,9 @@ export async function parseExcelFile(filePath: string, fileName: string): Promis
     
     // Detect column names (case-insensitive)
     const headers = Object.keys(rows[0]);
+    console.log('Excel headers found:', headers);
     const columnMap = detectColumnNames(headers);
+    console.log('Column mapping detected:', columnMap);
     
     if (!columnMap.taskName) {
       return {
@@ -58,6 +60,9 @@ export async function parseExcelFile(filePath: string, fileName: string): Promis
         error: 'Could not find Task Name column. Expected columns: Task Name, Start Date, Finish Date, etc.'
       };
     }
+    
+    // Log first row sample
+    console.log('First row sample:', JSON.stringify(rows[0], null, 2).substring(0, 500));
     
     // Extract project metadata from first row
     const firstRow = rows[0];
