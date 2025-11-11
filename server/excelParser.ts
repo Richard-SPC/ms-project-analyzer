@@ -66,8 +66,8 @@ export async function parseExcelFile(filePath: string, fileName: string): Promis
     
     const project: InsertProject = {
       name: projectName,
-      startDate: dates.startDate,
-      finishDate: dates.finishDate,
+      startDate: dates.startDate ? new Date(dates.startDate) : undefined,
+      finishDate: dates.finishDate ? new Date(dates.finishDate) : undefined,
       projectManager: '',
       description: `Imported from ${fileName}`,
       necCompliant: false
@@ -119,8 +119,8 @@ export async function parseExcelFile(filePath: string, fileName: string): Promis
       const task: InsertTask = {
         name: taskName,
         wbsCode: String(row[columnMap.wbs] || ''),
-        startDate,
-        endDate,
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
         duration,
         percentComplete,
         predecessors,

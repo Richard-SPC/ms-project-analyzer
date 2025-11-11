@@ -4,6 +4,7 @@ import multer from "multer";
 import { storage } from "./storage";
 import { parseMppFile, getProjectNameFromFileName } from "./mppParser";
 import { parseProjectXml } from "./xmlParser";
+import { parseExcelFile } from "./excelParser";
 import { analyzeDcmaCompliance } from "./dcmaAnalyzer";
 import { analyzeNecCompliance } from "./necAnalyzer";
 import { 
@@ -21,11 +22,13 @@ const upload = multer({
   fileFilter: (req: any, file: any, cb: any) => {
     const isXml = file.mimetype === "text/xml" || file.mimetype === "application/xml" || file.originalname.endsWith(".xml");
     const isMpp = file.mimetype === "application/vnd.ms-project" || file.originalname.endsWith(".mpp");
+    const isExcel = file.mimetype === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" || file.originalname.endsWith(".xlsx");
+    const isCsv = file.mimetype === "text/csv" || file.originalname.endsWith(".csv");
     
-    if (isXml || isMpp) {
+    if (isXml || isMpp || isExcel || isCsv) {
       cb(null, true);
     } else {
-      cb(new Error("Only XML and MPP files are allowed"));
+      cb(new Error("Only XML, MPP, Excel (.xlsx), and CSV files are allowed"));
     }
   },
 });
@@ -336,7 +339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // File upload route for Microsoft Project files (XML and MPP)
+  // File upload route for Microsoft Project files (XML, MPP, Excel, CSV)
   app.post("/api/projects/upload", upload.single("file"), async (req, res) => {
     try {
       if (!req.file) {
@@ -346,8 +349,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fileName = req.file.originalname;
       const isMpp = fileName.toLowerCase().endsWith('.mpp');
       const isXml = fileName.toLowerCase().endsWith('.xml');
+      const isExcel = fileName.toLowerCase().endsWith('.xlsx');
+      const isCsv = fileName.toLowerCase().endsWith('.csv');
 
-      if (isMpp) {
+      if (isExcel || isCsv) {
+        // Handle Excel/CSV file
+        console.log(`Parsing Excel/CSV file: ${fileName}`);
+        
+        // Write buffer to temporary file for xlsx library
+        const fs = await import('fs');
+        const path = await import('path');
+        const os = await import('os');
+        
+        const tempDir = os.tmpdir();
+        const tempFilePath = path.join(tempDir, `upload_${Date.now()}_${fileName}`);
+        
+        try {
+          fs.writeFileSync(tempFilePath, req.file.buffer);
+          
+          const result = await parseExcelFile(tempFilePath, fileName);
+          
+          // Clean up temp file
+          fs.unlinkSync(tempFilePath);
+          
+          if (!result.success || !result.project) {
+            console.error("Excel parsing failed:", result.error);
+            return res.status(400).json({ 
+              success: false,
+              error: result.error || "Failed to parse Excel file",
+              fileName: fileName,
+            });
+          }
+          
+          console.log(`Excel parsed successfully: ${result.tasks?.length || 0} tasks found`);
+
+          // Create the project in the database
+          const createdProject = await storage.createProject(result.project);
+          
+          // Create tasks linked to the project
+          const createdTasks = [];
+          if (result.tasks) {
+            for (const task of result.tasks) {
+              const taskWithProject = { ...task, projectId: createdProject.id };
+              const createdTask = await storage.createTask(taskWithProject);
+              createdTasks.push(createdTask);
+            }
+          }
+          
+          res.json({ 
+            success: true, 
+            fileName: req.file.originalname,
+            project: createdProject,
+            tasksCreated: createdTasks.length,
+            message: `Successfully imported project "${createdProject.name}" with ${createdTasks.length} tasks from Excel file`
+          });
+        } catch (error) {
+          // Clean up temp file on error
+          if (fs.existsSync(tempFilePath)) {
+            fs.unlinkSync(tempFilePath);
+          }
+          throw error;
+        }
+      } else if (isMpp) {
         // Handle MPP file using MPXJ Python parser
         console.log(`Parsing MPP file: ${fileName}`);
         const result = await parseMppFile(req.file.buffer, fileName);
@@ -423,7 +486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       } else {
         return res.status(400).json({ 
-          error: "Unsupported file format. Please upload XML or MPP files." 
+          error: "Unsupported file format. Please upload XML, MPP, Excel (.xlsx), or CSV files." 
         });
       }
     } catch (error) {
