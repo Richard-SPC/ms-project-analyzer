@@ -4,7 +4,7 @@ import type { InsertProject, InsertTask } from '@shared/schema';
 interface ExcelParseResult {
   success: boolean;
   project?: InsertProject;
-  tasks?: InsertTask[];
+  tasks?: Omit<InsertTask, 'id' | 'projectId'>[];
   error?: string;
 }
 
@@ -74,7 +74,7 @@ export async function parseExcelFile(filePath: string, fileName: string): Promis
     };
     
     // Parse tasks
-    const tasks: InsertTask[] = [];
+    const tasks: Omit<InsertTask, 'id' | 'projectId'>[] = [];
     
     for (const row of rows) {
       // Skip empty rows
@@ -116,7 +116,7 @@ export async function parseExcelFile(filePath: string, fileName: string): Promis
       const totalFloatStr = String(row[columnMap.totalFloat] || '0');
       const totalFloat = parseFloat(totalFloatStr.replace(/[^0-9.-]/g, '')) || 0;
       
-      const task: InsertTask = {
+      const task: Omit<InsertTask, 'id' | 'projectId'> = {
         name: taskName,
         wbsCode: String(row[columnMap.wbs] || ''),
         startDate: startDate ? new Date(startDate) : undefined,
