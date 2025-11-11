@@ -70,6 +70,7 @@ export async function parseExcelFile(filePath: string, fileName: string): Promis
       endDate: dates.finishDate ? new Date(dates.finishDate) : undefined,
       projectManager: '',
       description: `Imported from ${fileName}`,
+      status: 'active',
       necCompliant: false
     };
     
