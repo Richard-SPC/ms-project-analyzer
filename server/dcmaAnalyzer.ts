@@ -168,9 +168,10 @@ export function analyzeDcmaCompliance(
 
   // 3. Hard Constraints are Valid - Minimal hard constraints
   // DCMA criterion 3: Hard constraints should be minimally used (≤5%)
-  // Hard constraints: MSO, MFO, SNET, SNLT, FNET, FNLT (types 2-7)
-  // Flexible constraints: ASAP, ALAP (types 0-1) - not counted as hard
-  const hardConstraintTypes = ['MSO', 'MFO', 'SNET', 'SNLT', 'FNET', 'FNLT'];
+  // Hard constraints (inflexible): MSO, MFO, SNLT, FNLT
+  // Soft constraints (semi-flexible): SNET, FNET - NOT counted as hard
+  // Flexible constraints: ASAP, ALAP - NOT counted as hard
+  const hardConstraintTypes = ['MSO', 'MFO', 'SNLT', 'FNLT'];
   
   const tasksWithHardConstraintsDetails = workTasks.filter(t => 
     t.constraintType && hardConstraintTypes.includes(t.constraintType)
