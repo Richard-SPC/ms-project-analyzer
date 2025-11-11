@@ -5,7 +5,7 @@
 A professional web application for construction project managers and planners to upload, analyze, and assess Microsoft Project schedules against industry standards. The system provides automated DCMA 14-point compliance assessment and NEC contract compliance checking with detailed findings and metrics.
 
 **Core Functionality:**
-- Microsoft Project file upload (.mpp/.xml) and parsing
+- Microsoft Project file upload (.mpp/.xml/.xlsx/.csv) and parsing
 - Automated DCMA 14-point schedule quality assessment
 - NEC contract compliance checking
 - Project and task management
@@ -37,11 +37,12 @@ Preferred communication style: Simple, everyday language.
 **API Design:** RESTful endpoints under `/api`, Multer for file uploads (50MB limit), JSON response format, error handling, request/response logging.
 
 **Project File Processing Pipeline:**
-1. Client uploads .mpp or .xml file.
+1. Client uploads .mpp, .xml, .xlsx, or .csv file.
 2. Server validates file type and size.
 3. File parser extracts project metadata and task structure:
    - XML files: `xml2js` library.
    - MPP files: MPXJ Python library (via Python subprocess).
+   - Excel/CSV files: `xlsx` library with intelligent column detection.
 4. Data stored in in-memory storage (MemStorage).
 5. Response returned to client with project ID.
 
@@ -75,6 +76,7 @@ Preferred communication style: Simple, everyday language.
 - **Date Handling:** `date-fns`
 - **XML Parsing:** `xml2js`
 - **MPP Parsing:** MPXJ Python library (`mpxj`, `jpype1`) via Python subprocess (requires Python 3.11 and OpenJDK 21)
+- **Excel/CSV Parsing:** `xlsx` library with flexible column detection
 - **File Upload:** `multer`
 - **Development Tools:** `typescript`, `@replit/vite-plugin-*`, `drizzle-kit`, `esbuild`
 
