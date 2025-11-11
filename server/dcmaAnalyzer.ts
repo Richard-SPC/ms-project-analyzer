@@ -101,8 +101,8 @@ export function analyzeDcmaCompliance(
   );
   const finishMilestoneId = validFinishMilestones.length > 0 ? validFinishMilestones[0].id.toString() : null;
   
-  // Check ALL work tasks (non-summary, non-milestone)
-  const analysisTasks = workTasks.filter(t => !t.isMilestone);
+  // Check ALL work tasks (non-summary, INCLUDING milestones)
+  const analysisTasks = workTasks; // All non-summary tasks
   
   // Count tasks missing predecessors or successors
   const tasksWithMissingLogic = analysisTasks.filter(t => {
