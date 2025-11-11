@@ -152,6 +152,14 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
         ? parseFloat(String(xmlTask.PercentComplete)) 
         : 0;
 
+      // Parse total slack/float - MS Project stores TotalSlack in tenths of minutes
+      // Same conversion as lag: divide by 4800 to convert to days
+      let totalFloat: number | undefined;
+      if (xmlTask.TotalSlack) {
+        const totalSlackValue = parseInt(String(xmlTask.TotalSlack)) || 0;
+        totalFloat = totalSlackValue / 4800;
+      }
+
       tasks.push({
         uid, // Store MS Project UID temporarily
         name: String(xmlTask.Name),
@@ -163,7 +171,7 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
         predecessors: predecessors.length > 0 ? predecessors : undefined,
         resources: resources.length > 0 ? resources : undefined,
         isCriticalPath: xmlTask.Critical === '1' || xmlTask.Critical === 'true' || xmlTask.Critical === true,
-        totalFloat: xmlTask.TotalSlack ? parseInt(String(xmlTask.TotalSlack)) : undefined,
+        totalFloat,
         isMilestone: xmlTask.Milestone === '1' || xmlTask.Milestone === 'true' || xmlTask.Milestone === true,
         isSummary,
         constraintType,

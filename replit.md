@@ -40,7 +40,7 @@ Preferred communication style: Simple, everyday language.
 1. Client uploads .mpp, .xml, .xlsx, or .csv file.
 2. Server validates file type and size.
 3. File parser extracts project metadata and task structure:
-   - XML files: `xml2js` library.
+   - XML files: `xml2js` library. TotalSlack converted from tenths-of-minutes to days (÷4800).
    - MPP files: MPXJ Python library (via Python subprocess).
    - Excel/CSV files: `xlsx` library with intelligent column detection.
 4. Data stored in in-memory storage (MemStorage).

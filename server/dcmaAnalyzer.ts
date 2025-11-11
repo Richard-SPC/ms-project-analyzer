@@ -354,19 +354,19 @@ export function analyzeDcmaCompliance(
     })
   };
 
-  // 9. High Float Tasks are Valid - ≤5% tasks with >44 days float
+  // 9. High Float Tasks are Valid - ≤5% tasks with >44 days total slack/float
   const highFloatTasksList = workTasks.filter((t) => t.totalFloat && t.totalFloat > 44);
   const highFloatPercentage = (highFloatTasksList.length / workTasks.length) * 100;
   const highFloatValid = highFloatPercentage <= 5;
   findings.highFloatValid = {
     passed: highFloatValid,
-    details: `${highFloatTasksList.length} of ${workTasks.length} tasks (${highFloatPercentage.toFixed(1)}%) have excessive float (>44 days)`,
+    details: `${highFloatTasksList.length} of ${workTasks.length} tasks (${highFloatPercentage.toFixed(1)}%) have excessive total slack (>44 days)`,
     count: highFloatTasksList.length,
     percentage: highFloatPercentage,
     failedTasks: highFloatTasksList.map(t => ({
       id: t.id,
       name: t.name,
-      reason: `Total float: ${t.totalFloat} days (exceeds 44 day limit)`
+      reason: `Total slack: ${t.totalFloat?.toFixed(1)} days (exceeds 44 day limit)`
     }))
   };
 
