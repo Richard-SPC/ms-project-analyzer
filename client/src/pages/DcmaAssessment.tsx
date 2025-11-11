@@ -450,7 +450,9 @@ export default function DcmaAssessment() {
                                   <div className="mt-2 space-y-1 max-h-48 overflow-y-auto">
                                     {finding.failedTasks.map((task: any) => (
                                       <div key={task.id} className="text-xs p-2 bg-muted/30 rounded border-l-2 border-destructive/30">
-                                        <div className="font-medium">{task.name}</div>
+                                        <div className="font-medium">
+                                          <span className="text-muted-foreground">[ID {task.id}]</span> {task.name}
+                                        </div>
                                         {task.reason && (
                                           <div className="text-muted-foreground mt-0.5">{task.reason}</div>
                                         )}
