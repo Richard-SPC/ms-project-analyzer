@@ -1,4 +1,4 @@
-import * as xlsx from 'xlsx';
+import XLSX from 'xlsx';
 import type { InsertProject, InsertTask } from '@shared/schema';
 
 interface ExcelParseResult {
@@ -32,14 +32,14 @@ interface ExcelRow {
 export async function parseExcelFile(filePath: string, fileName: string): Promise<ExcelParseResult> {
   try {
     // Read the Excel file
-    const workbook = xlsx.readFile(filePath);
+    const workbook = XLSX.readFile(filePath);
     
     // Get the first sheet
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
     
     // Convert to JSON
-    const rows: ExcelRow[] = xlsx.utils.sheet_to_json(worksheet);
+    const rows: ExcelRow[] = XLSX.utils.sheet_to_json(worksheet);
     
     if (!rows || rows.length === 0) {
       return {
@@ -294,7 +294,7 @@ function parseExcelDate(value: any): string | null {
   // If it's an Excel serial number
   if (typeof value === 'number') {
     // Excel dates are days since 1900-01-01 (with leap year bug)
-    const date = xlsx.SSF.parse_date_code(value);
+    const date = XLSX.SSF.parse_date_code(value);
     if (date) {
       return new Date(date.y, date.m - 1, date.d).toISOString();
     }
