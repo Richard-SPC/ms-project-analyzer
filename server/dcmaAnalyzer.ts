@@ -311,16 +311,27 @@ export function analyzeDcmaCompliance(
   };
 
   // 7. Resources are Assigned - ≥95% tasks should have resources
+  const tasksWithResources = workTasks.filter(
+    (t) => t.resources && t.resources.length > 0
+  );
   const tasksWithoutResources = workTasks.filter(
     (t) => !t.resources || t.resources.length === 0
   );
-  const tasksWithResources = workTasks.length - tasksWithoutResources.length;
-  const resourcePercentage = (tasksWithResources / workTasks.length) * 100;
+  
+  console.log('[DCMA Check 7] Total work tasks:', workTasks.length);
+  console.log('[DCMA Check 7] Tasks with resources:', tasksWithResources.length);
+  console.log('[DCMA Check 7] Tasks with resources:', tasksWithResources.map(t => ({
+    id: t.id,
+    name: t.name,
+    resources: t.resources
+  })));
+  
+  const resourcePercentage = (tasksWithResources.length / workTasks.length) * 100;
   const resourcesAssigned = resourcePercentage >= 95;
   findings.resourcesAssigned = {
     passed: resourcesAssigned,
-    details: `${tasksWithResources} of ${workTasks.length} tasks (${resourcePercentage.toFixed(1)}%) have resources assigned`,
-    count: tasksWithResources,
+    details: `${tasksWithResources.length} of ${workTasks.length} tasks (${resourcePercentage.toFixed(1)}%) have resources assigned`,
+    count: tasksWithResources.length,
     percentage: resourcePercentage,
     failedTasks: tasksWithoutResources.map(t => ({
       id: t.id,
