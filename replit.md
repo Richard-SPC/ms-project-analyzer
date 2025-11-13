@@ -8,6 +8,7 @@ A professional web application for construction project managers and planners to
 - Microsoft Project file upload (.mpp/.xml/.xlsx/.csv) and parsing
 - Automated DCMA 14-point schedule quality assessment
 - NEC contract compliance checking
+- Manual override system for DCMA assessments with justification tracking
 - Project and task management
 - Multi-project/programme tracking
 - Detailed compliance reports
@@ -57,7 +58,7 @@ Preferred communication style: Simple, everyday language.
 **Schema Design:**
 - **Projects Table:** Stores project metadata, NEC compliance status.
 - **Tasks Table:** Stores task details including dependencies, resources, critical path, total float, constraint types. Includes `isSummary` flag, `constraintType` (ASAP, ALAP, MSO, MFO, SNET, SNLT, FNET, FNLT), and `msProjectId` (original MS Project task ID for cross-reference).
-- **DCMA Assessments Table:** Stores assessment results for each project, including criterion-specific results and overall score.
+- **DCMA Assessments Table:** Stores assessment results for each project, including criterion-specific results, overall score, and manual override flags (14 boolean fields allowing users to override failed checks with justification).
 - **NEC Compliance Table:** Stores assessment results for each project, including criterion-specific results and overall status.
 
 **Storage Abstraction:** IStorage interface with MemStorage for development, designed for Drizzle-based PostgreSQL implementation.
