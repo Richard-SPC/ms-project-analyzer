@@ -28,6 +28,7 @@ export interface IStorage {
   createDcmaAssessment(assessment: InsertDcmaAssessment): Promise<DcmaAssessment>;
   getDcmaAssessmentsByProject(projectId: number): Promise<DcmaAssessment[]>;
   getLatestDcmaAssessment(projectId: number): Promise<DcmaAssessment | undefined>;
+  updateDcmaAssessment(id: number, assessment: Partial<InsertDcmaAssessment>): Promise<DcmaAssessment | undefined>;
   
   // NEC Compliance operations
   createNecCompliance(compliance: InsertNecCompliance): Promise<NecCompliance>;
@@ -193,6 +194,21 @@ export class MemStorage implements IStorage {
       baselineExists: insertAssessment.baselineExists ?? null,
       sviBvValid: insertAssessment.sviBvValid ?? null,
       bcwsValid: insertAssessment.bcwsValid ?? null,
+      // Manual overrides default to false
+      logicCompleteOverride: insertAssessment.logicCompleteOverride ?? false,
+      leadLagsValidOverride: insertAssessment.leadLagsValidOverride ?? false,
+      hardConstraintsValidOverride: insertAssessment.hardConstraintsValidOverride ?? false,
+      negativeLagsValidOverride: insertAssessment.negativeLagsValidOverride ?? false,
+      highDurationValidOverride: insertAssessment.highDurationValidOverride ?? false,
+      invalidDatesValidOverride: insertAssessment.invalidDatesValidOverride ?? false,
+      resourcesAssignedOverride: insertAssessment.resourcesAssignedOverride ?? false,
+      missedTasksValidOverride: insertAssessment.missedTasksValidOverride ?? false,
+      highFloatValidOverride: insertAssessment.highFloatValidOverride ?? false,
+      criticalPathTestOverride: insertAssessment.criticalPathTestOverride ?? false,
+      criticalPathLengthOverride: insertAssessment.criticalPathLengthOverride ?? false,
+      baselineExistsOverride: insertAssessment.baselineExistsOverride ?? false,
+      sviBvValidOverride: insertAssessment.sviBvValidOverride ?? false,
+      bcwsValidOverride: insertAssessment.bcwsValidOverride ?? false,
       overallScore: insertAssessment.overallScore ?? null,
       passed: insertAssessment.passed ?? null,
       notes: insertAssessment.notes ?? null,
@@ -211,6 +227,18 @@ export class MemStorage implements IStorage {
   async getLatestDcmaAssessment(projectId: number): Promise<DcmaAssessment | undefined> {
     const assessments = await this.getDcmaAssessmentsByProject(projectId);
     return assessments[0];
+  }
+
+  async updateDcmaAssessment(id: number, updates: Partial<InsertDcmaAssessment>): Promise<DcmaAssessment | undefined> {
+    const assessment = this.dcmaAssessments.get(id);
+    if (!assessment) return undefined;
+    
+    const updated: DcmaAssessment = { 
+      ...assessment, 
+      ...updates,
+    };
+    this.dcmaAssessments.set(id, updated);
+    return updated;
   }
 
   // NEC Compliance operations

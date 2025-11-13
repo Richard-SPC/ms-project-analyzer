@@ -255,6 +255,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/dcma-assessments/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = insertDcmaAssessmentSchema.partial().parse(req.body);
+      
+      // Update the assessment
+      const updated = await storage.updateDcmaAssessment(id, updates);
+      if (!updated) {
+        return res.status(404).json({ error: "Assessment not found" });
+      }
+      
+      // Recompute overall score based on effective pass/fail (original || override)
+      const effectiveScore = [
+        updated.logicComplete || updated.logicCompleteOverride,
+        updated.leadLagsValid || updated.leadLagsValidOverride,
+        updated.hardConstraintsValid || updated.hardConstraintsValidOverride,
+        updated.negativeLagsValid || updated.negativeLagsValidOverride,
+        updated.highDurationValid || updated.highDurationValidOverride,
+        updated.invalidDatesValid || updated.invalidDatesValidOverride,
+        updated.resourcesAssigned || updated.resourcesAssignedOverride,
+        updated.missedTasksValid || updated.missedTasksValidOverride,
+        updated.highFloatValid || updated.highFloatValidOverride,
+        updated.criticalPathTest || updated.criticalPathTestOverride,
+        updated.criticalPathLength || updated.criticalPathLengthOverride,
+        updated.baselineExists || updated.baselineExistsOverride,
+        updated.sviBvValid || updated.sviBvValidOverride,
+        updated.bcwsValid || updated.bcwsValidOverride,
+      ].filter(Boolean).length;
+      
+      // Update score and passed status
+      const finalUpdate = await storage.updateDcmaAssessment(id, {
+        overallScore: effectiveScore,
+        passed: effectiveScore >= 10, // Assuming 10/14 threshold
+      });
+      
+      res.json(finalUpdate);
+    } catch (error) {
+      console.error("Error updating DCMA assessment:", error);
+      res.status(400).json({ 
+        error: error instanceof Error ? error.message : "Failed to update DCMA assessment" 
+      });
+    }
+  });
+
   // NEC Compliance routes
   app.get("/api/nec-compliance", async (req, res) => {
     try {
