@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { type Project, type DcmaAssessment } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -339,6 +341,9 @@ export default function DcmaAssessment() {
                           <div className="space-y-4 pt-2">
                             {dcmaCriteria.map((criterion) => {
                               const value = assessment[criterion.key as keyof DcmaAssessment];
+                              const overrideKey = `${criterion.key}Override` as keyof DcmaAssessment;
+                              const isOverridden = assessment[overrideKey] as boolean;
+                              
                               return (
                                 <div key={criterion.key} className="border-l-2 pl-3 py-2" 
                                      style={{ borderColor: value ? '#16a34a' : '#ef4444' }}>
@@ -350,6 +355,11 @@ export default function DcmaAssessment() {
                                     )}
                                     <div className="flex-1">
                                       <h4 className="text-sm font-semibold">{criterion.label}</h4>
+                                      {isOverridden && (
+                                        <span className="ml-2 text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-0.5 rounded">
+                                          Manual Override
+                                        </span>
+                                      )}
                                     </div>
                                   </div>
                                   <p className="text-sm text-muted-foreground mb-2 ml-6">
@@ -369,6 +379,7 @@ export default function DcmaAssessment() {
                           </div>
                         </AccordionContent>
                       </AccordionItem>
+                      <ManualOverridesSection assessment={assessment} />
                     </Accordion>
 
                     {assessment.notes && (
@@ -503,5 +514,159 @@ export default function DcmaAssessment() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function ManualOverridesSection({ assessment }: { assessment: DcmaAssessment }) {
+  const { toast } = useToast();
+  const [overrides, setOverrides] = useState<Record<string, boolean>>({});
+  const [overrideNotes, setOverrideNotes] = useState("");
+  const [hasChanges, setHasChanges] = useState(false);
+
+  const updateOverrideMutation = useMutation({
+    mutationFn: async (data: { overrides: Record<string, boolean>; notes?: string }) => {
+      return apiRequest(
+        "PATCH",
+        `/api/dcma-assessments/${assessment.id}`,
+        { ...data.overrides, notes: data.notes || assessment.notes }
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/dcma-assessments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", assessment.projectId, "dcma-assessments"] });
+      toast({
+        title: "Overrides Saved",
+        description: "Manual overrides have been applied and the score has been recalculated.",
+      });
+      setHasChanges(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error Saving Overrides",
+        description: error instanceof Error ? error.message : "Failed to save manual overrides",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleOverrideChange = (criterionKey: string, checked: boolean) => {
+    const overrideKey = `${criterionKey}Override`;
+    setOverrides((prev) => ({ ...prev, [overrideKey]: checked }));
+    setHasChanges(true);
+  };
+
+  const handleSaveOverrides = () => {
+    updateOverrideMutation.mutate({ overrides, notes: overrideNotes });
+  };
+
+  // Filter to only show failed checks
+  const failedCriteria = dcmaCriteria.filter((criterion) => {
+    const value = assessment[criterion.key as keyof DcmaAssessment];
+    return !value;
+  });
+
+  if (failedCriteria.length === 0) {
+    return null;
+  }
+
+  return (
+    <AccordionItem value="overrides">
+      <AccordionTrigger className="text-sm font-medium">
+        <div className="flex items-center gap-2">
+          <AlertCircle className="h-4 w-4" />
+          Manual Overrides ({failedCriteria.length} Failed Check{failedCriteria.length !== 1 ? 's' : ''})
+        </div>
+      </AccordionTrigger>
+      <AccordionContent>
+        <div className="space-y-4 pt-2">
+          <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-md p-3 text-xs text-yellow-800 dark:text-yellow-200">
+            <p className="font-semibold mb-1">⚠️ Important: Manual Override Guidance</p>
+            <p>
+              Manual overrides allow you to mark failed checks as passing when you have verified compliance through alternative means
+              or have business justification. Please provide detailed notes explaining why each override is necessary.
+              All overrides should be reviewed and approved by appropriate stakeholders.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {failedCriteria.map((criterion) => {
+              const overrideKey = `${criterion.key}Override` as keyof DcmaAssessment;
+              const currentOverride = overrides[overrideKey] ?? (assessment[overrideKey] as boolean);
+
+              return (
+                <div key={criterion.key} className="border rounded-md p-3">
+                  <div className="flex items-start gap-3">
+                    <Checkbox
+                      id={`override-${criterion.key}`}
+                      checked={currentOverride}
+                      onCheckedChange={(checked) => handleOverrideChange(criterion.key, checked as boolean)}
+                      data-testid={`checkbox-override-${criterion.key}`}
+                    />
+                    <div className="flex-1">
+                      <Label
+                        htmlFor={`override-${criterion.key}`}
+                        className="text-sm font-medium cursor-pointer"
+                      >
+                        {criterion.label}
+                      </Label>
+                      <p className="text-xs text-muted-foreground mt-1">{criterion.description}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="override-notes" className="text-sm font-medium">
+              Justification for Overrides
+            </Label>
+            <Textarea
+              id="override-notes"
+              placeholder="Explain why these manual overrides are necessary and document any alternative verification methods used..."
+              value={overrideNotes}
+              onChange={(e) => {
+                setOverrideNotes(e.target.value);
+                setHasChanges(true);
+              }}
+              rows={4}
+              data-testid="textarea-override-notes"
+            />
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setOverrides({});
+                setOverrideNotes("");
+                setHasChanges(false);
+              }}
+              disabled={!hasChanges}
+              data-testid="button-reset-overrides"
+            >
+              Reset
+            </Button>
+            <Button
+              onClick={handleSaveOverrides}
+              disabled={updateOverrideMutation.isPending || !hasChanges}
+              data-testid="button-save-overrides"
+            >
+              {updateOverrideMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Overrides
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </AccordionContent>
+    </AccordionItem>
   );
 }
