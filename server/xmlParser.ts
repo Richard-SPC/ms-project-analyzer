@@ -135,6 +135,16 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
 
       // Parse resources
       const resources: string[] = [];
+      
+      // Debug: Log assignment structure for first few tasks
+      if (tasks.length < 5) {
+        console.log(`[XML Parser] Task ${uid} "${String(xmlTask.Name)}":`, {
+          hasAssignment: !!xmlTask.Assignment,
+          assignmentType: xmlTask.Assignment ? (Array.isArray(xmlTask.Assignment) ? 'array' : 'object') : 'none',
+          assignmentData: xmlTask.Assignment
+        });
+      }
+      
       if (xmlTask.Assignment) {
         const assignments = Array.isArray(xmlTask.Assignment)
           ? xmlTask.Assignment
