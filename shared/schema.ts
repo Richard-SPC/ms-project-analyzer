@@ -57,6 +57,22 @@ export const dcmaAssessments = pgTable("dcma_assessments", {
   sviBvValid: boolean("svi_bv_valid"), // 13. SVI/BV is valid
   bcwsValid: boolean("bcws_valid"), // 14. BCWS is valid
   
+  // Manual overrides (when true, forces the check to pass regardless of automated result)
+  logicCompleteOverride: boolean("logic_complete_override").default(false),
+  leadLagsValidOverride: boolean("lead_lags_valid_override").default(false),
+  hardConstraintsValidOverride: boolean("hard_constraints_valid_override").default(false),
+  negativeLagsValidOverride: boolean("negative_lags_valid_override").default(false),
+  highDurationValidOverride: boolean("high_duration_valid_override").default(false),
+  invalidDatesValidOverride: boolean("invalid_dates_valid_override").default(false),
+  resourcesAssignedOverride: boolean("resources_assigned_override").default(false),
+  missedTasksValidOverride: boolean("missed_tasks_valid_override").default(false),
+  highFloatValidOverride: boolean("high_float_valid_override").default(false),
+  criticalPathTestOverride: boolean("critical_path_test_override").default(false),
+  criticalPathLengthOverride: boolean("critical_path_length_override").default(false),
+  baselineExistsOverride: boolean("baseline_exists_override").default(false),
+  sviBvValidOverride: boolean("svi_bv_valid_override").default(false),
+  bcwsValidOverride: boolean("bcws_valid_override").default(false),
+  
   overallScore: integer("overall_score"), // 0-14
   passed: boolean("passed"), // true if score >= threshold
   notes: text("notes"),
