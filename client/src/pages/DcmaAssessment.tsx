@@ -150,6 +150,7 @@ export default function DcmaAssessment() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [notes, setNotes] = useState("");
+  const [expandedAssessment, setExpandedAssessment] = useState<number | null>(null);
   const { toast } = useToast();
 
   const { data: projects } = useQuery<Project[]>({
@@ -329,57 +330,24 @@ export default function DcmaAssessment() {
                       })}
                     </div>
                     
-                    <Accordion type="single" collapsible className="mt-4">
-                      <AccordionItem value="details">
-                        <AccordionTrigger className="text-sm font-medium">
-                          <div className="flex items-center gap-2">
-                            <AlertCircle className="h-4 w-4" />
-                            View Detailed Criteria Information
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <div className="space-y-4 pt-2">
-                            {dcmaCriteria.map((criterion) => {
-                              const value = assessment[criterion.key as keyof DcmaAssessment];
-                              const overrideKey = `${criterion.key}Override` as keyof DcmaAssessment;
-                              const isOverridden = assessment[overrideKey] as boolean;
-                              
-                              return (
-                                <div key={criterion.key} className="border-l-2 pl-3 py-2" 
-                                     style={{ borderColor: value ? '#16a34a' : '#ef4444' }}>
-                                  <div className="flex items-start gap-2 mb-1">
-                                    {value ? (
-                                      <CheckCircle2 className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                                    ) : (
-                                      <XCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
-                                    )}
-                                    <div className="flex-1">
-                                      <h4 className="text-sm font-semibold">{criterion.label}</h4>
-                                      {isOverridden && (
-                                        <span className="ml-2 text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-0.5 rounded">
-                                          Manual Override
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                  <p className="text-sm text-muted-foreground mb-2 ml-6">
-                                    {criterion.description}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground ml-6">
-                                    {criterion.details}
-                                  </p>
-                                  <div className="mt-2 ml-6 bg-muted/50 rounded-md px-3 py-2">
-                                    <p className="text-xs">
-                                      <span className="font-semibold">Industry Threshold:</span> {criterion.threshold}
-                                    </p>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                      <ManualOverridesSection assessment={assessment} />
+                    <Accordion 
+                      type="single" 
+                      collapsible 
+                      className="mt-4"
+                      onValueChange={(value) => {
+                        // When accordion opens (value = "details"), set this assessment as expanded
+                        // When it closes (value = ""), only clear if this was the expanded one
+                        if (value === "details") {
+                          setExpandedAssessment(assessment.id);
+                        } else if (expandedAssessment === assessment.id) {
+                          setExpandedAssessment(null);
+                        }
+                      }}
+                    >
+                      <AssessmentDetailView 
+                        assessment={assessment} 
+                        isExpanded={expandedAssessment === assessment.id}
+                      />
                     </Accordion>
 
                     {assessment.notes && (
@@ -517,11 +485,23 @@ export default function DcmaAssessment() {
   );
 }
 
-function ManualOverridesSection({ assessment }: { assessment: DcmaAssessment }) {
+function AssessmentDetailView({ assessment, isExpanded }: { assessment: DcmaAssessment; isExpanded: boolean }) {
   const { toast } = useToast();
   const [overrides, setOverrides] = useState<Record<string, boolean>>({});
-  const [overrideNotes, setOverrideNotes] = useState("");
+  const [overrideNotes, setOverrideNotes] = useState(assessment.notes || "");
   const [hasChanges, setHasChanges] = useState(false);
+
+  // Fetch detailed analysis for this assessment's project - ONLY when accordion is expanded
+  const { data: detailedAnalysis, isLoading: isLoadingAnalysis } = useQuery<AnalysisResult>({
+    queryKey: ["/api/projects", assessment.projectId, "dcma-analysis"],
+    queryFn: async () => {
+      const res = await fetch(`/api/projects/${assessment.projectId}/dcma-analysis`);
+      if (!res.ok) throw new Error("Failed to fetch analysis details");
+      return await res.json();
+    },
+    enabled: isExpanded, // Only fetch when accordion is expanded
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes to avoid refetching on re-expand
+  });
 
   const updateOverrideMutation = useMutation({
     mutationFn: async (data: { overrides: Record<string, boolean>; notes?: string }) => {
@@ -534,6 +514,7 @@ function ManualOverridesSection({ assessment }: { assessment: DcmaAssessment }) 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/dcma-assessments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/projects", assessment.projectId, "dcma-assessments"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/projects", assessment.projectId, "dcma-analysis"] });
       toast({
         title: "Overrides Saved",
         description: "Manual overrides have been applied and the score has been recalculated.",
@@ -559,65 +540,140 @@ function ManualOverridesSection({ assessment }: { assessment: DcmaAssessment }) 
     updateOverrideMutation.mutate({ overrides, notes: overrideNotes });
   };
 
-  // Filter to only show failed checks
-  const failedCriteria = dcmaCriteria.filter((criterion) => {
-    const value = assessment[criterion.key as keyof DcmaAssessment];
-    return !value;
-  });
-
-  if (failedCriteria.length === 0) {
-    return null;
+  if (isLoadingAnalysis) {
+    return (
+      <AccordionItem value="details">
+        <AccordionTrigger className="text-sm font-medium">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            View Detailed Analysis & Manual Overrides
+          </div>
+        </AccordionTrigger>
+        <AccordionContent>
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        </AccordionContent>
+      </AccordionItem>
+    );
   }
 
   return (
-    <AccordionItem value="overrides">
+    <AccordionItem value="details">
       <AccordionTrigger className="text-sm font-medium">
         <div className="flex items-center gap-2">
           <AlertCircle className="h-4 w-4" />
-          Manual Overrides ({failedCriteria.length} Failed Check{failedCriteria.length !== 1 ? 's' : ''})
+          View Detailed Analysis & Manual Overrides
         </div>
       </AccordionTrigger>
       <AccordionContent>
-        <div className="space-y-4 pt-2">
+        <div className="space-y-6 pt-2">
+          {/* Warning Banner */}
           <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-md p-3 text-xs text-yellow-800 dark:text-yellow-200">
-            <p className="font-semibold mb-1">⚠️ Important: Manual Override Guidance</p>
+            <p className="font-semibold mb-1 flex items-center gap-1.5">
+              <AlertCircle className="h-3.5 w-3.5" />
+              Manual Override Guidance
+            </p>
             <p>
               Manual overrides allow you to mark failed checks as passing when you have verified compliance through alternative means
               or have business justification. Please provide detailed notes explaining why each override is necessary.
-              All overrides should be reviewed and approved by appropriate stakeholders.
             </p>
           </div>
 
-          <div className="space-y-3">
-            {failedCriteria.map((criterion) => {
+          {/* Criteria Details with Task Breakdowns and Overrides */}
+          <div className="space-y-4">
+            {dcmaCriteria.map((criterion) => {
+              const savedValue = assessment[criterion.key as keyof DcmaAssessment] as boolean;
               const overrideKey = `${criterion.key}Override` as keyof DcmaAssessment;
-              const currentOverride = overrides[overrideKey] ?? (assessment[overrideKey] as boolean);
+              const isOverridden = assessment[overrideKey] as boolean;
+              const currentOverride = overrides[overrideKey] ?? isOverridden;
+              const finding = detailedAnalysis?.findings[criterion.key];
+              
+              // Determine display state (considering overrides)
+              const effectivePass = savedValue || isOverridden;
 
               return (
-                <div key={criterion.key} className="border rounded-md p-3">
-                  <div className="flex items-start gap-3">
-                    <Checkbox
-                      id={`override-${criterion.key}`}
-                      checked={currentOverride}
-                      onCheckedChange={(checked) => handleOverrideChange(criterion.key, checked as boolean)}
-                      data-testid={`checkbox-override-${criterion.key}`}
-                    />
-                    <div className="flex-1">
-                      <Label
-                        htmlFor={`override-${criterion.key}`}
-                        className="text-sm font-medium cursor-pointer"
-                      >
-                        {criterion.label}
-                      </Label>
-                      <p className="text-xs text-muted-foreground mt-1">{criterion.description}</p>
+                <div key={criterion.key} className="border rounded-md p-4 space-y-3">
+                  {/* Criterion Header */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-start gap-2 flex-1">
+                      {effectivePass ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                      ) : (
+                        <XCircle className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+                      )}
+                      <div className="flex-1">
+                        <h4 className="text-sm font-semibold">{criterion.label}</h4>
+                        {isOverridden && (
+                          <span className="inline-block mt-1 text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-0.5 rounded">
+                            Manual Override Active
+                          </span>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-1">{criterion.description}</p>
+                      </div>
                     </div>
+
+                    {/* Override Checkbox (only show for failed checks) */}
+                    {!savedValue && (
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id={`override-${criterion.key}`}
+                          checked={currentOverride}
+                          onCheckedChange={(checked) => handleOverrideChange(criterion.key, checked as boolean)}
+                          data-testid={`checkbox-override-${criterion.key}`}
+                        />
+                        <Label
+                          htmlFor={`override-${criterion.key}`}
+                          className="text-xs font-medium cursor-pointer whitespace-nowrap"
+                        >
+                          Override
+                        </Label>
+                      </div>
+                    )}
                   </div>
+
+                  {/* Detailed Finding */}
+                  <div className="ml-7 bg-muted/30 rounded-md px-3 py-2 text-xs">
+                    <p className="text-muted-foreground">
+                      {finding?.details || "Analysis details not available"}
+                    </p>
+                  </div>
+
+                  {/* Failed Tasks Breakdown */}
+                  {finding?.failedTasks && finding.failedTasks.length > 0 && (
+                    <div className="ml-7">
+                      <Accordion type="single" collapsible>
+                        <AccordionItem value="tasks" className="border-0">
+                          <AccordionTrigger className="text-xs py-1 hover:no-underline">
+                            <span className="text-destructive font-medium">
+                              View {finding.failedTasks.length} affected task{finding.failedTasks.length !== 1 ? 's' : ''}
+                            </span>
+                          </AccordionTrigger>
+                          <AccordionContent>
+                            <div className="mt-2 space-y-1 max-h-60 overflow-y-auto">
+                              {finding.failedTasks.map((task: any) => (
+                                <div key={task.id} className="text-xs p-2 bg-muted/50 rounded border-l-2 border-destructive/40">
+                                  <div className="font-medium">
+                                    <span className="text-muted-foreground">[ID {task.id}]</span> {task.name}
+                                  </div>
+                                  {task.reason && (
+                                    <div className="text-muted-foreground mt-0.5">{task.reason}</div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      </Accordion>
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
 
-          <div className="space-y-2">
+          {/* Override Justification */}
+          <div className="space-y-2 border-t pt-4">
             <Label htmlFor="override-notes" className="text-sm font-medium">
               Justification for Overrides
             </Label>
@@ -634,12 +690,13 @@ function ManualOverridesSection({ assessment }: { assessment: DcmaAssessment }) 
             />
           </div>
 
+          {/* Save/Reset Buttons */}
           <div className="flex justify-end gap-2">
             <Button
               variant="outline"
               onClick={() => {
                 setOverrides({});
-                setOverrideNotes("");
+                setOverrideNotes(assessment.notes || "");
                 setHasChanges(false);
               }}
               disabled={!hasChanges}
