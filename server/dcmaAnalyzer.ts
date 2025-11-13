@@ -137,7 +137,7 @@ export function analyzeDcmaCompliance(
     count: tasksWithMissingLogicCount,
     percentage: logicPercentage,
     failedTasks: tasksWithMissingLogic.map(t => ({
-      id: t.msProjectUid || t.id.toString(),
+      id: t.msProjectId || t.id.toString(),
       name: t.name,
       reason: (!t.predecessors || t.predecessors.length === 0) && !tasksWithSuccessors.has(t.id.toString())
         ? 'Missing both predecessor and successor'
@@ -183,7 +183,7 @@ export function analyzeDcmaCompliance(
     count: tasksWithLags,
     percentage: lagPercentage,
     failedTasks: tasksWithLagsList.map(({ task, lagValues }) => ({
-      id: task.msProjectUid || task.id.toString(),
+      id: task.msProjectId || task.id.toString(),
       name: task.name,
       reason: `Has lag(s): ${lagValues.map(v => v > 0 ? `+${v}` : v).join(', ')} days`
     }))
@@ -213,7 +213,7 @@ export function analyzeDcmaCompliance(
     count: tasksWithHardConstraints,
     percentage: hardConstraintPercentage,
     failedTasks: tasksWithHardConstraintsDetails.map(t => ({
-      id: t.msProjectUid || t.id.toString(),
+      id: t.msProjectId || t.id.toString(),
       name: t.name,
       reason: `Has hard constraint: ${t.constraintType}`
     }))
@@ -254,7 +254,7 @@ export function analyzeDcmaCompliance(
     count: tasksWithNegativeLags,
     percentage: negativeLagPercentage,
     failedTasks: tasksWithNegativeLagsList.map(({ task, negLagValues }) => ({
-      id: task.msProjectUid || task.id.toString(),
+      id: task.msProjectId || task.id.toString(),
       name: task.name,
       reason: `Has negative lag(s): ${negLagValues.join(', ')} days`
     }))
@@ -270,7 +270,7 @@ export function analyzeDcmaCompliance(
     count: highDurationTasksList.length,
     percentage: highDurationPercentage,
     failedTasks: highDurationTasksList.map(t => ({
-      id: t.msProjectUid || t.id.toString(),
+      id: t.msProjectId || t.id.toString(),
       name: t.name,
       reason: `Duration: ${t.duration} days (exceeds 44 day limit)`
     }))
@@ -306,7 +306,7 @@ export function analyzeDcmaCompliance(
       else if (projEnd && end > projEnd) reason = `End date after project end`;
       else if (start > end) reason = `Start date after end date`;
       
-      return { id: t.msProjectUid || t.id.toString(), name: t.name, reason };
+      return { id: t.msProjectId || t.id.toString(), name: t.name, reason };
     })
   };
 
@@ -321,7 +321,7 @@ export function analyzeDcmaCompliance(
   console.log('[DCMA Check 7] Total work tasks:', workTasks.length);
   console.log('[DCMA Check 7] Tasks with resources:', tasksWithResources.length);
   console.log('[DCMA Check 7] Tasks with resources:', tasksWithResources.map(t => ({
-    id: t.msProjectUid || t.id.toString(),
+    id: t.msProjectId || t.id.toString(),
     name: t.name,
     resources: t.resources
   })));
@@ -334,7 +334,7 @@ export function analyzeDcmaCompliance(
     count: tasksWithResources.length,
     percentage: resourcePercentage,
     failedTasks: tasksWithoutResources.map(t => ({
-      id: t.msProjectUid || t.id.toString(),
+      id: t.msProjectId || t.id.toString(),
       name: t.name,
       reason: 'No resources assigned'
     }))
@@ -358,7 +358,7 @@ export function analyzeDcmaCompliance(
       const pctComplete = parseFloat(t.percentComplete?.toString() || "0");
       const endDate = new Date(t.endDate!).toLocaleDateString();
       return {
-        id: t.msProjectUid || t.id.toString(),
+        id: t.msProjectId || t.id.toString(),
         name: t.name,
         reason: `Past due (${endDate}), ${pctComplete.toFixed(0)}% complete`
       };
@@ -375,7 +375,7 @@ export function analyzeDcmaCompliance(
     count: highFloatTasksList.length,
     percentage: highFloatPercentage,
     failedTasks: highFloatTasksList.map(t => ({
-      id: t.msProjectUid || t.id.toString(),
+      id: t.msProjectId || t.id.toString(),
       name: t.name,
       reason: `Total slack: ${t.totalFloat?.toFixed(1)} days (exceeds 44 day limit)`
     }))

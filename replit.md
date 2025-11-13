@@ -56,7 +56,7 @@ Preferred communication style: Simple, everyday language.
 
 **Schema Design:**
 - **Projects Table:** Stores project metadata, NEC compliance status.
-- **Tasks Table:** Stores task details including dependencies, resources, critical path, total float, constraint types. Includes `isSummary` flag, `constraintType` (ASAP, ALAP, MSO, MFO, SNET, SNLT, FNET, FNLT), and `msProjectUid` (original MS Project task UID for cross-reference).
+- **Tasks Table:** Stores task details including dependencies, resources, critical path, total float, constraint types. Includes `isSummary` flag, `constraintType` (ASAP, ALAP, MSO, MFO, SNET, SNLT, FNET, FNLT), and `msProjectId` (original MS Project task ID for cross-reference).
 - **DCMA Assessments Table:** Stores assessment results for each project, including criterion-specific results and overall score.
 - **NEC Compliance Table:** Stores assessment results for each project, including criterion-specific results and overall status.
 

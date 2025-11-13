@@ -19,7 +19,7 @@ export const projects = pgTable("projects", {
 export const tasks = pgTable("tasks", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
-  msProjectUid: text("ms_project_uid"), // Original MS Project UID for reference
+  msProjectId: text("ms_project_id"), // Original MS Project ID (row number) for reference
   name: text("name").notNull(),
   wbsCode: text("wbs_code"), // Work Breakdown Structure code
   duration: integer("duration"), // in days

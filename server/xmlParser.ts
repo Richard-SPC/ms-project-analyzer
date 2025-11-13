@@ -96,6 +96,9 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
       // Extract MS Project UID for mapping predecessors later
       const uid = xmlTask.UID ? String(xmlTask.UID) : undefined;
       
+      // Extract MS Project ID (row number) for display
+      const msProjectId = xmlTask.ID ? String(xmlTask.ID) : undefined;
+      
       // Detect if this is a summary task
       const isSummary = xmlTask.Summary === '1' || xmlTask.Summary === 'true' || xmlTask.Summary === true;
 
@@ -194,7 +197,7 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
 
       tasks.push({
         uid, // Store MS Project UID temporarily for mapping predecessors
-        msProjectUid: uid, // Store MS Project UID permanently for reference
+        msProjectId, // Store MS Project ID (row number) for reference
         name: String(xmlTask.Name),
         wbsCode: xmlTask.WBS ? String(xmlTask.WBS) : undefined,
         duration,

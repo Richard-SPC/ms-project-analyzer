@@ -128,7 +128,7 @@ export class MemStorage implements IStorage {
     const task: Task = {
       ...insertTask,
       id,
-      msProjectUid: insertTask.msProjectUid ?? null,
+      msProjectId: insertTask.msProjectId ?? null,
       wbsCode: insertTask.wbsCode ?? null,
       duration: insertTask.duration ?? null,
       startDate: insertTask.startDate ?? null,
