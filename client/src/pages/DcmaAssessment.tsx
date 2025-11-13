@@ -135,7 +135,7 @@ interface AnalysisResult {
       count?: number;
       percentage?: number;
       failedTasks?: Array<{
-        id: number;
+        id: number | string;
         name: string;
         reason?: string;
       }>;

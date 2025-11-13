@@ -193,7 +193,8 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
       }
 
       tasks.push({
-        uid, // Store MS Project UID temporarily
+        uid, // Store MS Project UID temporarily for mapping predecessors
+        msProjectUid: uid, // Store MS Project UID permanently for reference
         name: String(xmlTask.Name),
         wbsCode: xmlTask.WBS ? String(xmlTask.WBS) : undefined,
         duration,

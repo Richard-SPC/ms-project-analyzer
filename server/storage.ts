@@ -62,6 +62,7 @@ export class MemStorage implements IStorage {
     const project: Project = {
       ...insertProject,
       id,
+      status: insertProject.status ?? "active",
       description: insertProject.description ?? null,
       startDate: insertProject.startDate ?? null,
       endDate: insertProject.endDate ?? null,
@@ -127,6 +128,7 @@ export class MemStorage implements IStorage {
     const task: Task = {
       ...insertTask,
       id,
+      msProjectUid: insertTask.msProjectUid ?? null,
       wbsCode: insertTask.wbsCode ?? null,
       duration: insertTask.duration ?? null,
       startDate: insertTask.startDate ?? null,
@@ -134,7 +136,11 @@ export class MemStorage implements IStorage {
       percentComplete: insertTask.percentComplete ?? "0",
       predecessors: insertTask.predecessors ?? null,
       resources: insertTask.resources ?? null,
+      isCriticalPath: insertTask.isCriticalPath ?? null,
       totalFloat: insertTask.totalFloat ?? null,
+      isMilestone: insertTask.isMilestone ?? null,
+      isSummary: insertTask.isSummary ?? null,
+      constraintType: insertTask.constraintType ?? null,
     };
     this.tasks.set(id, task);
     return task;
