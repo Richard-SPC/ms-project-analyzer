@@ -38,6 +38,49 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
     endDate: finishDate,
   };
 
+  // First, build a map of resources by UID
+  const resourceMap = new Map<string, string>();
+  if (projectData.Resources && projectData.Resources.Resource) {
+    const resourceList = Array.isArray(projectData.Resources.Resource)
+      ? projectData.Resources.Resource
+      : [projectData.Resources.Resource];
+    
+    for (const resource of resourceList) {
+      if (resource.UID && resource.Name) {
+        resourceMap.set(String(resource.UID), String(resource.Name));
+      }
+    }
+  }
+  
+  // Second, build a map of task assignments (TaskUID -> ResourceNames[])
+  const taskAssignments = new Map<string, string[]>();
+  if (projectData.Assignments && projectData.Assignments.Assignment) {
+    const assignmentList = Array.isArray(projectData.Assignments.Assignment)
+      ? projectData.Assignments.Assignment
+      : [projectData.Assignments.Assignment];
+    
+    for (const assignment of assignmentList) {
+      if (assignment.TaskUID && assignment.ResourceUID) {
+        const taskUid = String(assignment.TaskUID);
+        const resourceUid = String(assignment.ResourceUID);
+        const resourceName = resourceMap.get(resourceUid);
+        
+        if (resourceName) {
+          if (!taskAssignments.has(taskUid)) {
+            taskAssignments.set(taskUid, []);
+          }
+          taskAssignments.get(taskUid)!.push(resourceName);
+        }
+      }
+    }
+  }
+  
+  console.log('[XML Parser] Found resources:', resourceMap.size);
+  console.log('[XML Parser] Found task assignments:', taskAssignments.size);
+  if (taskAssignments.size > 0) {
+    console.log('[XML Parser] Sample assignments:', Array.from(taskAssignments.entries()).slice(0, 5));
+  }
+
   // Extract tasks
   const tasks: ParsedTask[] = [];
   
@@ -133,29 +176,8 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
         constraintType = constraintMap[constraintCode];
       }
 
-      // Parse resources
-      const resources: string[] = [];
-      
-      // Debug: Log assignment structure for first few tasks
-      if (tasks.length < 5) {
-        console.log(`[XML Parser] Task ${uid} "${String(xmlTask.Name)}":`, {
-          hasAssignment: !!xmlTask.Assignment,
-          assignmentType: xmlTask.Assignment ? (Array.isArray(xmlTask.Assignment) ? 'array' : 'object') : 'none',
-          assignmentData: xmlTask.Assignment
-        });
-      }
-      
-      if (xmlTask.Assignment) {
-        const assignments = Array.isArray(xmlTask.Assignment)
-          ? xmlTask.Assignment
-          : [xmlTask.Assignment];
-        
-        for (const assignment of assignments) {
-          if (assignment.ResourceName) {
-            resources.push(String(assignment.ResourceName));
-          }
-        }
-      }
+      // Parse resources - look up from assignments map by task UID
+      const resources: string[] = uid ? (taskAssignments.get(uid) || []) : [];
 
       // Parse percent complete
       const percentComplete = xmlTask.PercentComplete 
