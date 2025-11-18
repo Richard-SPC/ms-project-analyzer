@@ -305,11 +305,17 @@ export function analyzeDcmaCompliance(
   // 5. HARD CONSTRAINTS - Minimal hard constraints (≤1%)
   const hardConstraintTypes = ['MSO', 'MFO', 'SNLT', 'FNLT'];
   
+  // Find ALL tasks with hard constraints (including start/finish milestones)
   const tasksWithHardConstraintsDetails = workTasks.filter(t => 
     t.constraintType && hardConstraintTypes.includes(t.constraintType)
   );
   
-  const tasksWithHardConstraints = tasksWithHardConstraintsDetails.length;
+  // Count tasks that actually fail (exclude valid start/finish milestones from calculation)
+  const invalidHardConstraintTasks = tasksWithHardConstraintsDetails.filter(t => 
+    t.id.toString() !== startMilestoneId && t.id.toString() !== finishMilestoneId
+  );
+  
+  const tasksWithHardConstraints = invalidHardConstraintTasks.length;
   const hardConstraintPercentage = workTasks.length > 0 
     ? (tasksWithHardConstraints / workTasks.length) * 100 
     : 0;
@@ -317,7 +323,7 @@ export function analyzeDcmaCompliance(
   
   findings.hardConstraints = {
     passed: hardConstraints,
-    details: `${tasksWithHardConstraints} of ${workTasks.length} tasks (${hardConstraintPercentage.toFixed(1)}%) have hard constraints`,
+    details: `${tasksWithHardConstraints} of ${workTasks.length} tasks (${hardConstraintPercentage.toFixed(1)}%) have hard constraints - target ≤1%`,
     count: tasksWithHardConstraints,
     percentage: hardConstraintPercentage,
     failedTasks: tasksWithHardConstraintsDetails.map(t => ({
