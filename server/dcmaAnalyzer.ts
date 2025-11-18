@@ -424,11 +424,21 @@ export function analyzeDcmaCompliance(
   // 11. Critical Path Length is Valid
   // Check if critical path aligns with project dates
   const criticalPathLength = !!(project.startDate && project.endDate);
+  
+  // Get all critical path tasks to display in the dropdown
+  const criticalPathTasksList = workTasks.filter((t) => t.isCriticalPath);
+  
   findings.criticalPathLength = {
     passed: criticalPathLength,
     details: criticalPathLength
-      ? "Critical path length aligns with project timeline"
+      ? `Critical path length aligns with project timeline (${criticalPathTasksList.length} tasks on critical path)`
       : "Project start/end dates not defined",
+    count: criticalPathTasksList.length,
+    failedTasks: criticalPathTasksList.map(t => ({
+      id: t.msProjectId || t.id.toString(),
+      name: t.name,
+      reason: `Total float: ${t.totalFloat?.toFixed(1) || '0.0'} days`
+    }))
   };
 
   // 12. Baseline Exists - Check if we have baseline data
