@@ -485,11 +485,17 @@ export function analyzeDcmaCompliance(
       ? `Critical path length aligns with project timeline (${criticalPathTasksList.length} tasks on critical path)`
       : "Project start/end dates not defined",
     count: criticalPathTasksList.length,
-    failedTasks: criticalPathTasksList.map(t => ({
-      id: t.msProjectId || t.id.toString(),
-      name: t.name,
-      reason: `Total float: ${t.totalFloat?.toFixed(1) || '0.0'} days`
-    }))
+    failedTasks: criticalPathTasksList.map(t => {
+      const duration = t.duration ? `${t.duration} days` : 'N/A';
+      const startDate = t.startDate ? new Date(t.startDate).toLocaleDateString() : 'N/A';
+      const finishDate = t.endDate ? new Date(t.endDate).toLocaleDateString() : 'N/A';
+      const floatInfo = `Float: ${t.totalFloat?.toFixed(1) || '0.0'} days`;
+      return {
+        id: t.msProjectId || t.id.toString(),
+        name: t.name,
+        reason: `${duration} | Start: ${startDate} | Finish: ${finishDate} | ${floatInfo}`
+      };
+    })
   };
 
   // 14. BASELINE EXECUTION INDEX - Baseline exists
