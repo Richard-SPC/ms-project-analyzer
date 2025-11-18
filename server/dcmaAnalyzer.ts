@@ -109,23 +109,22 @@ export function analyzeDcmaCompliance(
   // Check ALL work tasks (non-summary, INCLUDING milestones)
   const analysisTasks = workTasks; // All non-summary tasks
   
-  // Count tasks missing predecessors or successors
+  // Find ALL tasks missing predecessors or successors (including start/finish milestones)
   const tasksWithMissingLogic = analysisTasks.filter(t => {
-    // Exempt only the validated start and finish milestones
-    if (t.id.toString() === startMilestoneId || t.id.toString() === finishMilestoneId) {
-      return false;
-    }
-    
     const hasPredecessors = t.predecessors && t.predecessors.length > 0;
     const hasSuccessors = tasksWithSuccessors.has(t.id.toString());
     
-    // Flag if missing EITHER predecessor OR successor
+    // Include if missing EITHER predecessor OR successor
     return !hasPredecessors || !hasSuccessors;
   });
   
-  const tasksWithMissingLogicCount = tasksWithMissingLogic.length;
+  // Count tasks that fail the logic check (exclude valid start/finish milestones from count)
+  const invalidTasks = tasksWithMissingLogic.filter(t => 
+    t.id.toString() !== startMilestoneId && t.id.toString() !== finishMilestoneId
+  );
+  const tasksWithMissingLogicCount = invalidTasks.length;
   
-  // Calculate percentage based on all analysis tasks
+  // Calculate percentage based on invalid tasks only
   const logicPercentage = analysisTasks.length > 0 
     ? (tasksWithMissingLogicCount / analysisTasks.length) * 100
     : 0;
@@ -136,15 +135,33 @@ export function analyzeDcmaCompliance(
     details: `${tasksWithMissingLogicCount} of ${analysisTasks.length} tasks (${logicPercentage.toFixed(1)}%) missing predecessor or successor`,
     count: tasksWithMissingLogicCount,
     percentage: logicPercentage,
-    failedTasks: tasksWithMissingLogic.map(t => ({
-      id: t.msProjectId || t.id.toString(),
-      name: t.name,
-      reason: (!t.predecessors || t.predecessors.length === 0) && !tasksWithSuccessors.has(t.id.toString())
-        ? 'Missing both predecessor and successor'
-        : (!t.predecessors || t.predecessors.length === 0)
-        ? 'Missing predecessor'
-        : 'Missing successor'
-    }))
+    failedTasks: tasksWithMissingLogic.map(t => {
+      const isStartMilestone = t.id.toString() === startMilestoneId;
+      const isFinishMilestone = t.id.toString() === finishMilestoneId;
+      
+      // Determine reason based on what's missing
+      let reason = '';
+      const hasPred = t.predecessors && t.predecessors.length > 0;
+      const hasSucc = tasksWithSuccessors.has(t.id.toString());
+      
+      if (isStartMilestone) {
+        reason = 'Project start milestone (allowed to have no predecessor)';
+      } else if (isFinishMilestone) {
+        reason = 'Project finish milestone (allowed to have no successor)';
+      } else if (!hasPred && !hasSucc) {
+        reason = 'Missing both predecessor and successor';
+      } else if (!hasPred) {
+        reason = 'Missing predecessor';
+      } else {
+        reason = 'Missing successor';
+      }
+      
+      return {
+        id: t.msProjectId || t.id.toString(),
+        name: t.name,
+        reason
+      };
+    })
   };
 
   // 2. Leads & Lags are Valid - Minimal use of leads/lags
