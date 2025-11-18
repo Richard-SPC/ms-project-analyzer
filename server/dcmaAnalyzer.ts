@@ -118,22 +118,30 @@ export function analyzeDcmaCompliance(
     return !hasPredecessors || !hasSuccessors;
   });
   
-  // Count tasks that fail the logic check (exclude valid start/finish milestones from count)
+  // Count tasks that actually fail the logic check (exclude valid start/finish milestones)
   const invalidTasks = tasksWithMissingLogic.filter(t => 
     t.id.toString() !== startMilestoneId && t.id.toString() !== finishMilestoneId
   );
-  const tasksWithMissingLogicCount = invalidTasks.length;
   
-  // Calculate percentage based on invalid tasks only
+  // Calculate percentage based on invalid tasks only (for pass/fail determination)
   const logicPercentage = analysisTasks.length > 0 
-    ? (tasksWithMissingLogicCount / analysisTasks.length) * 100
+    ? (invalidTasks.length / analysisTasks.length) * 100
     : 0;
   const logicComplete = logicPercentage <= 5;
   
+  // Show total count of all tasks with missing logic (including milestones for visibility)
+  const totalTasksWithMissingLogic = tasksWithMissingLogic.length;
+  const numValidMilestones = totalTasksWithMissingLogic - invalidTasks.length;
+  
+  // Create clear summary that distinguishes between total affected and invalid tasks
+  const detailsText = numValidMilestones > 0
+    ? `${totalTasksWithMissingLogic} of ${analysisTasks.length} tasks affected (${numValidMilestones} allowed milestone${numValidMilestones > 1 ? 's' : ''}, ${invalidTasks.length} invalid - ${logicPercentage.toFixed(1)}%)`
+    : `${invalidTasks.length} of ${analysisTasks.length} tasks (${logicPercentage.toFixed(1)}%) missing predecessor or successor`;
+  
   findings.logicComplete = {
     passed: logicComplete,
-    details: `${tasksWithMissingLogicCount} of ${analysisTasks.length} tasks (${logicPercentage.toFixed(1)}%) missing predecessor or successor`,
-    count: tasksWithMissingLogicCount,
+    details: detailsText,
+    count: totalTasksWithMissingLogic,
     percentage: logicPercentage,
     failedTasks: tasksWithMissingLogic.map(t => {
       const isStartMilestone = t.id.toString() === startMilestoneId;
