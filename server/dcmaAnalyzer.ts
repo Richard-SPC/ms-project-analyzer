@@ -486,7 +486,12 @@ export function analyzeDcmaCompliance(
       : "Project start/end dates not defined",
     count: criticalPathTasksList.length,
     failedTasks: criticalPathTasksList.map(t => {
-      const duration = t.duration ? `${t.duration} days` : 'N/A';
+      // Format duration, handling null/undefined and formatting to 1 decimal place
+      let duration = 'N/A';
+      if (t.duration !== null && t.duration !== undefined) {
+        // Format to 1 decimal place for consistency
+        duration = `${t.duration.toFixed(1)} days`;
+      }
       const startDate = t.startDate ? new Date(t.startDate).toLocaleDateString() : 'N/A';
       const finishDate = t.endDate ? new Date(t.endDate).toLocaleDateString() : 'N/A';
       const floatInfo = `Float: ${t.totalFloat?.toFixed(1) || '0.0'} days`;
