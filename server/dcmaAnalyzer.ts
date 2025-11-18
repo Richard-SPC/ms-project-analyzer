@@ -1,20 +1,20 @@
 import { Task, Project } from "@shared/schema";
 
 export interface DcmaAnalysisResult {
-  logicComplete: boolean;
-  leadLagsValid: boolean;
-  hardConstraintsValid: boolean;
-  negativeLagsValid: boolean;
-  highDurationValid: boolean;
-  invalidDatesValid: boolean;
+  missingLogic: boolean;
+  negativeLag: boolean;
+  leadsLags: boolean;
+  relationshipTypes: boolean;
+  hardConstraints: boolean;
+  largeFloat: boolean;
+  negativeFloat: boolean;
+  largeDurations: boolean;
+  invalidTasks: boolean;
   resourcesAssigned: boolean;
-  missedTasksValid: boolean;
-  highFloatValid: boolean;
+  lateTasks: boolean;
   criticalPathTest: boolean;
   criticalPathLength: boolean;
-  baselineExists: boolean;
-  sviBvValid: boolean;
-  bcwsValid: boolean;
+  baselineExecutionIndex: boolean;
   overallScore: number;
   passed: boolean;
   findings: {
@@ -44,20 +44,20 @@ export function analyzeDcmaCompliance(
   // If no work tasks (excluding summaries), most checks will fail
   if (workTasks.length === 0) {
     return {
-      logicComplete: false,
-      leadLagsValid: false,
-      hardConstraintsValid: false,
-      negativeLagsValid: true, // passes by default
-      highDurationValid: false,
-      invalidDatesValid: false,
+      missingLogic: false,
+      negativeLag: true,
+      leadsLags: false,
+      relationshipTypes: false,
+      hardConstraints: false,
+      largeFloat: false,
+      negativeFloat: true,
+      largeDurations: false,
+      invalidTasks: false,
       resourcesAssigned: false,
-      missedTasksValid: false,
-      highFloatValid: false,
+      lateTasks: false,
       criticalPathTest: false,
       criticalPathLength: false,
-      baselineExists: false,
-      sviBvValid: false,
-      bcwsValid: false,
+      baselineExecutionIndex: false,
       overallScore: 0,
       passed: false,
       findings: {
@@ -71,10 +71,6 @@ export function analyzeDcmaCompliance(
     };
   }
 
-  // 1. Logic is Complete - All tasks should have predecessors/successors
-  // DCMA criterion 1: "All activities except for the first and last shall have 
-  // at least one predecessor and at least one successor"
-  
   // Build a map of which tasks are referenced as successors
   const tasksWithSuccessors = new Set<string>();
   
@@ -87,7 +83,7 @@ export function analyzeDcmaCompliance(
       });
     }
   });
-  
+
   // Identify the single valid start milestone:
   // - Must be a milestone with no predecessors AND at least one successor
   const validStartMilestones = workTasks.filter(t => 
@@ -106,9 +102,9 @@ export function analyzeDcmaCompliance(
   );
   const finishMilestoneId = validFinishMilestones.length > 0 ? validFinishMilestones[0].id.toString() : null;
   
-  // Check ALL work tasks (non-summary, INCLUDING milestones)
   const analysisTasks = workTasks; // All non-summary tasks
-  
+
+  // 1. MISSING LOGIC - All tasks should have predecessors/successors
   // Find ALL tasks missing predecessors or successors (including start/finish milestones)
   const tasksWithMissingLogic = analysisTasks.filter(t => {
     const hasPredecessors = t.predecessors && t.predecessors.length > 0;
@@ -119,35 +115,31 @@ export function analyzeDcmaCompliance(
   });
   
   // Count tasks that actually fail the logic check (exclude valid start/finish milestones)
-  const invalidTasks = tasksWithMissingLogic.filter(t => 
+  const invalidLogicTasks = tasksWithMissingLogic.filter(t => 
     t.id.toString() !== startMilestoneId && t.id.toString() !== finishMilestoneId
   );
   
-  // Calculate percentage based on invalid tasks only (for pass/fail determination)
   const logicPercentage = analysisTasks.length > 0 
-    ? (invalidTasks.length / analysisTasks.length) * 100
+    ? (invalidLogicTasks.length / analysisTasks.length) * 100
     : 0;
-  const logicComplete = logicPercentage <= 5;
+  const missingLogic = logicPercentage <= 5;
   
-  // Show total count of all tasks with missing logic (including milestones for visibility)
   const totalTasksWithMissingLogic = tasksWithMissingLogic.length;
-  const numValidMilestones = totalTasksWithMissingLogic - invalidTasks.length;
+  const numValidMilestones = totalTasksWithMissingLogic - invalidLogicTasks.length;
   
-  // Create clear summary that distinguishes between total affected and invalid tasks
-  const detailsText = numValidMilestones > 0
-    ? `${totalTasksWithMissingLogic} of ${analysisTasks.length} tasks affected (${numValidMilestones} allowed milestone${numValidMilestones > 1 ? 's' : ''}, ${invalidTasks.length} invalid - ${logicPercentage.toFixed(1)}%)`
-    : `${invalidTasks.length} of ${analysisTasks.length} tasks (${logicPercentage.toFixed(1)}%) missing predecessor or successor`;
+  const logicDetailsText = numValidMilestones > 0
+    ? `${totalTasksWithMissingLogic} of ${analysisTasks.length} tasks affected (${numValidMilestones} allowed milestone${numValidMilestones > 1 ? 's' : ''}, ${invalidLogicTasks.length} invalid - ${logicPercentage.toFixed(1)}%)`
+    : `${invalidLogicTasks.length} of ${analysisTasks.length} tasks (${logicPercentage.toFixed(1)}%) missing predecessor or successor`;
   
-  findings.logicComplete = {
-    passed: logicComplete,
-    details: detailsText,
+  findings.missingLogic = {
+    passed: missingLogic,
+    details: logicDetailsText,
     count: totalTasksWithMissingLogic,
     percentage: logicPercentage,
     failedTasks: tasksWithMissingLogic.map(t => {
       const isStartMilestone = t.id.toString() === startMilestoneId;
       const isFinishMilestone = t.id.toString() === finishMilestoneId;
       
-      // Determine reason based on what's missing
       let reason = '';
       const hasPred = t.predecessors && t.predecessors.length > 0;
       const hasSucc = tasksWithSuccessors.has(t.id.toString());
@@ -172,9 +164,49 @@ export function analyzeDcmaCompliance(
     })
   };
 
-  // 2. Leads & Lags are Valid - Minimal use of leads/lags
-  // DCMA criterion 2: Leads and lags should be minimally used
-  // Check predecessors for lag information (format: "taskId|Type|Lag")
+  // 2. NEGATIVE LAG - NO negative lags (leads) allowed - zero tolerance
+  const tasksWithNegativeLagsList: Array<{ task: Task; negLagValues: Array<{ type: string; lag: number }> }> = [];
+  
+  for (const task of workTasks) {
+    if (task.predecessors && task.predecessors.length > 0) {
+      const negLagValues: Array<{ type: string; lag: number }> = [];
+      for (const predStr of task.predecessors) {
+        if (predStr.includes('|')) {
+          const parts = predStr.split('|');
+          if (parts.length === 3) {
+            const relationshipType = parts[1];
+            const lag = parseFloat(parts[2]);
+            if (lag < 0) {
+              negLagValues.push({ type: relationshipType, lag });
+            }
+          }
+        }
+      }
+      if (negLagValues.length > 0) {
+        tasksWithNegativeLagsList.push({ task, negLagValues });
+      }
+    }
+  }
+  
+  const tasksWithNegativeLags = tasksWithNegativeLagsList.length;
+  const negativeLagPercentage = workTasks.length > 0 ? (tasksWithNegativeLags / workTasks.length) * 100 : 0;
+  const negativeLag = tasksWithNegativeLags === 0;
+  
+  findings.negativeLag = {
+    passed: negativeLag,
+    details: `${tasksWithNegativeLags} of ${workTasks.length} tasks (${negativeLagPercentage.toFixed(1)}%) have negative lags (leads) - must be 0`,
+    count: tasksWithNegativeLags,
+    percentage: negativeLagPercentage,
+    failedTasks: tasksWithNegativeLagsList.map(({ task, negLagValues }) => ({
+      id: task.msProjectId || task.id.toString(),
+      name: task.name,
+      reason: `Has negative lag(s): ${negLagValues.map(({ type, lag }) => 
+        `${type} ${lag}`
+      ).join(', ')} days`
+    }))
+  };
+
+  // 3. LEADS & LAGS - Minimal use of leads/lags
   const tasksWithLagsList: Array<{ 
     task: Task; 
     lagDetails: Array<{ type: string; lag: number }> 
@@ -184,11 +216,10 @@ export function analyzeDcmaCompliance(
     if (task.predecessors && task.predecessors.length > 0) {
       const lagDetails: Array<{ type: string; lag: number }> = [];
       for (const predStr of task.predecessors) {
-        // Parse format: "5|FS|2" or "10|SS|-5" or "15|FS|0" (no lag)
         if (predStr.includes('|')) {
           const parts = predStr.split('|');
           if (parts.length === 3) {
-            const relationshipType = parts[1]; // FS, SS, FF, SF
+            const relationshipType = parts[1];
             const lag = parseFloat(parts[2]);
             if (lag !== 0) {
               lagDetails.push({ type: relationshipType, lag });
@@ -204,10 +235,10 @@ export function analyzeDcmaCompliance(
   
   const tasksWithLags = tasksWithLagsList.length;
   const lagPercentage = workTasks.length > 0 ? (tasksWithLags / workTasks.length) * 100 : 0;
-  const leadLagsValid = lagPercentage <= 5; // DCMA threshold: ≤5% tasks with lags
+  const leadsLags = lagPercentage <= 5;
   
-  findings.leadLagsValid = {
-    passed: leadLagsValid,
+  findings.leadsLags = {
+    passed: leadsLags,
     details: `${tasksWithLags} of ${workTasks.length} tasks (${lagPercentage.toFixed(1)}%) have leads or lags`,
     count: tasksWithLags,
     percentage: lagPercentage,
@@ -220,11 +251,58 @@ export function analyzeDcmaCompliance(
     }))
   };
 
-  // 3. Hard Constraints are Valid - Minimal hard constraints
-  // DCMA criterion 3: Hard constraints should be minimally used (≤5%)
-  // Hard constraints (inflexible): MSO, MFO, SNLT, FNLT
-  // Soft constraints (semi-flexible): SNET, FNET - NOT counted as hard
-  // Flexible constraints: ASAP, ALAP - NOT counted as hard
+  // 4. RELATIONSHIP TYPES - FS (Finish-to-Start) should be predominant (≥90%)
+  const allRelationships: Array<{ task: Task; type: string; predId: string }> = [];
+  
+  for (const task of workTasks) {
+    if (task.predecessors && task.predecessors.length > 0) {
+      for (const predStr of task.predecessors) {
+        if (predStr.includes('|')) {
+          const parts = predStr.split('|');
+          if (parts.length === 3) {
+            const predId = parts[0];
+            const relationshipType = parts[1];
+            allRelationships.push({ task, type: relationshipType, predId });
+          }
+        } else {
+          // Legacy format without type, assume FS
+          allRelationships.push({ task, type: 'FS', predId: predStr });
+        }
+      }
+    }
+  }
+  
+  const fsRelationships = allRelationships.filter(r => r.type === 'FS').length;
+  const nonFsRelationships = allRelationships.filter(r => r.type !== 'FS');
+  const fsPercentage = allRelationships.length > 0 ? (fsRelationships / allRelationships.length) * 100 : 100;
+  const relationshipTypes = fsPercentage >= 90;
+  
+  // Group non-FS relationships by task
+  const tasksWithNonFsRelationships = new Map<number, Array<{ type: string; predId: string }>>();
+  for (const rel of nonFsRelationships) {
+    const taskId = rel.task.id;
+    if (!tasksWithNonFsRelationships.has(taskId)) {
+      tasksWithNonFsRelationships.set(taskId, []);
+    }
+    tasksWithNonFsRelationships.get(taskId)!.push({ type: rel.type, predId: rel.predId });
+  }
+  
+  findings.relationshipTypes = {
+    passed: relationshipTypes,
+    details: `${fsRelationships} of ${allRelationships.length} relationships (${fsPercentage.toFixed(1)}%) are Finish-to-Start (FS) - target ≥90%`,
+    count: nonFsRelationships.length,
+    percentage: 100 - fsPercentage,
+    failedTasks: Array.from(tasksWithNonFsRelationships.entries()).map(([taskId, rels]) => {
+      const task = workTasks.find(t => t.id === taskId)!;
+      return {
+        id: task.msProjectId || task.id.toString(),
+        name: task.name,
+        reason: `Non-FS relationship(s): ${rels.map(r => r.type).join(', ')}`
+      };
+    })
+  };
+
+  // 5. HARD CONSTRAINTS - Minimal hard constraints (≤5%)
   const hardConstraintTypes = ['MSO', 'MFO', 'SNLT', 'FNLT'];
   
   const tasksWithHardConstraintsDetails = workTasks.filter(t => 
@@ -232,14 +310,13 @@ export function analyzeDcmaCompliance(
   );
   
   const tasksWithHardConstraints = tasksWithHardConstraintsDetails.length;
-  
   const hardConstraintPercentage = workTasks.length > 0 
     ? (tasksWithHardConstraints / workTasks.length) * 100 
     : 0;
-  const hardConstraintsValid = hardConstraintPercentage <= 5;
+  const hardConstraints = hardConstraintPercentage <= 5;
   
-  findings.hardConstraintsValid = {
-    passed: hardConstraintsValid,
+  findings.hardConstraints = {
+    passed: hardConstraints,
     details: `${tasksWithHardConstraints} of ${workTasks.length} tasks (${hardConstraintPercentage.toFixed(1)}%) have hard constraints`,
     count: tasksWithHardConstraints,
     percentage: hardConstraintPercentage,
@@ -250,53 +327,44 @@ export function analyzeDcmaCompliance(
     }))
   };
 
-  // 4. Negative Lags are Valid
-  // DCMA criterion 4: NO negative lags (leads) allowed - zero tolerance
-  const tasksWithNegativeLagsList: Array<{ task: Task; negLagValues: number[] }> = [];
-  
-  for (const task of workTasks) {
-    if (task.predecessors && task.predecessors.length > 0) {
-      const negLagValues: number[] = [];
-      for (const predStr of task.predecessors) {
-        // Parse format: "5|FS|2" or "10|SS|-5" or "15|FS|0"
-        if (predStr.includes('|')) {
-          const parts = predStr.split('|');
-          if (parts.length === 3) {
-            const lag = parseFloat(parts[2]);
-            if (lag < 0) {
-              negLagValues.push(lag);
-            }
-          }
-        }
-      }
-      if (negLagValues.length > 0) {
-        tasksWithNegativeLagsList.push({ task, negLagValues });
-      }
-    }
-  }
-  
-  const tasksWithNegativeLags = tasksWithNegativeLagsList.length;
-  const negativeLagPercentage = workTasks.length > 0 ? (tasksWithNegativeLags / workTasks.length) * 100 : 0;
-  const negativeLagsValid = tasksWithNegativeLags === 0; // DCMA requirement: ZERO negative lags
-  
-  findings.negativeLagsValid = {
-    passed: negativeLagsValid,
-    details: `${tasksWithNegativeLags} of ${workTasks.length} tasks (${negativeLagPercentage.toFixed(1)}%) have negative lags (leads) - must be 0`,
-    count: tasksWithNegativeLags,
-    percentage: negativeLagPercentage,
-    failedTasks: tasksWithNegativeLagsList.map(({ task, negLagValues }) => ({
-      id: task.msProjectId || task.id.toString(),
-      name: task.name,
-      reason: `Has negative lag(s): ${negLagValues.join(', ')} days`
+  // 6. LARGE FLOAT - ≤5% tasks with >44 days total slack/float
+  const highFloatTasksList = workTasks.filter((t) => t.totalFloat && t.totalFloat > 44);
+  const highFloatPercentage = (highFloatTasksList.length / workTasks.length) * 100;
+  const largeFloat = highFloatPercentage <= 5;
+  findings.largeFloat = {
+    passed: largeFloat,
+    details: `${highFloatTasksList.length} of ${workTasks.length} tasks (${highFloatPercentage.toFixed(1)}%) have excessive total slack (>44 days)`,
+    count: highFloatTasksList.length,
+    percentage: highFloatPercentage,
+    failedTasks: highFloatTasksList.map(t => ({
+      id: t.msProjectId || t.id.toString(),
+      name: t.name,
+      reason: `Total slack: ${t.totalFloat?.toFixed(1)} days (exceeds 44 day limit)`
     }))
   };
 
-  // 5. High Duration Activities are Valid - ≤5% tasks >44 days
+  // 7. NEGATIVE FLOAT - No tasks should have negative float (0% threshold)
+  const negativeFloatTasksList = workTasks.filter((t) => t.totalFloat && t.totalFloat < 0);
+  const negativeFloatPercentage = (negativeFloatTasksList.length / workTasks.length) * 100;
+  const negativeFloat = negativeFloatTasksList.length === 0;
+  findings.negativeFloat = {
+    passed: negativeFloat,
+    details: `${negativeFloatTasksList.length} of ${workTasks.length} tasks (${negativeFloatPercentage.toFixed(1)}%) have negative float - must be 0`,
+    count: negativeFloatTasksList.length,
+    percentage: negativeFloatPercentage,
+    failedTasks: negativeFloatTasksList.map(t => ({
+      id: t.msProjectId || t.id.toString(),
+      name: t.name,
+      reason: `Negative float: ${t.totalFloat?.toFixed(1)} days (task is behind schedule)`
+    }))
+  };
+
+  // 8. LARGE DURATIONS - ≤5% tasks >44 days
   const highDurationTasksList = workTasks.filter((t) => t.duration && t.duration > 44);
   const highDurationPercentage = (highDurationTasksList.length / workTasks.length) * 100;
-  const highDurationValid = highDurationPercentage <= 5;
-  findings.highDurationValid = {
-    passed: highDurationValid,
+  const largeDurations = highDurationPercentage <= 5;
+  findings.largeDurations = {
+    passed: largeDurations,
     details: `${highDurationTasksList.length} of ${workTasks.length} tasks (${highDurationPercentage.toFixed(1)}%) exceed 44 days duration`,
     count: highDurationTasksList.length,
     percentage: highDurationPercentage,
@@ -307,7 +375,7 @@ export function analyzeDcmaCompliance(
     }))
   };
 
-  // 6. Invalid Dates are Valid - All dates within project window
+  // 9. INVALID TASKS - All dates within project window
   const now = new Date();
   const invalidDateTasksList = workTasks.filter((t) => {
     if (!t.startDate || !t.endDate) return false;
@@ -321,9 +389,9 @@ export function analyzeDcmaCompliance(
     if (start > end) return true;
     return false;
   });
-  const invalidDatesValid = invalidDateTasksList.length === 0;
-  findings.invalidDatesValid = {
-    passed: invalidDatesValid,
+  const invalidTasks = invalidDateTasksList.length === 0;
+  findings.invalidTasks = {
+    passed: invalidTasks,
     details: `${invalidDateTasksList.length} of ${workTasks.length} tasks have invalid or out-of-range dates`,
     count: invalidDateTasksList.length,
     failedTasks: invalidDateTasksList.map(t => {
@@ -341,21 +409,13 @@ export function analyzeDcmaCompliance(
     })
   };
 
-  // 7. Resources are Assigned - ≥95% tasks should have resources
+  // 10. RESOURCES & COSTS ASSIGNED - ≥95% tasks should have resources
   const tasksWithResources = workTasks.filter(
     (t) => t.resources && t.resources.length > 0
   );
   const tasksWithoutResources = workTasks.filter(
     (t) => !t.resources || t.resources.length === 0
   );
-  
-  console.log('[DCMA Check 7] Total work tasks:', workTasks.length);
-  console.log('[DCMA Check 7] Tasks with resources:', tasksWithResources.length);
-  console.log('[DCMA Check 7] Tasks with resources:', tasksWithResources.map(t => ({
-    id: t.msProjectId || t.id.toString(),
-    name: t.name,
-    resources: t.resources
-  })));
   
   const resourcePercentage = (tasksWithResources.length / workTasks.length) * 100;
   const resourcesAssigned = resourcePercentage >= 95;
@@ -371,7 +431,7 @@ export function analyzeDcmaCompliance(
     }))
   };
 
-  // 8. Missed Tasks are Valid - Past-due incomplete tasks ≤5%
+  // 11. LATE TASKS - Past-due incomplete tasks ≤5%
   const missedTasksList = workTasks.filter((t) => {
     if (!t.endDate) return false;
     const end = new Date(t.endDate);
@@ -379,9 +439,9 @@ export function analyzeDcmaCompliance(
     return end < now && pctComplete < 100;
   });
   const missedPercentage = (missedTasksList.length / workTasks.length) * 100;
-  const missedTasksValid = missedPercentage <= 5;
-  findings.missedTasksValid = {
-    passed: missedTasksValid,
+  const lateTasks = missedPercentage <= 5;
+  findings.lateTasks = {
+    passed: lateTasks,
     details: `${missedTasksList.length} of ${workTasks.length} tasks (${missedPercentage.toFixed(1)}%) are past due but incomplete`,
     count: missedTasksList.length,
     percentage: missedPercentage,
@@ -396,23 +456,7 @@ export function analyzeDcmaCompliance(
     })
   };
 
-  // 9. High Float Tasks are Valid - ≤5% tasks with >44 days total slack/float
-  const highFloatTasksList = workTasks.filter((t) => t.totalFloat && t.totalFloat > 44);
-  const highFloatPercentage = (highFloatTasksList.length / workTasks.length) * 100;
-  const highFloatValid = highFloatPercentage <= 5;
-  findings.highFloatValid = {
-    passed: highFloatValid,
-    details: `${highFloatTasksList.length} of ${workTasks.length} tasks (${highFloatPercentage.toFixed(1)}%) have excessive total slack (>44 days)`,
-    count: highFloatTasksList.length,
-    percentage: highFloatPercentage,
-    failedTasks: highFloatTasksList.map(t => ({
-      id: t.msProjectId || t.id.toString(),
-      name: t.name,
-      reason: `Total slack: ${t.totalFloat?.toFixed(1)} days (exceeds 44 day limit)`
-    }))
-  };
-
-  // 10. Critical Path Test - Continuous critical path exists
+  // 12. CRITICAL PATH TEST - Continuous critical path exists
   const criticalPathTasks = workTasks.filter((t) => t.isCriticalPath).length;
   const criticalPathTest = criticalPathTasks > 0;
   findings.criticalPathTest = {
@@ -421,11 +465,9 @@ export function analyzeDcmaCompliance(
     count: criticalPathTasks,
   };
 
-  // 11. Critical Path Length is Valid
-  // Check if critical path aligns with project dates
+  // 13. CRITICAL PATH LENGTH - Critical path aligns with project timeline
   const criticalPathLength = !!(project.startDate && project.endDate);
   
-  // Get all critical path tasks to display in the dropdown
   const criticalPathTasksList = workTasks.filter((t) => t.isCriticalPath);
   
   findings.criticalPathLength = {
@@ -441,68 +483,51 @@ export function analyzeDcmaCompliance(
     }))
   };
 
-  // 12. Baseline Exists - Check if we have baseline data
-  // For now, assume baseline exists if project has defined dates
-  const baselineExists = !!(project.startDate && project.endDate);
-  findings.baselineExists = {
-    passed: baselineExists,
-    details: baselineExists
+  // 14. BASELINE EXECUTION INDEX - Baseline exists
+  const baselineExecutionIndex = !!(project.startDate && project.endDate);
+  findings.baselineExecutionIndex = {
+    passed: baselineExecutionIndex,
+    details: baselineExecutionIndex
       ? "Project baseline dates are defined"
       : "No baseline dates found",
   };
 
-  // 13. SVI/BV is Valid - Schedule Variance Index
-  // Not implemented yet - would need earned value data
-  const sviBvValid = false;
-  findings.sviBvValid = {
-    passed: false,
-    details: "Earned value data (SVI/BV) not available in current project structure",
-  };
-
-  // 14. BCWS is Valid - Budgeted Cost of Work Scheduled
-  // Not implemented yet - would need budget data
-  const bcwsValid = false;
-  findings.bcwsValid = {
-    passed: false,
-    details: "Budget baseline data (BCWS) not available in current project structure",
-  };
-
   // Calculate overall score
   const scores = [
-    logicComplete,
-    leadLagsValid,
-    hardConstraintsValid,
-    negativeLagsValid,
-    highDurationValid,
-    invalidDatesValid,
+    missingLogic,
+    negativeLag,
+    leadsLags,
+    relationshipTypes,
+    hardConstraints,
+    largeFloat,
+    negativeFloat,
+    largeDurations,
+    invalidTasks,
     resourcesAssigned,
-    missedTasksValid,
-    highFloatValid,
+    lateTasks,
     criticalPathTest,
     criticalPathLength,
-    baselineExists,
-    sviBvValid,
-    bcwsValid,
+    baselineExecutionIndex,
   ];
 
   const overallScore = scores.filter((s) => s).length;
   const passed = overallScore >= 10;
 
   return {
-    logicComplete,
-    leadLagsValid,
-    hardConstraintsValid,
-    negativeLagsValid,
-    highDurationValid,
-    invalidDatesValid,
+    missingLogic,
+    negativeLag,
+    leadsLags,
+    relationshipTypes,
+    hardConstraints,
+    largeFloat,
+    negativeFloat,
+    largeDurations,
+    invalidTasks,
     resourcesAssigned,
-    missedTasksValid,
-    highFloatValid,
+    lateTasks,
     criticalPathTest,
     criticalPathLength,
-    baselineExists,
-    sviBvValid,
-    bcwsValid,
+    baselineExecutionIndex,
     overallScore,
     passed,
     findings,

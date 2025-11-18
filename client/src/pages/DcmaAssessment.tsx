@@ -14,120 +14,120 @@ import { FileCheck, PlayCircle, CheckCircle2, XCircle, AlertCircle, Loader2, Sav
 
 const dcmaCriteria = [
   { 
-    key: "logicComplete", 
-    label: "1. Logic is complete",
+    key: "missingLogic", 
+    label: "1. Missing Logic",
     description: "All activities (except start/finish milestones) must have at least one predecessor and one successor relationship.",
     details: "Ensures schedule logic flow is complete with no 'dangling' activities. Activities without predecessors may start too early; activities without successors may not drive the end date. Industry standard: ≤5% of total activities may lack logic.",
     threshold: "≤5% of activities missing predecessors/successors"
   },
   { 
-    key: "leadLagsValid", 
-    label: "2. Leads & lags are valid",
-    description: "Lead and lag durations on dependencies should be minimal, justified, and properly documented.",
-    details: "Excessive leads/lags can mask scheduling issues or create unrealistic dependencies. Leads allow successors to start before predecessors finish; lags delay the start of successors. Best practice: ≤10% of relationships should have leads/lags.",
-    threshold: "≤10% of relationships with leads/lags"
+    key: "negativeLag", 
+    label: "2. Negative Lag",
+    description: "Negative lag relationships (leads) should be eliminated entirely - zero tolerance policy.",
+    details: "Negative lags are mathematically equivalent to leads but can indicate unrealistic assumptions about task overlap or parallel work. They often hide poor planning or overly optimistic estimates. Industry best practice is to eliminate them entirely.",
+    threshold: "0% of relationships with negative lags"
   },
   { 
-    key: "hardConstraintsValid", 
-    label: "3. Hard constraints are valid",
+    key: "leadsLags", 
+    label: "3. Leads & Lags",
+    description: "Lead and lag durations on dependencies should be minimal, justified, and properly documented.",
+    details: "Excessive leads/lags can mask scheduling issues or create unrealistic dependencies. Leads allow successors to start before predecessors finish; lags delay the start of successors. Best practice: ≤5% of relationships should have leads/lags.",
+    threshold: "≤5% of relationships with leads/lags"
+  },
+  { 
+    key: "relationshipTypes", 
+    label: "4. Relationship Type",
+    description: "Finish-to-Start (FS) should be the predominant relationship type throughout the schedule.",
+    details: "Industry best practice dictates that ≥90% of all task relationships should be Finish-to-Start (FS). Other relationship types (SS, FF, SF) should be used sparingly and only when logically necessary. Overuse of non-FS relationships can indicate poor schedule logic or unnecessary complexity.",
+    threshold: "≥90% of relationships are Finish-to-Start (FS)"
+  },
+  { 
+    key: "hardConstraints", 
+    label: "5. Hard Constraints",
     description: "Minimize use of hard constraints (Must Start On, Must Finish On, Start No Later Than, Finish No Later Than).",
     details: "Hard constraints override logic-driven scheduling and reduce schedule flexibility. They prevent the schedule from responding dynamically to changes. Acceptable constraints include project start/finish and externally imposed milestones.",
     threshold: "≤5% of activities with hard constraints"
   },
   { 
-    key: "negativeLagsValid", 
-    label: "4. Negative lags are valid",
-    description: "Negative lag relationships (leads) should be minimized and properly justified with documentation.",
-    details: "Negative lags are mathematically equivalent to leads but can indicate unrealistic assumptions about task overlap or parallel work. They often hide poor planning or overly optimistic estimates. Industry best practice is to eliminate them entirely.",
-    threshold: "0% of relationships with negative lags (ideal)"
+    key: "largeFloat", 
+    label: "6. Large Float",
+    description: "Activities with excessive total float (slack time) should be reviewed for logic errors or improper constraints.",
+    details: "Tasks with >44 days of float may indicate missing logic relationships, incorrect calendars, or activities not properly integrated into the schedule network. High float can also indicate tasks that don't drive project completion.",
+    threshold: "≤5% of activities with float >44 days"
   },
   { 
-    key: "highDurationValid", 
-    label: "5. High duration activities are valid",
+    key: "negativeFloat", 
+    label: "7. Negative Float",
+    description: "No activities should have negative total float - indicates tasks are behind schedule.",
+    details: "Negative float indicates that tasks are running behind schedule and the project completion date is at risk. This occurs when task dates are pushed beyond their late finish dates. All tasks with negative float require immediate attention and corrective action.",
+    threshold: "0% of activities with negative float"
+  },
+  { 
+    key: "largeDurations", 
+    label: "8. Large Durations",
     description: "Activities should not have excessively long durations that prevent meaningful status tracking.",
     details: "Tasks longer than 44 working days (approximately 2 months) are difficult to track accurately and may hide problems. Long-duration tasks should be broken into smaller, measurable work packages. Exceptions may include level-of-effort activities.",
     threshold: "≤5% of activities with duration >44 days"
   },
   { 
-    key: "invalidDatesValid", 
-    label: "6. Invalid dates are valid",
+    key: "invalidTasks", 
+    label: "9. Invalid Tasks",
     description: "All activity dates should be realistic, fall within the project timeline, and use proper calendars.",
     details: "Checks for activities with dates outside the project start/finish window, weekend/holiday work on non-working calendars, or illogical sequences. Invalid dates often indicate data entry errors or calendar misconfigurations.",
     threshold: "0% of activities with invalid dates"
   },
   { 
     key: "resourcesAssigned", 
-    label: "7. Resources are assigned",
+    label: "10. Resource & Costs Assigned",
     description: "All activities should have resources (labor, equipment, materials) assigned to enable resource analysis.",
     details: "Resource assignments enable resource loading analysis, identification of over-allocation, and cost tracking. Activities without resources cannot be analyzed for resource conflicts. Industry standard: ≥95% of activities should have resource assignments.",
     threshold: "≥95% of activities with resources assigned"
   },
   { 
-    key: "missedTasksValid", 
-    label: "8. Missed tasks are valid",
+    key: "lateTasks", 
+    label: "11. Late Tasks",
     description: "Activities scheduled in the past should be 100% complete or have valid explanations for delays.",
     details: "Incomplete tasks with finish dates in the past indicate schedule slippage and require corrective action. The schedule must accurately reflect current project status. Missed tasks affect critical path validity and forecast accuracy.",
     threshold: "≤5% of past-due activities incomplete"
   },
   { 
-    key: "highFloatValid", 
-    label: "9. High float tasks are valid",
-    description: "Activities with excessive total float (slack time) should be reviewed for logic errors or improper constraints.",
-    details: "Tasks with >44 days of float may indicate missing logic relationships, incorrect calendars, or activities not properly integrated into the schedule network. High float can also indicate tasks that don't drive project completion.",
-    threshold: "≤5% of activities with float >44 days"
-  },
-  { 
     key: "criticalPathTest", 
-    label: "10. Critical path test",
+    label: "12. Critical Path Test",
     description: "Verify that a valid critical path exists and is properly identified throughout the schedule network.",
     details: "The critical path defines the longest sequence of dependent activities driving project completion. The longest path test ensures the critical path is properly calculated with no logic breaks. Critical path should be continuous from project start to finish.",
     threshold: "Continuous critical path from start to finish"
   },
   { 
     key: "criticalPathLength", 
-    label: "11. Critical path length is valid",
+    label: "13. Critical Path Length",
     description: "The critical path duration should be reasonable and consistent with project scope and constraints.",
     details: "Validates that the critical path length aligns with contract milestones, project objectives, and historical performance data. An unrealistically short critical path may indicate overly optimistic planning; an excessively long path suggests inefficient planning.",
     threshold: "Critical path aligns with contract milestones ±10%"
   },
   { 
-    key: "baselineExists", 
-    label: "12. Baseline exists",
+    key: "baselineExecutionIndex", 
+    label: "14. Baseline Execution Index",
     description: "A performance measurement baseline must exist for schedule variance analysis and earned value management.",
     details: "The baseline schedule represents the approved plan against which progress is measured. Without a baseline, schedule variance analysis and trend forecasting are impossible. Baseline should be established before work begins and maintained throughout the project.",
     threshold: "Baseline exists and is properly maintained"
   },
-  { 
-    key: "sviBvValid", 
-    label: "13. SVI/BV is valid",
-    description: "Schedule Variance Index (SVI) and Budget Variance (BV) should be within acceptable thresholds.",
-    details: "SVI measures schedule efficiency (SV/PV). SVI <0.95 indicates behind schedule; >1.0 indicates ahead. BV tracks budget variance. Acceptable range: SVI 0.95-1.05. These metrics are critical for earned value management and forecasting.",
-    threshold: "0.95 ≤ SVI ≤ 1.05"
-  },
-  { 
-    key: "bcwsValid", 
-    label: "14. BCWS is valid",
-    description: "Budgeted Cost of Work Scheduled (BCWS/PV) must be properly configured for earned value calculations.",
-    details: "BCWS represents the time-phased budget baseline. It must equal the total project budget (BAC) and align with the schedule. Proper BCWS configuration enables accurate earned value analysis, variance tracking, and forecasting of estimate at completion.",
-    threshold: "BCWS = BAC with proper time-phasing"
-  },
 ];
 
 interface AnalysisResult {
-  logicComplete: boolean;
-  leadLagsValid: boolean;
-  hardConstraintsValid: boolean;
-  negativeLagsValid: boolean;
-  highDurationValid: boolean;
-  invalidDatesValid: boolean;
+  missingLogic: boolean;
+  negativeLag: boolean;
+  leadsLags: boolean;
+  relationshipTypes: boolean;
+  hardConstraints: boolean;
+  largeFloat: boolean;
+  negativeFloat: boolean;
+  largeDurations: boolean;
+  invalidTasks: boolean;
   resourcesAssigned: boolean;
-  missedTasksValid: boolean;
-  highFloatValid: boolean;
+  lateTasks: boolean;
   criticalPathTest: boolean;
   criticalPathLength: boolean;
-  baselineExists: boolean;
-  sviBvValid: boolean;
-  bcwsValid: boolean;
+  baselineExecutionIndex: boolean;
   overallScore: number;
   passed: boolean;
   findings: {
