@@ -268,20 +268,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Recompute overall score based on effective pass/fail (original || override)
       const effectiveScore = [
-        updated.logicComplete || updated.logicCompleteOverride,
-        updated.leadLagsValid || updated.leadLagsValidOverride,
-        updated.hardConstraintsValid || updated.hardConstraintsValidOverride,
-        updated.negativeLagsValid || updated.negativeLagsValidOverride,
-        updated.highDurationValid || updated.highDurationValidOverride,
-        updated.invalidDatesValid || updated.invalidDatesValidOverride,
+        updated.missingLogic || updated.missingLogicOverride,
+        updated.negativeLag || updated.negativeLagOverride,
+        updated.leadsLags || updated.leadsLagsOverride,
+        updated.relationshipTypes || updated.relationshipTypesOverride,
+        updated.hardConstraints || updated.hardConstraintsOverride,
+        updated.largeFloat || updated.largeFloatOverride,
+        updated.negativeFloat || updated.negativeFloatOverride,
+        updated.largeDurations || updated.largeDurationsOverride,
+        updated.invalidTasks || updated.invalidTasksOverride,
         updated.resourcesAssigned || updated.resourcesAssignedOverride,
-        updated.missedTasksValid || updated.missedTasksValidOverride,
-        updated.highFloatValid || updated.highFloatValidOverride,
+        updated.lateTasks || updated.lateTasksOverride,
         updated.criticalPathTest || updated.criticalPathTestOverride,
         updated.criticalPathLength || updated.criticalPathLengthOverride,
-        updated.baselineExists || updated.baselineExistsOverride,
-        updated.sviBvValid || updated.sviBvValidOverride,
-        updated.bcwsValid || updated.bcwsValidOverride,
+        updated.baselineExecutionIndex || updated.baselineExecutionIndexOverride,
       ].filter(Boolean).length;
       
       // Update score and passed status

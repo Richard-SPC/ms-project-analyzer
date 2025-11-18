@@ -41,37 +41,37 @@ export const dcmaAssessments = pgTable("dcma_assessments", {
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
   assessmentDate: timestamp("assessment_date").defaultNow().notNull(),
   
-  // 14 DCMA metrics (boolean pass/fail for each)
-  logicComplete: boolean("logic_complete"), // 1. Logic is complete
-  leadLagsValid: boolean("lead_lags_valid"), // 2. Leads & lags are valid
-  hardConstraintsValid: boolean("hard_constraints_valid"), // 3. Hard constraints are valid
-  negativeLagsValid: boolean("negative_lags_valid"), // 4. Negative lags are valid
-  highDurationValid: boolean("high_duration_valid"), // 5. High duration activities are valid
-  invalidDatesValid: boolean("invalid_dates_valid"), // 6. Invalid dates are valid
-  resourcesAssigned: boolean("resources_assigned"), // 7. Resources are assigned
-  missedTasksValid: boolean("missed_tasks_valid"), // 8. Missed tasks are valid
-  highFloatValid: boolean("high_float_valid"), // 9. High float tasks are valid
-  criticalPathTest: boolean("critical_path_test"), // 10. Critical path test
-  criticalPathLength: boolean("critical_path_length"), // 11. Critical path length is valid
-  baselineExists: boolean("baseline_exists"), // 12. Baseline exists
-  sviBvValid: boolean("svi_bv_valid"), // 13. SVI/BV is valid
-  bcwsValid: boolean("bcws_valid"), // 14. BCWS is valid
+  // 14 DCMA metrics (boolean pass/fail for each) - NEW REORDERED SEQUENCE
+  missingLogic: boolean("missing_logic"), // 1. Missing Logic
+  negativeLag: boolean("negative_lag"), // 2. Negative Lag
+  leadsLags: boolean("leads_lags"), // 3. Leads & Lags
+  relationshipTypes: boolean("relationship_types"), // 4. Relationship Type (NEW)
+  hardConstraints: boolean("hard_constraints"), // 5. Hard Constraints
+  largeFloat: boolean("large_float"), // 6. Large Float
+  negativeFloat: boolean("negative_float"), // 7. Negative Float (NEW)
+  largeDurations: boolean("large_durations"), // 8. Large Durations
+  invalidTasks: boolean("invalid_tasks"), // 9. Invalid Tasks
+  resourcesAssigned: boolean("resources_assigned"), // 10. Resources Assigned
+  lateTasks: boolean("late_tasks"), // 11. Late Tasks
+  criticalPathTest: boolean("critical_path_test"), // 12. Critical Path Test
+  criticalPathLength: boolean("critical_path_length"), // 13. Critical Path Length
+  baselineExecutionIndex: boolean("baseline_execution_index"), // 14. Baseline Execution Index
   
   // Manual overrides (when true, forces the check to pass regardless of automated result)
-  logicCompleteOverride: boolean("logic_complete_override").default(false),
-  leadLagsValidOverride: boolean("lead_lags_valid_override").default(false),
-  hardConstraintsValidOverride: boolean("hard_constraints_valid_override").default(false),
-  negativeLagsValidOverride: boolean("negative_lags_valid_override").default(false),
-  highDurationValidOverride: boolean("high_duration_valid_override").default(false),
-  invalidDatesValidOverride: boolean("invalid_dates_valid_override").default(false),
+  missingLogicOverride: boolean("missing_logic_override").default(false),
+  negativeLagOverride: boolean("negative_lag_override").default(false),
+  leadsLagsOverride: boolean("leads_lags_override").default(false),
+  relationshipTypesOverride: boolean("relationship_types_override").default(false),
+  hardConstraintsOverride: boolean("hard_constraints_override").default(false),
+  largeFloatOverride: boolean("large_float_override").default(false),
+  negativeFloatOverride: boolean("negative_float_override").default(false),
+  largeDurationsOverride: boolean("large_durations_override").default(false),
+  invalidTasksOverride: boolean("invalid_tasks_override").default(false),
   resourcesAssignedOverride: boolean("resources_assigned_override").default(false),
-  missedTasksValidOverride: boolean("missed_tasks_valid_override").default(false),
-  highFloatValidOverride: boolean("high_float_valid_override").default(false),
+  lateTasksOverride: boolean("late_tasks_override").default(false),
   criticalPathTestOverride: boolean("critical_path_test_override").default(false),
   criticalPathLengthOverride: boolean("critical_path_length_override").default(false),
-  baselineExistsOverride: boolean("baseline_exists_override").default(false),
-  sviBvValidOverride: boolean("svi_bv_valid_override").default(false),
-  bcwsValidOverride: boolean("bcws_valid_override").default(false),
+  baselineExecutionIndexOverride: boolean("baseline_execution_index_override").default(false),
   
   overallScore: integer("overall_score"), // 0-14
   passed: boolean("passed"), // true if score >= threshold
