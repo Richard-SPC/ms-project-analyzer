@@ -7,7 +7,13 @@ import {
   type InsertDcmaAssessment,
   type NecCompliance,
   type InsertNecCompliance,
+  projects,
+  tasks,
+  dcmaAssessments,
+  necCompliance,
 } from "@shared/schema";
+import { db, type DbClient } from "../db";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
   // Project operations
@@ -275,4 +281,124 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Database storage implementation using Drizzle ORM and PostgreSQL
+export class DbStorage implements IStorage {
+  constructor(private db: DbClient) {}
+
+  // Project operations
+  async createProject(insertProject: InsertProject): Promise<Project> {
+    const [project] = await this.db.insert(projects).values(insertProject).returning();
+    return project;
+  }
+
+  async getProject(id: number): Promise<Project | undefined> {
+    const [project] = await this.db.select().from(projects).where(eq(projects.id, id));
+    return project;
+  }
+
+  async getAllProjects(): Promise<Project[]> {
+    return await this.db.select().from(projects).orderBy(desc(projects.createdAt));
+  }
+
+  async updateProject(id: number, updates: Partial<InsertProject>): Promise<Project | undefined> {
+    const [updated] = await this.db
+      .update(projects)
+      .set(updates)
+      .where(eq(projects.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteProject(id: number): Promise<void> {
+    await this.db.delete(projects).where(eq(projects.id, id));
+    // Cascade delete is handled by database foreign key constraints
+  }
+
+  // Task operations
+  async createTask(insertTask: InsertTask): Promise<Task> {
+    const [task] = await this.db.insert(tasks).values(insertTask).returning();
+    return task;
+  }
+
+  async getTask(id: number): Promise<Task | undefined> {
+    const [task] = await this.db.select().from(tasks).where(eq(tasks.id, id));
+    return task;
+  }
+
+  async getTasksByProject(projectId: number): Promise<Task[]> {
+    return await this.db.select().from(tasks).where(eq(tasks.projectId, projectId));
+  }
+
+  async updateTask(id: number, updates: Partial<InsertTask>): Promise<Task | undefined> {
+    const [updated] = await this.db
+      .update(tasks)
+      .set(updates)
+      .where(eq(tasks.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteTask(id: number): Promise<void> {
+    await this.db.delete(tasks).where(eq(tasks.id, id));
+  }
+
+  // DCMA Assessment operations
+  async createDcmaAssessment(insertAssessment: InsertDcmaAssessment): Promise<DcmaAssessment> {
+    const [assessment] = await this.db.insert(dcmaAssessments).values(insertAssessment).returning();
+    return assessment;
+  }
+
+  async getDcmaAssessmentsByProject(projectId: number): Promise<DcmaAssessment[]> {
+    return await this.db
+      .select()
+      .from(dcmaAssessments)
+      .where(eq(dcmaAssessments.projectId, projectId))
+      .orderBy(desc(dcmaAssessments.assessmentDate));
+  }
+
+  async getLatestDcmaAssessment(projectId: number): Promise<DcmaAssessment | undefined> {
+    const [assessment] = await this.db
+      .select()
+      .from(dcmaAssessments)
+      .where(eq(dcmaAssessments.projectId, projectId))
+      .orderBy(desc(dcmaAssessments.assessmentDate))
+      .limit(1);
+    return assessment;
+  }
+
+  async updateDcmaAssessment(id: number, updates: Partial<InsertDcmaAssessment>): Promise<DcmaAssessment | undefined> {
+    const [updated] = await this.db
+      .update(dcmaAssessments)
+      .set(updates)
+      .where(eq(dcmaAssessments.id, id))
+      .returning();
+    return updated;
+  }
+
+  // NEC Compliance operations
+  async createNecCompliance(insertCompliance: InsertNecCompliance): Promise<NecCompliance> {
+    const [compliance] = await this.db.insert(necCompliance).values(insertCompliance).returning();
+    return compliance;
+  }
+
+  async getNecComplianceByProject(projectId: number): Promise<NecCompliance[]> {
+    return await this.db
+      .select()
+      .from(necCompliance)
+      .where(eq(necCompliance.projectId, projectId))
+      .orderBy(desc(necCompliance.assessmentDate));
+  }
+
+  async getLatestNecCompliance(projectId: number): Promise<NecCompliance | undefined> {
+    const [compliance] = await this.db
+      .select()
+      .from(necCompliance)
+      .where(eq(necCompliance.projectId, projectId))
+      .orderBy(desc(necCompliance.assessmentDate))
+      .limit(1);
+    return compliance;
+  }
+}
+
+// Use database storage if DATABASE_URL is available, otherwise fall back to in-memory storage
+export const storage = db ? new DbStorage(db) : new MemStorage();
