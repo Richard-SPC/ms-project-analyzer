@@ -610,6 +610,9 @@ function AssessmentDetailView({ assessment, isExpanded }: { assessment: DcmaAsse
                           </span>
                         )}
                         <p className="text-xs text-muted-foreground mt-1">{criterion.description}</p>
+                        <p className="text-xs text-muted-foreground mt-1 font-medium">
+                          Target: {criterion.threshold}
+                        </p>
                       </div>
                     </div>
 
