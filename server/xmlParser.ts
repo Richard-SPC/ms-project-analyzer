@@ -131,12 +131,12 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
           if (pred.PredecessorUID) {
             const predUid = String(pred.PredecessorUID);
             
-            // Parse relationship type (0=FF, 1=FS, 2=SS, 3=SF)
+            // Parse relationship type (0=FF, 1=FS, 2=SF, 3=SS)
             const typeMap: { [key: string]: string } = {
               '0': 'FF',
               '1': 'FS',
-              '2': 'SS',
-              '3': 'SF'
+              '2': 'SF',
+              '3': 'SS'
             };
             const typeCode = pred.Type ? String(pred.Type) : '1'; // Default to FS
             const type = typeMap[typeCode] || 'FS';
