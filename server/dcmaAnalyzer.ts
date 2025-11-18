@@ -302,7 +302,7 @@ export function analyzeDcmaCompliance(
     })
   };
 
-  // 5. HARD CONSTRAINTS - Minimal hard constraints (≤5%)
+  // 5. HARD CONSTRAINTS - Minimal hard constraints (≤1%)
   const hardConstraintTypes = ['MSO', 'MFO', 'SNLT', 'FNLT'];
   
   const tasksWithHardConstraintsDetails = workTasks.filter(t => 
@@ -313,7 +313,7 @@ export function analyzeDcmaCompliance(
   const hardConstraintPercentage = workTasks.length > 0 
     ? (tasksWithHardConstraints / workTasks.length) * 100 
     : 0;
-  const hardConstraints = hardConstraintPercentage <= 5;
+  const hardConstraints = hardConstraintPercentage <= 1;
   
   findings.hardConstraints = {
     passed: hardConstraints,
