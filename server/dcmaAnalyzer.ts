@@ -167,25 +167,29 @@ export function analyzeDcmaCompliance(
   // 2. Leads & Lags are Valid - Minimal use of leads/lags
   // DCMA criterion 2: Leads and lags should be minimally used
   // Check predecessors for lag information (format: "taskId|Type|Lag")
-  const tasksWithLagsList: Array<{ task: Task; lagValues: number[] }> = [];
+  const tasksWithLagsList: Array<{ 
+    task: Task; 
+    lagDetails: Array<{ type: string; lag: number }> 
+  }> = [];
   
   for (const task of workTasks) {
     if (task.predecessors && task.predecessors.length > 0) {
-      const lagValues: number[] = [];
+      const lagDetails: Array<{ type: string; lag: number }> = [];
       for (const predStr of task.predecessors) {
         // Parse format: "5|FS|2" or "10|SS|-5" or "15|FS|0" (no lag)
         if (predStr.includes('|')) {
           const parts = predStr.split('|');
           if (parts.length === 3) {
+            const relationshipType = parts[1]; // FS, SS, FF, SF
             const lag = parseFloat(parts[2]);
             if (lag !== 0) {
-              lagValues.push(lag);
+              lagDetails.push({ type: relationshipType, lag });
             }
           }
         }
       }
-      if (lagValues.length > 0) {
-        tasksWithLagsList.push({ task, lagValues });
+      if (lagDetails.length > 0) {
+        tasksWithLagsList.push({ task, lagDetails });
       }
     }
   }
@@ -199,10 +203,12 @@ export function analyzeDcmaCompliance(
     details: `${tasksWithLags} of ${workTasks.length} tasks (${lagPercentage.toFixed(1)}%) have leads or lags`,
     count: tasksWithLags,
     percentage: lagPercentage,
-    failedTasks: tasksWithLagsList.map(({ task, lagValues }) => ({
+    failedTasks: tasksWithLagsList.map(({ task, lagDetails }) => ({
       id: task.msProjectId || task.id.toString(),
       name: task.name,
-      reason: `Has lag(s): ${lagValues.map(v => v > 0 ? `+${v}` : v).join(', ')} days`
+      reason: `Has lag(s): ${lagDetails.map(({ type, lag }) => 
+        `${type} ${lag > 0 ? `+${lag}` : lag}`
+      ).join(', ')} days`
     }))
   };
 
