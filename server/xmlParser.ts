@@ -131,7 +131,7 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
           if (pred.PredecessorUID) {
             const predUid = String(pred.PredecessorUID);
             
-            // Parse relationship type (0=FF, 1=FS, 2=SF, 3=SS)
+            // Parse relationship type (0=FF, 1=FS, 2=SF, 3=SS per MS documentation)
             const typeMap: { [key: string]: string } = {
               '0': 'FF',
               '1': 'FS',
@@ -140,6 +140,11 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
             };
             const typeCode = pred.Type ? String(pred.Type) : '1'; // Default to FS
             const type = typeMap[typeCode] || 'FS';
+            
+            // Debug logging for relationship types
+            if (msProjectId && ['38', '39', '40', '41', '94'].includes(msProjectId)) {
+              console.log(`[XML Parser] Task ${msProjectId}: PredecessorLink Type=${typeCode} -> ${type}`);
+            }
             
             // Parse lag - MS Project ALWAYS stores LinkLag in tenths of minutes
             // Regardless of LagFormat. LagFormat is for display only.
