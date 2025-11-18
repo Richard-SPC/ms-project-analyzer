@@ -30,7 +30,7 @@ const dcmaCriteria = [
   { 
     key: "hardConstraintsValid", 
     label: "3. Hard constraints are valid",
-    description: "Minimize use of hard date constraints (Must Start On, Must Finish On, Start No Earlier Than, etc.).",
+    description: "Minimize use of hard constraints (Must Start On, Must Finish On, Start No Later Than, Finish No Later Than).",
     details: "Hard constraints override logic-driven scheduling and reduce schedule flexibility. They prevent the schedule from responding dynamically to changes. Acceptable constraints include project start/finish and externally imposed milestones.",
     threshold: "≤5% of activities with hard constraints"
   },
