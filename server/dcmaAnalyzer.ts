@@ -315,16 +315,19 @@ export function analyzeDcmaCompliance(
     t.id.toString() !== startMilestoneId && t.id.toString() !== finishMilestoneId
   );
   
-  const tasksWithHardConstraints = invalidHardConstraintTasks.length;
+  const totalAffected = tasksWithHardConstraintsDetails.length;
+  const allowedMilestones = totalAffected - invalidHardConstraintTasks.length;
+  const invalidCount = invalidHardConstraintTasks.length;
+  
   const hardConstraintPercentage = workTasks.length > 0 
-    ? (tasksWithHardConstraints / workTasks.length) * 100 
+    ? (invalidCount / workTasks.length) * 100 
     : 0;
   const hardConstraints = hardConstraintPercentage <= 1;
   
   findings.hardConstraints = {
     passed: hardConstraints,
-    details: `${tasksWithHardConstraints} of ${workTasks.length} tasks (${hardConstraintPercentage.toFixed(1)}%) have hard constraints - target ≤1%`,
-    count: tasksWithHardConstraints,
+    details: `${totalAffected} of ${workTasks.length} tasks affected (${allowedMilestones} allowed milestone${allowedMilestones !== 1 ? 's' : ''}, ${invalidCount} invalid - ${hardConstraintPercentage.toFixed(1)}%) - target ≤1%`,
+    count: invalidCount,
     percentage: hardConstraintPercentage,
     failedTasks: tasksWithHardConstraintsDetails.map(t => ({
       id: t.msProjectId || t.id.toString(),
