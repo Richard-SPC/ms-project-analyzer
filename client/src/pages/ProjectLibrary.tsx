@@ -296,6 +296,21 @@ export default function ProjectLibrary() {
     },
   });
 
+  const deleteProgrammeMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest("DELETE", `/api/projects/${id}`);
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/workspaces"] });
+      toast({
+        title: "Programme deleted",
+        description: "Programme has been removed.",
+      });
+    },
+  });
+
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
       const formData = new FormData();
@@ -731,6 +746,17 @@ export default function ProjectLibrary() {
                             <FolderKanban className="h-4 w-4 text-primary flex-shrink-0" />
                             <CardTitle className="text-sm truncate">{programme.name}</CardTitle>
                           </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              deleteProgrammeMutation.mutate(programme.id);
+                            }}
+                            data-testid={`button-delete-programme-${programme.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </CardHeader>
                       <CardContent className="pt-0">
