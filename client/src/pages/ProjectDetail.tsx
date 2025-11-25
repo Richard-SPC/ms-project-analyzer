@@ -197,12 +197,6 @@ export default function ProjectDetail() {
                 {formatDateUK(project.endDate)}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">NEC Compliant:</span>
-              <span className="text-sm font-medium">
-                {project.necCompliant === true ? "Yes" : project.necCompliant === false ? "No" : "Not assessed"}
-              </span>
-            </div>
           </CardContent>
         </Card>
 
