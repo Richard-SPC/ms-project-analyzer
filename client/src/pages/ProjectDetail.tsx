@@ -197,6 +197,20 @@ export default function ProjectDetail() {
                 {formatDateUK(project.endDate)}
               </span>
             </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Status Date:</span>
+              <span className="text-sm font-medium">
+                {project.statusDate ? formatDateUK(project.statusDate) : "N/A"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">% Complete:</span>
+              <span className="text-sm font-medium">
+                {tasks && tasks.length > 0
+                  ? `${Math.round(tasks.reduce((sum, t) => sum + parseFloat(t.percentComplete || "0"), 0) / tasks.length)}%`
+                  : "0%"}
+              </span>
+            </div>
           </CardContent>
         </Card>
 
