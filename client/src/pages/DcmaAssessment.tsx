@@ -11,7 +11,7 @@ import { type Project, type DcmaAssessment } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatDateUK } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { FileCheck, PlayCircle, CheckCircle2, XCircle, AlertCircle, Loader2, Save } from "lucide-react";
+import { FileCheck, PlayCircle, CheckCircle2, XCircle, AlertCircle, Loader2, Save, FolderKanban } from "lucide-react";
 
 const dcmaCriteria = [
   { 
@@ -231,31 +231,46 @@ export default function DcmaAssessment() {
           <CardDescription>Select a project to automatically analyze against DCMA 14-point criteria</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-3">
+          <div className="space-y-3">
             {projects?.map((project) => (
-              <div key={project.id} className="flex items-center justify-between p-3 border rounded-md">
-                <div className="flex-1">
-                  <h4 className="font-semibold">{project.name}</h4>
-                  <p className="text-sm text-muted-foreground">{project.description || "No description"}</p>
-                </div>
-                <Button
-                  onClick={() => analysisMutation.mutate(project.id)}
-                  disabled={analysisMutation.isPending}
-                  data-testid={`button-analyze-${project.id}`}
-                >
-                  {analysisMutation.isPending && analysisMutation.variables === project.id ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Analyzing...
-                    </>
-                  ) : (
-                    <>
-                      <PlayCircle className="mr-2 h-4 w-4" />
-                      Run Analysis
-                    </>
-                  )}
-                </Button>
-              </div>
+              <Card key={project.id} className="hover-elevate">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <FolderKanban className="h-5 w-5 text-primary flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <CardTitle className="text-base">{project.name}</CardTitle>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-4 flex-wrap">
+                      <div className="text-sm">
+                        <p className="text-muted-foreground">Status Date</p>
+                        <p className="font-medium text-foreground">
+                          {project.statusDate ? formatDateUK(project.statusDate) : "N/A"}
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => analysisMutation.mutate(project.id)}
+                        disabled={analysisMutation.isPending}
+                        size="sm"
+                        data-testid={`button-analyze-${project.id}`}
+                      >
+                        {analysisMutation.isPending && analysisMutation.variables === project.id ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Analyzing...
+                          </>
+                        ) : (
+                          <>
+                            <PlayCircle className="mr-2 h-4 w-4" />
+                            Run Analysis
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+              </Card>
             ))}
           </div>
         </CardContent>

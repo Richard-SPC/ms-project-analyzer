@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Plus, FolderKanban, Upload, Trash2 } from "lucide-react";
 import { Link } from "wouter";
 import { z } from "zod";
+import { formatDateUK } from "@/lib/utils";
 
 const formSchema = insertProjectSchema.extend({
   name: z.string().min(1, "Name is required"),
@@ -24,6 +25,54 @@ const formSchema = insertProjectSchema.extend({
 });
 
 type FormData = z.infer<typeof formSchema>;
+
+function ProgrammeTile({ project, onDelete }: { project: Project; onDelete: () => void }) {
+  const { data: completion } = useQuery({
+    queryKey: [`/api/projects/${project.id}/completion`],
+  });
+
+  return (
+    <Card className="hover-elevate" data-testid={`card-programme-${project.id}`}>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <FolderKanban className="h-5 w-5 text-primary flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-base">{project.name}</CardTitle>
+            </div>
+          </div>
+          <div className="flex items-center gap-6 flex-wrap">
+            <div className="text-sm">
+              <p className="text-muted-foreground">Status Date</p>
+              <p className="font-medium text-foreground">
+                {project.statusDate ? formatDateUK(project.statusDate) : "N/A"}
+              </p>
+            </div>
+            <div className="text-sm">
+              <p className="text-muted-foreground">Overall Complete</p>
+              <p className="font-medium text-foreground">
+                {completion?.percentComplete ?? "-"}%
+              </p>
+            </div>
+            <Link href={`/projects/${project.id}`}>
+              <Button variant="outline" size="sm" data-testid={`button-view-programme-${project.id}`}>
+                View Details
+              </Button>
+            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onDelete}
+              data-testid={`button-delete-programme-${project.id}`}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+    </Card>
+  );
+}
 
 export default function Projects() {
   const [open, setOpen] = useState(false);
@@ -319,64 +368,23 @@ export default function Projects() {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="space-y-3">
           {[...Array(6)].map((_, i) => (
             <Card key={i}>
               <CardHeader>
                 <div className="h-6 bg-muted animate-pulse rounded" />
               </CardHeader>
-              <CardContent>
-                <div className="h-4 bg-muted animate-pulse rounded" />
-              </CardContent>
             </Card>
           ))}
         </div>
       ) : projects && projects.length > 0 ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="space-y-3">
           {projects.map((project) => (
-            <Card key={project.id} className="hover-elevate" data-testid={`card-programme-${project.id}`}>
-              <CardHeader>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2 flex-1">
-                    <FolderKanban className="h-5 w-5 text-primary" />
-                    <CardTitle className="text-lg">{project.name}</CardTitle>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      deleteMutation.mutate(project.id);
-                    }}
-                    data-testid={`button-delete-programme-${project.id}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-                <CardDescription>{project.description || "No description"}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Status:</span>
-                    <span className="font-medium">{project.status}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Manager:</span>
-                    <span className="font-medium">{project.projectManager || "N/A"}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">NEC Compliant:</span>
-                    <span className="font-medium">{project.necCompliant === true ? "Yes" : project.necCompliant === false ? "No" : "Not assessed"}</span>
-                  </div>
-                </div>
-                <Link href={`/projects/${project.id}`}>
-                  <Button className="w-full mt-4" variant="outline" data-testid={`button-view-programme-${project.id}`}>
-                    View Details
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+            <ProgrammeTile
+              key={project.id}
+              project={project}
+              onDelete={() => deleteMutation.mutate(project.id)}
+            />
           ))}
         </div>
       ) : (
