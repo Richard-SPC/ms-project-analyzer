@@ -2,9 +2,19 @@ import { pgTable, text, serial, integer, boolean, timestamp, decimal } from "dri
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// Workspaces table - groups projects together for organization
+export const workspaces = pgTable("workspaces", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  color: text("color").default("#3B82F6"), // hex color for visual distinction
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Projects table - represents individual Microsoft Project files or programs
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
+  workspaceId: integer("workspace_id").references(() => workspaces.id, { onDelete: "set null" }),
   name: text("name").notNull(),
   description: text("description"),
   startDate: timestamp("start_date"),
@@ -99,6 +109,11 @@ export const necCompliance = pgTable("nec_compliance", {
 });
 
 // Insert schemas
+export const insertWorkspaceSchema = createInsertSchema(workspaces).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertProjectSchema = createInsertSchema(projects, {
   startDate: z.union([z.string(), z.date()]).transform((val) => 
     typeof val === 'string' ? new Date(val) : val
@@ -131,6 +146,9 @@ export const insertNecComplianceSchema = createInsertSchema(necCompliance).omit(
 });
 
 // Types
+export type Workspace = typeof workspaces.$inferSelect;
+export type InsertWorkspace = z.infer<typeof insertWorkspaceSchema>;
+
 export type Project = typeof projects.$inferSelect;
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 

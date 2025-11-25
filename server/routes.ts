@@ -11,7 +11,8 @@ import {
   insertProjectSchema, 
   insertTaskSchema, 
   insertDcmaAssessmentSchema, 
-  insertNecComplianceSchema 
+  insertNecComplianceSchema,
+  insertWorkspaceSchema
 } from "@shared/schema";
 
 const upload = multer({
@@ -34,6 +35,88 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Workspace routes
+  app.get("/api/workspaces", async (req, res) => {
+    try {
+      const workspaces = await storage.getAllWorkspaces();
+      res.json(workspaces);
+    } catch (error) {
+      console.error("Error fetching workspaces:", error);
+      res.status(500).json({ error: "Failed to fetch workspaces" });
+    }
+  });
+
+  app.get("/api/workspaces/:id", async (req, res) => {
+    try {
+      const workspace = await storage.getWorkspace(parseInt(req.params.id));
+      if (!workspace) {
+        return res.status(404).json({ error: "Workspace not found" });
+      }
+      res.json(workspace);
+    } catch (error) {
+      console.error("Error fetching workspace:", error);
+      res.status(500).json({ error: "Failed to fetch workspace" });
+    }
+  });
+
+  app.post("/api/workspaces", async (req, res) => {
+    try {
+      const workspaceData = insertWorkspaceSchema.parse(req.body);
+      const workspace = await storage.createWorkspace(workspaceData);
+      res.json(workspace);
+    } catch (error) {
+      console.error("Error creating workspace:", error);
+      res.status(400).json({ 
+        error: error instanceof Error ? error.message : "Failed to create workspace" 
+      });
+    }
+  });
+
+  app.patch("/api/workspaces/:id", async (req, res) => {
+    try {
+      const workspace = await storage.updateWorkspace(parseInt(req.params.id), req.body);
+      if (!workspace) {
+        return res.status(404).json({ error: "Workspace not found" });
+      }
+      res.json(workspace);
+    } catch (error) {
+      console.error("Error updating workspace:", error);
+      res.status(400).json({ 
+        error: error instanceof Error ? error.message : "Failed to update workspace" 
+      });
+    }
+  });
+
+  app.delete("/api/workspaces/:id", async (req, res) => {
+    try {
+      await storage.deleteWorkspace(parseInt(req.params.id));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting workspace:", error);
+      res.status(500).json({ error: "Failed to delete workspace" });
+    }
+  });
+
+  app.get("/api/workspaces/:id/projects", async (req, res) => {
+    try {
+      const projects = await storage.getProjectsByWorkspace(parseInt(req.params.id));
+      res.json(projects);
+    } catch (error) {
+      console.error("Error fetching workspace projects:", error);
+      res.status(500).json({ error: "Failed to fetch workspace projects" });
+    }
+  });
+
+  app.get("/api/projects/unassigned", async (req, res) => {
+    try {
+      const projects = await storage.getUnassignedProjects();
+      res.json(projects);
+    } catch (error) {
+      console.error("Error fetching unassigned projects:", error);
+      res.status(500).json({ error: "Failed to fetch unassigned projects" });
+    }
+  });
+
   // Project routes
   app.get("/api/projects", async (req, res) => {
     try {

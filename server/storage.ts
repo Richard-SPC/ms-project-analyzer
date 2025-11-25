@@ -1,4 +1,6 @@
 import {
+  type Workspace,
+  type InsertWorkspace,
   type Project,
   type InsertProject,
   type Task,
@@ -7,15 +9,25 @@ import {
   type InsertDcmaAssessment,
   type NecCompliance,
   type InsertNecCompliance,
+  workspaces,
   projects,
   tasks,
   dcmaAssessments,
   necCompliance,
 } from "@shared/schema";
 import { db, type DbClient } from "../db";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, isNull } from "drizzle-orm";
 
 export interface IStorage {
+  // Workspace operations
+  createWorkspace(workspace: InsertWorkspace): Promise<Workspace>;
+  getWorkspace(id: number): Promise<Workspace | undefined>;
+  getAllWorkspaces(): Promise<Workspace[]>;
+  updateWorkspace(id: number, workspace: Partial<InsertWorkspace>): Promise<Workspace | undefined>;
+  deleteWorkspace(id: number): Promise<void>;
+  getProjectsByWorkspace(workspaceId: number): Promise<Project[]>;
+  getUnassignedProjects(): Promise<Project[]>;
+  
   // Project operations
   createProject(project: InsertProject): Promise<Project>;
   getProject(id: number): Promise<Project | undefined>;
@@ -43,24 +55,83 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
+  private workspaces: Map<number, Workspace>;
   private projects: Map<number, Project>;
   private tasks: Map<number, Task>;
   private dcmaAssessments: Map<number, DcmaAssessment>;
   private necCompliances: Map<number, NecCompliance>;
+  private workspaceIdCounter: number;
   private projectIdCounter: number;
   private taskIdCounter: number;
   private dcmaIdCounter: number;
   private necIdCounter: number;
 
   constructor() {
+    this.workspaces = new Map();
     this.projects = new Map();
     this.tasks = new Map();
     this.dcmaAssessments = new Map();
     this.necCompliances = new Map();
+    this.workspaceIdCounter = 1;
     this.projectIdCounter = 1;
     this.taskIdCounter = 1;
     this.dcmaIdCounter = 1;
     this.necIdCounter = 1;
+  }
+
+  // Workspace operations
+  async createWorkspace(insertWorkspace: InsertWorkspace): Promise<Workspace> {
+    const id = this.workspaceIdCounter++;
+    const workspace: Workspace = {
+      ...insertWorkspace,
+      id,
+      description: insertWorkspace.description ?? null,
+      color: insertWorkspace.color ?? "#3B82F6",
+      createdAt: new Date(),
+    };
+    this.workspaces.set(id, workspace);
+    return workspace;
+  }
+
+  async getWorkspace(id: number): Promise<Workspace | undefined> {
+    return this.workspaces.get(id);
+  }
+
+  async getAllWorkspaces(): Promise<Workspace[]> {
+    return Array.from(this.workspaces.values()).sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+    );
+  }
+
+  async updateWorkspace(id: number, updates: Partial<InsertWorkspace>): Promise<Workspace | undefined> {
+    const workspace = this.workspaces.get(id);
+    if (!workspace) return undefined;
+    
+    const updated: Workspace = { ...workspace, ...updates };
+    this.workspaces.set(id, updated);
+    return updated;
+  }
+
+  async deleteWorkspace(id: number): Promise<void> {
+    this.workspaces.delete(id);
+    // Set workspaceId to null for all projects in this workspace
+    Array.from(this.projects.entries()).forEach(([projectId, project]) => {
+      if (project.workspaceId === id) {
+        this.projects.set(projectId, { ...project, workspaceId: null });
+      }
+    });
+  }
+
+  async getProjectsByWorkspace(workspaceId: number): Promise<Project[]> {
+    return Array.from(this.projects.values())
+      .filter(project => project.workspaceId === workspaceId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+
+  async getUnassignedProjects(): Promise<Project[]> {
+    return Array.from(this.projects.values())
+      .filter(project => project.workspaceId === null)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
 
   // Project operations
@@ -69,6 +140,7 @@ export class MemStorage implements IStorage {
     const project: Project = {
       ...insertProject,
       id,
+      workspaceId: insertProject.workspaceId ?? null,
       status: insertProject.status ?? "active",
       description: insertProject.description ?? null,
       startDate: insertProject.startDate ?? null,
@@ -284,6 +356,50 @@ export class MemStorage implements IStorage {
 // Database storage implementation using Drizzle ORM and PostgreSQL
 export class DbStorage implements IStorage {
   constructor(private db: DbClient) {}
+
+  // Workspace operations
+  async createWorkspace(insertWorkspace: InsertWorkspace): Promise<Workspace> {
+    const [workspace] = await this.db.insert(workspaces).values(insertWorkspace).returning();
+    return workspace;
+  }
+
+  async getWorkspace(id: number): Promise<Workspace | undefined> {
+    const [workspace] = await this.db.select().from(workspaces).where(eq(workspaces.id, id));
+    return workspace;
+  }
+
+  async getAllWorkspaces(): Promise<Workspace[]> {
+    return await this.db.select().from(workspaces).orderBy(desc(workspaces.createdAt));
+  }
+
+  async updateWorkspace(id: number, updates: Partial<InsertWorkspace>): Promise<Workspace | undefined> {
+    const [updated] = await this.db
+      .update(workspaces)
+      .set(updates)
+      .where(eq(workspaces.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deleteWorkspace(id: number): Promise<void> {
+    await this.db.delete(workspaces).where(eq(workspaces.id, id));
+  }
+
+  async getProjectsByWorkspace(workspaceId: number): Promise<Project[]> {
+    return await this.db
+      .select()
+      .from(projects)
+      .where(eq(projects.workspaceId, workspaceId))
+      .orderBy(desc(projects.createdAt));
+  }
+
+  async getUnassignedProjects(): Promise<Project[]> {
+    return await this.db
+      .select()
+      .from(projects)
+      .where(isNull(projects.workspaceId))
+      .orderBy(desc(projects.createdAt));
+  }
 
   // Project operations
   async createProject(insertProject: InsertProject): Promise<Project> {

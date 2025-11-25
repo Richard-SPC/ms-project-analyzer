@@ -9,6 +9,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import Dashboard from "@/pages/Dashboard";
 import Projects from "@/pages/Projects";
+import ProjectLibrary from "@/pages/ProjectLibrary";
 import ProjectDetail from "@/pages/ProjectDetail";
 import DcmaAssessment from "@/pages/DcmaAssessment";
 import NecCompliance from "@/pages/NecCompliance";
@@ -18,6 +19,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
+      <Route path="/library" component={ProjectLibrary} />
       <Route path="/projects" component={Projects} />
       <Route path="/projects/:id" component={ProjectDetail} />
       <Route path="/dcma" component={DcmaAssessment} />
