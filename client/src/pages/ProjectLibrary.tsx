@@ -493,46 +493,6 @@ export default function ProjectLibrary() {
             </DialogContent>
           </Dialog>
 
-          <Dialog open={programmeDialogOpen} onOpenChange={setProgrammeDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" data-testid="button-create-programme">
-                <Plus className="mr-2 h-4 w-4" />
-                New Programme
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Programme</DialogTitle>
-                <DialogDescription>Add a new programme to your library</DialogDescription>
-              </DialogHeader>
-              <Form {...programmeForm}>
-                <form onSubmit={programmeForm.handleSubmit(handleCreateProgramme)} className="space-y-4">
-                  <FormField
-                    control={programmeForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Programme Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter programme name" {...field} data-testid="input-programme-name" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={programmeForm.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Programme description" {...field} value={field.value || ""} data-testid="input-programme-description" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                   <FormField
                     control={programmeForm.control}
                     name="workspaceId"
