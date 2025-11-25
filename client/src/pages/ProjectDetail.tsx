@@ -332,22 +332,21 @@ export default function ProjectDetail() {
             <div className="space-y-2 overflow-x-auto">
               {/* Table Header */}
               <div className="flex min-w-max">
-                <div style={{ width: '400px' }} className="flex-shrink-0">
-                  <div className="flex gap-8 text-xs font-semibold px-2 py-2">
+                <div style={{ width: '480px' }} className="flex-shrink-0">
+                  <div className="flex gap-2 text-xs font-semibold px-2 py-2">
                     <div style={{ width: '240px' }}>Task Name</div>
                     <div style={{ width: '50px' }}>Duration</div>
                     <div style={{ width: '80px' }}>Start</div>
+                    <div style={{ width: '80px' }}>Finish</div>
                   </div>
                 </div>
                 <div className="border-l-4 border-foreground"></div>
-                <div className="flex-shrink-0">
-                  <div className="text-xs font-semibold text-muted-foreground px-2 py-2" style={{ width: '80px' }}>Finish</div>
-                </div>
+                <div style={{ width: `${Math.max(ganttData.totalDays * 1.5, 300)}px` }} className="flex-shrink-0"></div>
               </div>
 
               {/* Month Header */}
               <div className="flex min-w-max border-b">
-                <div style={{ width: '400px' }} className="flex-shrink-0"></div>
+                <div style={{ width: '480px' }} className="flex-shrink-0"></div>
                 <div className="border-l-4 border-foreground"></div>
                 <div className="flex gap-0" style={{ width: `${Math.max(ganttData.totalDays * 1.5, 300)}px` }}>
                   {monthHeaders.map((month, idx) => (
@@ -370,20 +369,18 @@ export default function ProjectDetail() {
               <div className="space-y-0 min-w-max">
                 {ganttData.tasks.map((task) => (
                   <div key={task.id} className="flex border-b">
-                    <div style={{ width: '400px' }} className="flex-shrink-0">
-                      <div className="flex gap-8 text-xs py-2 px-2">
+                    <div style={{ width: '480px' }} className="flex-shrink-0">
+                      <div className="flex gap-2 text-xs py-2 px-2">
                         <div style={{ width: '240px' }} className="font-medium" title={task.taskName}>
                           {task.taskName}
                         </div>
                         <div style={{ width: '50px' }} className="text-muted-foreground">{task.duration}d</div>
                         <div style={{ width: '80px' }} className="text-muted-foreground text-xs">{task.startDate}</div>
+                        <div style={{ width: '80px' }} className="text-muted-foreground text-xs">{task.finishDate}</div>
                       </div>
                     </div>
                     <div className="border-l-4 border-foreground"></div>
-                    <div className="flex-shrink-0">
-                      <div className="text-xs text-muted-foreground px-2" style={{ width: '80px' }}>{task.finishDate}</div>
-                    </div>
-                    <div className="h-6 bg-muted relative rounded" style={{ width: `${Math.max(ganttData.totalDays * 1.5, 300)}px` }}>
+                    <div className="h-6 bg-muted relative rounded flex-shrink-0" style={{ width: `${Math.max(ganttData.totalDays * 1.5, 300)}px` }}>
                       <div
                         className="h-full bg-red-500 rounded"
                         style={{
