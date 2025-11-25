@@ -16,6 +16,7 @@ interface GanttData {
     duration: number;
     daysFromStart: number;
     percentComplete: number;
+    isMilestone: boolean;
   }>;
   startDate: Date;
   endDate: Date;
@@ -40,14 +41,18 @@ function formatGanttData(tasks: Task[], projectStart: string | Date): GanttData 
     const daysFromStart = Math.floor((taskStart.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     const duration = Math.ceil((taskEnd.getTime() - taskStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
     
+    // Milestones should have 0 duration, regular tasks minimum 1
+    const finalDuration = task.isMilestone ? 0 : Math.max(1, duration);
+    
     return {
       id: task.id,
       taskName: task.name,
       startDate: formatDateUK(taskStart),
       finishDate: formatDateUK(taskEnd),
-      duration: Math.max(1, duration),
+      duration: finalDuration,
       daysFromStart: Math.max(0, daysFromStart),
       percentComplete: parseFloat(task.percentComplete || "0"),
+      isMilestone: task.isMilestone || false,
     };
   }).sort((a, b) => a.daysFromStart - b.daysFromStart);
 
@@ -380,16 +385,31 @@ export default function ProjectDetail() {
                       </div>
                     </div>
                     <div className="border-l-4 border-foreground"></div>
-                    <div className="h-6 bg-muted relative rounded flex-shrink-0" style={{ width: `${Math.max(ganttData.totalDays * 1.5, 300)}px` }}>
-                      <div
-                        className="h-full bg-red-500 rounded"
-                        style={{
-                          marginLeft: `${task.daysFromStart * 1.5}px`,
-                          width: `${Math.max(20, task.duration * 1.5)}px`,
-                        }}
-                        title={`${task.taskName}: ${task.duration} days (${task.startDate} to ${task.finishDate})`}
-                      >
-                      </div>
+                    <div className="h-6 relative rounded flex-shrink-0" style={{ width: `${Math.max(ganttData.totalDays * 1.5, 300)}px` }}>
+                      {task.isMilestone ? (
+                        <div
+                          className="absolute top-1/2 -translate-y-1/2"
+                          style={{
+                            left: `${task.daysFromStart * 1.5}px`,
+                            width: '12px',
+                            height: '12px',
+                            backgroundColor: '#ef4444',
+                            transform: 'translateY(-50%) rotate(45deg)',
+                          }}
+                          title={`${task.taskName}: Milestone (${task.startDate})`}
+                        >
+                        </div>
+                      ) : (
+                        <div
+                          className="h-full bg-red-500 rounded absolute top-0"
+                          style={{
+                            left: `${task.daysFromStart * 1.5}px`,
+                            width: `${Math.max(20, task.duration * 1.5)}px`,
+                          }}
+                          title={`${task.taskName}: ${task.duration} days (${task.startDate} to ${task.finishDate})`}
+                        >
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}
