@@ -14,15 +14,15 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  --background: 0 0% 100%;
+  --background: 180deg 36.84% 88.82%;
 
-  --foreground: 0deg 0% 28.63%;
+  --foreground: 200.82deg 100% 28.82%;
 
-  --border: 214 15% 88%;
+  --border: 0deg 0% 85.1%;
 
-  --card: 210 20% 98%;
+  --card: 0deg 0% 100%;
 
-  --card-foreground: 222 47% 11%;
+  --card-foreground: 0deg 0% 0%;
 
   --card-border: 214 15% 91%;
 
@@ -42,7 +42,7 @@
 
   --sidebar-ring: 215 80% 50%;
 
-  --popover: 210 18% 95%;
+  --popover: 0deg 0% 100%;
 
   --popover-foreground: 222 47% 11%;
 
@@ -52,34 +52,34 @@
 
   --primary-foreground: 210 20% 98%;
 
-  --secondary: 210 14% 90%;
+  --secondary: 137.09deg 66.8% 48.43%;
 
-  --secondary-foreground: 222 47% 11%;
+  --secondary-foreground: 0deg 100% 1.96%;
 
-  --muted: 210 16% 93%;
+  --muted: 0deg 0% 100%;
 
   --muted-foreground: 215.29deg 14.78% 45.1%;
 
-  --accent: 210 18% 94%;
+  --accent: 297.07deg 80.39% 50%;
 
   --accent-foreground: 222 47% 11%;
 
-  --destructive: 0 84% 60%;
+  --destructive: 4.59deg 77.87% 53.92%;
 
   --destructive-foreground: 0 0% 98%;
 
-  --input: 214 15% 75%;
-  --ring: 215 80% 50%;
+  --input: 0deg 0% 100%;
+  --ring: 0deg 0% 100%;
   --chart-1: 215 80% 50%;
   --chart-2: 142 76% 36%;
   --chart-3: 45 93% 47%;
   --chart-4: 280 65% 55%;
   --chart-5: 12 76% 61%;
 
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-serif: Georgia, serif;
-  --font-mono: 'SF Mono', Menlo, monospace;
-  --radius: .5rem; /* 8px */
+  --font-sans: 'Lato', sans-serif;
+  --font-serif: 'Lato', sans-serif;
+  --font-mono: 'Lato', sans-serif;
+  --radius: 1rem; /* 8px */
   --shadow-2xs: 0px 1px 2px 0px hsl(222 47% 11% / 0.05);
   --shadow-xs: 0px 1px 3px 0px hsl(222 47% 11% / 0.08);
   --shadow-sm: 0px 2px 4px 0px hsl(222 47% 11% / 0.06), 0px 1px 2px -1px hsl(222 47% 11% / 0.04);
