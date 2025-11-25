@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, FileCheck, AlertTriangle, Calendar } from "lucide-react";
+import { formatDateUK } from "@/lib/utils";
 import type { Project, Task, DcmaAssessment, NecCompliance } from "@shared/schema";
 
 export default function ProjectDetail() {
@@ -97,13 +98,13 @@ export default function ProjectDetail() {
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Start Date:</span>
               <span className="text-sm font-medium">
-                {project.startDate ? new Date(project.startDate).toLocaleDateString() : "Not set"}
+                {formatDateUK(project.startDate)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">End Date:</span>
               <span className="text-sm font-medium">
-                {project.endDate ? new Date(project.endDate).toLocaleDateString() : "Not set"}
+                {formatDateUK(project.endDate)}
               </span>
             </div>
             <div className="flex justify-between">
@@ -177,7 +178,7 @@ export default function ProjectDetail() {
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Assessment Date:</span>
                   <span className="text-sm font-medium">
-                    {new Date(dcmaAssessment.assessmentDate).toLocaleDateString()}
+                    {formatDateUK(dcmaAssessment.assessmentDate)}
                   </span>
                 </div>
                 <Link href="/dcma">
@@ -217,7 +218,7 @@ export default function ProjectDetail() {
                 <div className="flex justify-between">
                   <span className="text-sm text-muted-foreground">Assessment Date:</span>
                   <span className="text-sm font-medium">
-                    {new Date(necCompliance.assessmentDate).toLocaleDateString()}
+                    {formatDateUK(necCompliance.assessmentDate)}
                   </span>
                 </div>
                 {necCompliance.notes && (

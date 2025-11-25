@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { type Project, type NecCompliance } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { formatDateUK } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { AlertTriangle, PlayCircle, CheckCircle2, XCircle, Loader2, Save } from "lucide-react";
 
@@ -379,7 +380,7 @@ export default function NecCompliance() {
                           {project?.name || `Project ${compliance.projectId}`}
                         </CardTitle>
                         <CardDescription>
-                          Assessed on {new Date(compliance.assessmentDate).toLocaleDateString()}
+                          Assessed on {formatDateUK(compliance.assessmentDate)}
                         </CardDescription>
                       </div>
                       <div>

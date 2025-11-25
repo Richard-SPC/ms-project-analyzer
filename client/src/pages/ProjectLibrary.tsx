@@ -12,6 +12,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertWorkspaceSchema, insertProjectSchema, type Workspace, type Project } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { formatDateUK } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, FolderKanban, Library, ChevronDown, ChevronRight, Trash2, Edit, FolderOpen, Upload, MoreHorizontal, MoveRight } from "lucide-react";
 import { DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -151,7 +152,7 @@ function ProjectSection({
                         <div className="flex justify-between">
                           <span>Status Date:</span>
                           <span className="font-medium text-foreground">
-                            {programme.statusDate ? new Date(programme.statusDate).toLocaleDateString() : "N/A"}
+                            {programme.statusDate ? formatDateUK(programme.statusDate) : "N/A"}
                           </span>
                         </div>
                       </div>
@@ -698,7 +699,7 @@ export default function ProjectLibrary() {
                           <div className="flex justify-between">
                             <span>Status Date:</span>
                             <span className="font-medium text-foreground">
-                              {programme.statusDate ? new Date(programme.statusDate).toLocaleDateString() : "N/A"}
+                              {programme.statusDate ? formatDateUK(programme.statusDate) : "N/A"}
                             </span>
                           </div>
                         </div>

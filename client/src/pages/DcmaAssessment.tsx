@@ -9,6 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { type Project, type DcmaAssessment } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { formatDateUK } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { FileCheck, PlayCircle, CheckCircle2, XCircle, AlertCircle, Loader2, Save } from "lucide-react";
 
@@ -290,9 +291,9 @@ export default function DcmaAssessment() {
                           {project?.name || `Project ${assessment.projectId}`}
                         </CardTitle>
                         <CardDescription>
-                          Assessed on {new Date(assessment.assessmentDate).toLocaleDateString()}
+                          Assessed on {formatDateUK(assessment.assessmentDate)}
                           {project?.statusDate && (
-                            <span> • Status Date: {new Date(project.statusDate).toLocaleDateString()}</span>
+                            <span> • Status Date: {formatDateUK(project.statusDate)}</span>
                           )}
                         </CardDescription>
                       </div>
