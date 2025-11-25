@@ -11,7 +11,7 @@ function formatGanttData(tasks: Task[], projectStart: string | Date) {
   if (!tasks || !projectStart) return [];
   
   const startDate = new Date(projectStart);
-  const criticalTasks = tasks.filter(t => t.isCriticalPath);
+  const criticalTasks = tasks.filter(t => t.isCriticalPath && !t.isSummary);
   
   return criticalTasks.map(task => {
     const taskStart = task.startDate ? new Date(task.startDate) : startDate;
