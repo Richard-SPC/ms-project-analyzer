@@ -7,13 +7,33 @@ import { ArrowLeft, FileCheck, AlertTriangle, Calendar } from "lucide-react";
 import { formatDateUK } from "@/lib/utils";
 import type { Project, Task, DcmaAssessment, NecCompliance } from "@shared/schema";
 
-function formatGanttData(tasks: Task[], projectStart: string | Date) {
-  if (!tasks || !projectStart) return [];
+interface GanttData {
+  tasks: Array<{
+    id: number;
+    taskName: string;
+    startDate: string;
+    finishDate: string;
+    duration: number;
+    daysFromStart: number;
+    percentComplete: number;
+  }>;
+  startDate: Date;
+  endDate: Date;
+  totalDays: number;
+}
+
+function formatGanttData(tasks: Task[], projectStart: string | Date): GanttData {
+  if (!tasks || !projectStart) return {
+    tasks: [],
+    startDate: new Date(),
+    endDate: new Date(),
+    totalDays: 0,
+  };
   
   const startDate = new Date(projectStart);
   const criticalTasks = tasks.filter(t => t.isCriticalPath && !t.isSummary);
   
-  return criticalTasks.map(task => {
+  const ganttTasks = criticalTasks.map(task => {
     const taskStart = task.startDate ? new Date(task.startDate) : startDate;
     const taskEnd = task.endDate ? new Date(task.endDate) : new Date(taskStart);
     
@@ -30,6 +50,35 @@ function formatGanttData(tasks: Task[], projectStart: string | Date) {
       percentComplete: parseFloat(task.percentComplete || "0"),
     };
   }).sort((a, b) => a.daysFromStart - b.daysFromStart);
+
+  // Calculate project end date for timeline
+  const projectEndDate = ganttTasks.length > 0 
+    ? new Date(startDate.getTime() + (Math.max(...ganttTasks.map(t => t.daysFromStart + t.duration)) * 24 * 60 * 60 * 1000))
+    : new Date(startDate.getTime() + (365 * 24 * 60 * 60 * 1000));
+
+  return {
+    tasks: ganttTasks,
+    startDate,
+    endDate: projectEndDate,
+    totalDays: Math.ceil((projectEndDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)),
+  };
+}
+
+function generateMonthHeaders(startDate: Date, endDate: Date): Array<{ month: string; startDay: number }> {
+  const months: Array<{ month: string; startDay: number }> = [];
+  const current = new Date(startDate);
+  current.setDate(1);
+  
+  while (current <= endDate) {
+    const dayDiff = Math.floor((new Date(current).getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    months.push({
+      month: current.toLocaleString('default', { month: 'short', year: '2-digit' }),
+      startDay: Math.max(0, dayDiff),
+    });
+    current.setMonth(current.getMonth() + 1);
+  }
+  
+  return months;
 }
 
 export default function ProjectDetail() {
@@ -56,7 +105,8 @@ export default function ProjectDetail() {
     enabled: !!projectId,
   });
 
-  const ganttData = project && tasks && project.startDate ? formatGanttData(tasks, project.startDate) : [];
+  const ganttData = project && tasks && project.startDate ? formatGanttData(tasks, project.startDate) : { tasks: [], startDate: new Date(), endDate: new Date(), totalDays: 0 };
+  const monthHeaders = ganttData.tasks.length > 0 ? generateMonthHeaders(ganttData.startDate, ganttData.endDate) : [];
 
   if (projectLoading) {
     return (
@@ -272,48 +322,63 @@ export default function ProjectDetail() {
         </Card>
       </div>
 
-      {ganttData.length > 0 && (
+      {ganttData.tasks.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle>Critical Path Gantt Chart</CardTitle>
             <CardDescription>Schedule visualization of critical path tasks</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="overflow-x-auto">
-                <div className="min-w-max">
-                  {ganttData.map((task) => (
-                    <div key={task.id} className="mb-4">
-                      <div className="flex items-start gap-3 mb-1">
-                        <div className="w-48 flex-shrink-0">
-                          <div className="font-medium text-sm truncate" title={task.taskName}>
-                            {task.taskName}
-                          </div>
-                          <div className="text-xs text-muted-foreground space-y-1">
-                            <div>Start: {task.startDate}</div>
-                            <div>Finish: {task.finishDate}</div>
-                            <div>Duration: {task.duration} days</div>
-                          </div>
-                        </div>
-                        <div className="flex-1 h-6 bg-muted relative rounded">
-                          <div
-                            className="h-full bg-red-500 rounded flex items-center justify-center text-white text-xs font-medium"
-                            style={{
-                              marginLeft: `${(task.daysFromStart * 40)}px`,
-                              width: `${Math.max(40, task.duration * 40)}px`,
-                            }}
-                            title={`${task.duration} days`}
-                          >
-                            {task.duration > 2 ? `${task.duration}d` : ""}
-                          </div>
-                        </div>
-                      </div>
+            <div className="space-y-2">
+              {/* Month Header */}
+              <div className="flex gap-1">
+                <div className="w-40 flex-shrink-0"></div>
+                <div className="flex gap-0" style={{ width: `${Math.max(ganttData.totalDays * 2.5, 500)}px` }}>
+                  {monthHeaders.map((month, idx) => (
+                    <div
+                      key={idx}
+                      className="text-xs font-medium text-muted-foreground border-l pl-1"
+                      style={{
+                        width: idx < monthHeaders.length - 1 
+                          ? `${(monthHeaders[idx + 1].startDay - month.startDay) * 2.5}px` 
+                          : `${(ganttData.totalDays - month.startDay) * 2.5}px`,
+                      }}
+                    >
+                      {month.month}
                     </div>
                   ))}
                 </div>
               </div>
+
+              {/* Tasks */}
+              <div className="space-y-1">
+                {ganttData.tasks.map((task) => (
+                  <div key={task.id} className="flex gap-1 items-center">
+                    <div className="w-40 flex-shrink-0">
+                      <div className="text-xs font-medium truncate" title={task.taskName}>
+                        {task.taskName}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {task.duration}d
+                      </div>
+                    </div>
+                    <div className="flex-1 h-5 bg-muted relative rounded" style={{ width: `${Math.max(ganttData.totalDays * 2.5, 500)}px` }}>
+                      <div
+                        className="h-full bg-red-500 rounded flex items-center justify-center text-white text-xs font-medium"
+                        style={{
+                          marginLeft: `${task.daysFromStart * 2.5}px`,
+                          width: `${Math.max(20, task.duration * 2.5)}px`,
+                        }}
+                        title={`${task.taskName}: ${task.duration} days`}
+                      >
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               <div className="text-xs text-muted-foreground pt-2 border-t">
-                <p>Critical path: {ganttData.length} task{ganttData.length !== 1 ? "s" : ""}</p>
+                <p>Critical path: {ganttData.tasks.length} task{ganttData.tasks.length !== 1 ? "s" : ""} ({ganttData.totalDays} days total)</p>
               </div>
             </div>
           </CardContent>
