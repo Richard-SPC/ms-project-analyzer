@@ -192,13 +192,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ percentComplete: 0 });
       }
       
-      // Calculate average percent complete
-      const totalComplete = workTasks.reduce((sum, task) => {
+      // Calculate duration-weighted percent complete
+      const totalDuration = workTasks.reduce((sum, task) => sum + (task.duration || 0), 0);
+      
+      if (totalDuration === 0) {
+        return res.json({ percentComplete: 0 });
+      }
+      
+      const completedDuration = workTasks.reduce((sum, task) => {
         const percent = parseFloat(task.percentComplete?.toString() || "0");
-        return sum + percent;
+        return sum + ((task.duration || 0) * (percent / 100));
       }, 0);
       
-      const percentComplete = Math.round(totalComplete / workTasks.length);
+      const percentComplete = Math.round((completedDuration / totalDuration) * 100);
       
       res.json({ percentComplete });
     } catch (error) {
