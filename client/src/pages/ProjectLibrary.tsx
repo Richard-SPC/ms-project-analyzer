@@ -27,7 +27,6 @@ import NecCompliance from "@/pages/NecCompliance";
 
 const projectFormSchema = insertWorkspaceSchema.extend({
   name: z.string().min(1, "Name is required"),
-  projectManager: z.string().optional(),
 });
 
 const programmeFormSchema = insertProjectSchema.extend({
@@ -141,12 +140,7 @@ function ProjectSection({
                     className="w-3 h-3 rounded-full" 
                     style={{ backgroundColor: project.color || "#3B82F6" }}
                   />
-                  <div className="flex flex-col gap-0">
-                    <CardTitle className="text-lg">{project.name}</CardTitle>
-                    {project.projectManager && (
-                      <p className="text-xs text-muted-foreground">Manager: {project.projectManager}</p>
-                    )}
-                  </div>
+                  <CardTitle className="text-lg">{project.name}</CardTitle>
                   <Badge variant="secondary" className="ml-2">
                     {programmes.length} programme{programmes.length !== 1 ? "s" : ""}
                   </Badge>
@@ -433,7 +427,6 @@ export default function ProjectLibrary() {
       name: project.name,
       description: project.description || "",
       color: project.color || "#3B82F6",
-      projectManager: project.projectManager || "",
     });
   };
 
@@ -578,19 +571,6 @@ export default function ProjectLibrary() {
                         <FormLabel>Project Name</FormLabel>
                         <FormControl>
                           <Input placeholder="Enter project name" {...field} data-testid="input-project-name" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={projectForm.control}
-                    name="projectManager"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Project Manager</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter project manager name" {...field} value={field.value || ""} data-testid="input-project-manager" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
