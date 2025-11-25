@@ -51,6 +51,54 @@ const colorOptions = [
   { value: "#64748B", label: "Slate" },
 ];
 
+function ProgrammeTile({ programme, onDelete }: { programme: Project; onDelete: () => void }) {
+  const { data: completion } = useQuery({
+    queryKey: [`/api/projects/${programme.id}/completion`],
+  });
+
+  return (
+    <Card className="hover-elevate" data-testid={`card-programme-${programme.id}`}>
+      <CardHeader className="pb-2">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <FolderKanban className="h-4 w-4 text-primary flex-shrink-0" />
+            <CardTitle className="text-sm truncate">{programme.name}</CardTitle>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onDelete}
+            data-testid={`button-delete-programme-${programme.id}`}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-0">
+        <div className="space-y-2 text-xs text-muted-foreground mb-3">
+          <div className="flex justify-between">
+            <span>Status Date:</span>
+            <span className="font-medium text-foreground">
+              {programme.statusDate ? formatDateUK(programme.statusDate) : "N/A"}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span>Overall Complete:</span>
+            <span className="font-medium text-foreground">
+              {completion?.percentComplete ?? "-"}%
+            </span>
+          </div>
+        </div>
+        <Link href={`/projects/${programme.id}`}>
+          <Button className="w-full" variant="outline" size="sm" data-testid={`button-view-programme-${programme.id}`}>
+            View Details
+          </Button>
+        </Link>
+      </CardContent>
+    </Card>
+  );
+}
+
 function ProjectSection({ 
   project, 
   programmes, 
@@ -131,42 +179,11 @@ function ProjectSection({
             {programmes.length > 0 ? (
               <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
                 {programmes.map((programme) => (
-                  <Card key={programme.id} className="hover-elevate" data-testid={`card-programme-${programme.id}`}>
-                    <CardHeader className="pb-2">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2 flex-1 min-w-0">
-                          <FolderKanban className="h-4 w-4 text-primary flex-shrink-0" />
-                          <CardTitle className="text-sm truncate">{programme.name}</CardTitle>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            deleteMutation.mutate(programme.id);
-                          }}
-                          data-testid={`button-delete-programme-${programme.id}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="space-y-1 text-xs text-muted-foreground mb-3">
-                        <div className="flex justify-between">
-                          <span>Status Date:</span>
-                          <span className="font-medium text-foreground">
-                            {programme.statusDate ? formatDateUK(programme.statusDate) : "N/A"}
-                          </span>
-                        </div>
-                      </div>
-                      <Link href={`/projects/${programme.id}`}>
-                        <Button className="w-full" variant="outline" size="sm" data-testid={`button-view-programme-${programme.id}`}>
-                          View Details
-                        </Button>
-                      </Link>
-                    </CardContent>
-                  </Card>
+                  <ProgrammeTile
+                    key={programme.id}
+                    programme={programme}
+                    onDelete={() => deleteMutation.mutate(programme.id)}
+                  />
                 ))}
               </div>
             ) : (

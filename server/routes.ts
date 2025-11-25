@@ -179,6 +179,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/projects/:id/completion", async (req, res) => {
+    try {
+      const tasks = await storage.getTasksByProject(parseInt(req.params.id));
+      
+      if (tasks.length === 0) {
+        return res.json({ percentComplete: 0 });
+      }
+      
+      // Filter out summary tasks - only calculate completion for actual work tasks
+      const workTasks = tasks.filter(t => !t.isSummary);
+      
+      if (workTasks.length === 0) {
+        return res.json({ percentComplete: 0 });
+      }
+      
+      // Calculate average percent complete
+      const totalComplete = workTasks.reduce((sum, task) => {
+        const percent = parseFloat(task.percentComplete?.toString() || "0");
+        return sum + percent;
+      }, 0);
+      
+      const percentComplete = Math.round(totalComplete / workTasks.length);
+      
+      res.json({ percentComplete });
+    } catch (error) {
+      console.error("Error calculating project completion:", error);
+      res.status(500).json({ error: "Failed to calculate project completion" });
+    }
+  });
+
   // Task routes
   app.get("/api/projects/:projectId/tasks", async (req, res) => {
     try {
