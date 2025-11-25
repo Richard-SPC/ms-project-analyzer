@@ -329,10 +329,24 @@ export default function ProjectDetail() {
             <CardDescription>Schedule visualization of critical path tasks</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
+            <div className="space-y-2 overflow-x-auto">
+              {/* Table Header */}
+              <div className="flex gap-2 min-w-max">
+                <div className="w-96 flex-shrink-0">
+                  <div className="grid grid-cols-4 gap-2 text-xs font-semibold px-2">
+                    <div className="col-span-2">Task Name</div>
+                    <div>Duration</div>
+                    <div>Start</div>
+                  </div>
+                </div>
+                <div className="flex-shrink-0">
+                  <div className="text-xs font-semibold text-muted-foreground px-2">Finish</div>
+                </div>
+              </div>
+
               {/* Month Header */}
-              <div className="flex gap-2">
-                <div className="w-80 flex-shrink-0"></div>
+              <div className="flex gap-2 min-w-max">
+                <div className="w-96 flex-shrink-0"></div>
                 <div className="flex gap-0" style={{ width: `${Math.max(ganttData.totalDays * 1.5, 300)}px` }}>
                   {monthHeaders.map((month, idx) => (
                     <div
@@ -340,8 +354,8 @@ export default function ProjectDetail() {
                       className="text-xs font-medium text-muted-foreground border-l pl-1"
                       style={{
                         width: idx < monthHeaders.length - 1 
-                          ? `${(monthHeaders[idx + 1].startDay - month.startDay) * 2.5}px` 
-                          : `${(ganttData.totalDays - month.startDay) * 2.5}px`,
+                          ? `${(monthHeaders[idx + 1].startDay - month.startDay) * 1.5}px` 
+                          : `${(ganttData.totalDays - month.startDay) * 1.5}px`,
                       }}
                     >
                       {month.month}
@@ -351,29 +365,29 @@ export default function ProjectDetail() {
               </div>
 
               {/* Tasks */}
-              <div className="space-y-1">
+              <div className="space-y-0 min-w-max">
                 {ganttData.tasks.map((task) => (
-                  <div key={task.id} className="flex gap-2 items-center">
-                    <div className="w-80 flex-shrink-0 flex items-center gap-2 min-h-6">
-                      <div>
-                        <div className="text-xs font-medium" title={task.taskName}>
+                  <div key={task.id} className="flex gap-2 items-center border-b">
+                    <div className="w-96 flex-shrink-0">
+                      <div className="grid grid-cols-4 gap-2 text-xs py-1 px-2">
+                        <div className="col-span-2 font-medium truncate" title={task.taskName}>
                           {task.taskName}
                         </div>
-                      </div>
-                      <div className="text-xs text-muted-foreground flex gap-2 flex-wrap">
-                        <span>Start: {task.startDate}</span>
-                        <span>Finish: {task.finishDate}</span>
-                        <span>Duration: {task.duration}d</span>
+                        <div className="text-muted-foreground">{task.duration}d</div>
+                        <div className="text-muted-foreground text-xs">{task.startDate}</div>
                       </div>
                     </div>
-                    <div className="flex-1 h-6 bg-muted relative rounded" style={{ width: `${Math.max(ganttData.totalDays * 1.5, 300)}px` }}>
+                    <div className="flex-shrink-0">
+                      <div className="text-xs text-muted-foreground px-2">{task.finishDate}</div>
+                    </div>
+                    <div className="h-6 bg-muted relative rounded" style={{ width: `${Math.max(ganttData.totalDays * 1.5, 300)}px` }}>
                       <div
-                        className="h-full bg-red-500 rounded flex items-center justify-center text-white text-xs font-medium"
+                        className="h-full bg-red-500 rounded"
                         style={{
                           marginLeft: `${task.daysFromStart * 1.5}px`,
                           width: `${Math.max(20, task.duration * 1.5)}px`,
                         }}
-                        title={`${task.taskName}: ${task.duration} days`}
+                        title={`${task.taskName}: ${task.duration} days (${task.startDate} to ${task.finishDate})`}
                       >
                       </div>
                     </div>
@@ -381,7 +395,7 @@ export default function ProjectDetail() {
                 ))}
               </div>
 
-              <div className="text-xs text-muted-foreground pt-2 border-t">
+              <div className="text-xs text-muted-foreground pt-2 min-w-max">
                 <p>Critical path: {ganttData.tasks.length} task{ganttData.tasks.length !== 1 ? "s" : ""} ({ganttData.totalDays} days total)</p>
               </div>
             </div>
