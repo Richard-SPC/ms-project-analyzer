@@ -331,8 +331,8 @@ export default function ProjectDetail() {
           <CardContent>
             <div className="space-y-2">
               {/* Month Header */}
-              <div className="flex gap-1">
-                <div className="w-40 flex-shrink-0"></div>
+              <div className="flex gap-2">
+                <div className="w-56 flex-shrink-0"></div>
                 <div className="flex gap-0" style={{ width: `${Math.max(ganttData.totalDays * 2.5, 500)}px` }}>
                   {monthHeaders.map((month, idx) => (
                     <div
@@ -353,16 +353,18 @@ export default function ProjectDetail() {
               {/* Tasks */}
               <div className="space-y-1">
                 {ganttData.tasks.map((task) => (
-                  <div key={task.id} className="flex gap-1 items-center">
-                    <div className="w-40 flex-shrink-0">
-                      <div className="text-xs font-medium truncate" title={task.taskName}>
+                  <div key={task.id} className="flex gap-2 items-start">
+                    <div className="w-56 flex-shrink-0">
+                      <div className="text-xs font-medium" title={task.taskName}>
                         {task.taskName}
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        {task.duration}d
+                      <div className="text-xs text-muted-foreground space-y-0.5">
+                        <div>Start: {task.startDate}</div>
+                        <div>Finish: {task.finishDate}</div>
+                        <div>Duration: {task.duration}d</div>
                       </div>
                     </div>
-                    <div className="flex-1 h-5 bg-muted relative rounded" style={{ width: `${Math.max(ganttData.totalDays * 2.5, 500)}px` }}>
+                    <div className="flex-1 h-6 bg-muted relative rounded" style={{ width: `${Math.max(ganttData.totalDays * 2.5, 500)}px` }}>
                       <div
                         className="h-full bg-red-500 rounded flex items-center justify-center text-white text-xs font-medium"
                         style={{
