@@ -332,8 +332,8 @@ export default function ProjectDetail() {
             <div className="space-y-2">
               {/* Month Header */}
               <div className="flex gap-2">
-                <div className="w-56 flex-shrink-0"></div>
-                <div className="flex gap-0" style={{ width: `${Math.max(ganttData.totalDays * 2.5, 500)}px` }}>
+                <div className="w-80 flex-shrink-0"></div>
+                <div className="flex gap-0" style={{ width: `${Math.max(ganttData.totalDays * 1.5, 300)}px` }}>
                   {monthHeaders.map((month, idx) => (
                     <div
                       key={idx}
@@ -354,7 +354,7 @@ export default function ProjectDetail() {
               <div className="space-y-1">
                 {ganttData.tasks.map((task) => (
                   <div key={task.id} className="flex gap-2 items-center">
-                    <div className="w-56 flex-shrink-0 flex items-center gap-2 min-h-6">
+                    <div className="w-80 flex-shrink-0 flex items-center gap-2 min-h-6">
                       <div>
                         <div className="text-xs font-medium" title={task.taskName}>
                           {task.taskName}
@@ -366,12 +366,12 @@ export default function ProjectDetail() {
                         <span>Duration: {task.duration}d</span>
                       </div>
                     </div>
-                    <div className="flex-1 h-6 bg-muted relative rounded" style={{ width: `${Math.max(ganttData.totalDays * 2.5, 500)}px` }}>
+                    <div className="flex-1 h-6 bg-muted relative rounded" style={{ width: `${Math.max(ganttData.totalDays * 1.5, 300)}px` }}>
                       <div
                         className="h-full bg-red-500 rounded flex items-center justify-center text-white text-xs font-medium"
                         style={{
-                          marginLeft: `${task.daysFromStart * 2.5}px`,
-                          width: `${Math.max(20, task.duration * 2.5)}px`,
+                          marginLeft: `${task.daysFromStart * 1.5}px`,
+                          width: `${Math.max(20, task.duration * 1.5)}px`,
                         }}
                         title={`${task.taskName}: ${task.duration} days`}
                       >
