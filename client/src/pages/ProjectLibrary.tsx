@@ -58,43 +58,43 @@ function ProgrammeTile({ programme, onDelete }: { programme: Project; onDelete: 
 
   return (
     <Card className="hover-elevate" data-testid={`card-programme-${programme.id}`}>
-      <CardHeader className="pb-2">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <FolderKanban className="h-4 w-4 text-primary flex-shrink-0" />
-            <CardTitle className="text-sm truncate">{programme.name}</CardTitle>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <div className="flex items-center gap-3 flex-1 min-w-0">
+            <FolderKanban className="h-5 w-5 text-primary flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-base">{programme.name}</CardTitle>
+            </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onDelete}
-            data-testid={`button-delete-programme-${programme.id}`}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-6 flex-wrap">
+            <div className="text-sm">
+              <p className="text-muted-foreground">Status Date</p>
+              <p className="font-medium text-foreground">
+                {programme.statusDate ? formatDateUK(programme.statusDate) : "N/A"}
+              </p>
+            </div>
+            <div className="text-sm">
+              <p className="text-muted-foreground">Overall Complete</p>
+              <p className="font-medium text-foreground">
+                {completion?.percentComplete ?? "-"}%
+              </p>
+            </div>
+            <Link href={`/projects/${programme.id}`}>
+              <Button variant="outline" size="sm" data-testid={`button-view-programme-${programme.id}`}>
+                View Details
+              </Button>
+            </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onDelete}
+              data-testid={`button-delete-programme-${programme.id}`}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-0">
-        <div className="space-y-2 text-xs text-muted-foreground mb-3">
-          <div className="flex justify-between">
-            <span>Status Date:</span>
-            <span className="font-medium text-foreground">
-              {programme.statusDate ? formatDateUK(programme.statusDate) : "N/A"}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span>Overall Complete:</span>
-            <span className="font-medium text-foreground">
-              {completion?.percentComplete ?? "-"}%
-            </span>
-          </div>
-        </div>
-        <Link href={`/projects/${programme.id}`}>
-          <Button className="w-full" variant="outline" size="sm" data-testid={`button-view-programme-${programme.id}`}>
-            View Details
-          </Button>
-        </Link>
-      </CardContent>
     </Card>
   );
 }
@@ -177,7 +177,7 @@ function ProjectSection({
         <CollapsibleContent>
           <CardContent>
             {programmes.length > 0 ? (
-              <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              <div className="space-y-3">
                 {programmes.map((programme) => (
                   <ProgrammeTile
                     key={programme.id}
