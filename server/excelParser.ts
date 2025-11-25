@@ -68,11 +68,13 @@ export async function parseExcelFile(filePath: string, fileName: string): Promis
     const firstRow = rows[0];
     const projectName = extractProjectName(fileName, rows, columnMap);
     const dates = extractDateRange(rows, columnMap);
+    const statusDateValue = columnMap.statusDate ? parseExcelDate(firstRow[columnMap.statusDate]) : null;
     
     const project: InsertProject = {
       name: projectName,
       startDate: dates.startDate ? new Date(dates.startDate) : undefined,
       endDate: dates.finishDate ? new Date(dates.finishDate) : undefined,
+      statusDate: statusDateValue ? new Date(statusDateValue) : undefined,
       projectManager: '',
       description: `Imported from ${fileName}`,
       status: 'active',
@@ -221,6 +223,10 @@ function detectColumnNames(headers: string[]): Record<string, string> {
   // Summary
   const summaryCandidates = ['summary', 'is summary', 'issummary'];
   map.summary = findHeader(headers, lowerHeaders, summaryCandidates);
+  
+  // Status Date
+  const statusDateCandidates = ['status date', 'status_date', 'statusdate'];
+  map.statusDate = findHeader(headers, lowerHeaders, statusDateCandidates);
   
   return map;
 }

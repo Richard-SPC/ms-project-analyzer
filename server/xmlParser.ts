@@ -27,6 +27,7 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
   const projectName = projectData.Name || projectData.Title || fileName.replace(/\.xml$/i, '');
   const startDate = projectData.StartDate ? new Date(projectData.StartDate) : new Date();
   const finishDate = projectData.FinishDate ? new Date(projectData.FinishDate) : undefined;
+  const statusDate = projectData.StatusDate ? new Date(projectData.StatusDate) : undefined;
   const projectManager = projectData.Manager || projectData.Author || '';
 
   const project: Omit<InsertProject, 'id'> = {
@@ -36,6 +37,7 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
     status: 'active',
     startDate,
     endDate: finishDate,
+    statusDate,
   };
 
   // First, build a map of resources by UID
