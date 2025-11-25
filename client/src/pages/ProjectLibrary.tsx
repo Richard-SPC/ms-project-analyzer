@@ -149,12 +149,10 @@ function ProjectSection({
                     <CardContent className="pt-0">
                       <div className="space-y-1 text-xs text-muted-foreground mb-3">
                         <div className="flex justify-between">
-                          <span>Status:</span>
-                          <span className="font-medium text-foreground">{programme.status}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Manager:</span>
-                          <span className="font-medium text-foreground">{programme.projectManager || "N/A"}</span>
+                          <span>Status Date:</span>
+                          <span className="font-medium text-foreground">
+                            {programme.statusDate ? new Date(programme.statusDate).toLocaleDateString() : "N/A"}
+                          </span>
                         </div>
                       </div>
                       <Link href={`/projects/${programme.id}`}>
@@ -698,12 +696,10 @@ export default function ProjectLibrary() {
                       <CardContent className="pt-0">
                         <div className="space-y-1 text-xs text-muted-foreground mb-3">
                           <div className="flex justify-between">
-                            <span>Status:</span>
-                            <span className="font-medium text-foreground">{programme.status}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Manager:</span>
-                            <span className="font-medium text-foreground">{programme.projectManager || "N/A"}</span>
+                            <span>Status Date:</span>
+                            <span className="font-medium text-foreground">
+                              {programme.statusDate ? new Date(programme.statusDate).toLocaleDateString() : "N/A"}
+                            </span>
                           </div>
                         </div>
                         <Link href={`/projects/${programme.id}`}>
