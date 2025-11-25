@@ -3,9 +3,9 @@ import { useRoute, Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileCheck, AlertTriangle, Calendar } from "lucide-react";
+import { ArrowLeft, FileCheck, Calendar } from "lucide-react";
 import { formatDateUK } from "@/lib/utils";
-import type { Project, Task, DcmaAssessment, NecCompliance, Workspace } from "@shared/schema";
+import type { Project, Task, DcmaAssessment, Workspace } from "@shared/schema";
 
 interface GanttData {
   tasks: Array<{
@@ -117,10 +117,6 @@ export default function ProjectDetail() {
     enabled: !!projectId,
   });
 
-  const { data: necCompliance } = useQuery<NecCompliance>({
-    queryKey: ["/api/projects", projectId, "nec-compliance", "latest"],
-    enabled: !!projectId,
-  });
 
   const ganttData = project && tasks && project.startDate ? formatGanttData(tasks, project.startDate) : { tasks: [], startDate: new Date(), endDate: new Date(), totalDays: 0 };
   const monthHeaders = ganttData.tasks.length > 0 ? generateMonthHeaders(ganttData.startDate, ganttData.endDate) : [];
@@ -292,51 +288,6 @@ export default function ProjectDetail() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5" />
-              NEC Compliance
-            </CardTitle>
-            <CardDescription>Contract compliance check</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {necCompliance ? (
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Status:</span>
-                  <Badge variant={necCompliance.overallCompliant ? "default" : "destructive"}>
-                    {necCompliance.overallCompliant ? "Compliant" : "Non-compliant"}
-                  </Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Assessment Date:</span>
-                  <span className="text-sm font-medium">
-                    {formatDateUK(necCompliance.assessmentDate)}
-                  </span>
-                </div>
-                {necCompliance.notes && (
-                  <div>
-                    <span className="text-sm text-muted-foreground">Notes:</span>
-                    <p className="text-sm mt-1">{necCompliance.notes}</p>
-                  </div>
-                )}
-                <Link href="/nec">
-                  <Button variant="outline" className="w-full mt-2" data-testid="button-view-nec">
-                    View Full Compliance
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <p className="text-sm text-muted-foreground mb-4">No compliance check available</p>
-                <Link href="/nec">
-                  <Button data-testid="button-run-nec-check">Run Compliance Check</Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
 
       {ganttData.tasks.length > 0 && (

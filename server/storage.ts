@@ -7,13 +7,10 @@ import {
   type InsertTask,
   type DcmaAssessment,
   type InsertDcmaAssessment,
-  type NecCompliance,
-  type InsertNecCompliance,
   workspaces,
   projects,
   tasks,
   dcmaAssessments,
-  necCompliance,
 } from "@shared/schema";
 import { db, type DbClient } from "../db";
 import { eq, desc, isNull } from "drizzle-orm";
@@ -47,11 +44,6 @@ export interface IStorage {
   getDcmaAssessmentsByProject(projectId: number): Promise<DcmaAssessment[]>;
   getLatestDcmaAssessment(projectId: number): Promise<DcmaAssessment | undefined>;
   updateDcmaAssessment(id: number, assessment: Partial<InsertDcmaAssessment>): Promise<DcmaAssessment | undefined>;
-  
-  // NEC Compliance operations
-  createNecCompliance(compliance: InsertNecCompliance): Promise<NecCompliance>;
-  getNecComplianceByProject(projectId: number): Promise<NecCompliance[]>;
-  getLatestNecCompliance(projectId: number): Promise<NecCompliance | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -59,24 +51,20 @@ export class MemStorage implements IStorage {
   private projects: Map<number, Project>;
   private tasks: Map<number, Task>;
   private dcmaAssessments: Map<number, DcmaAssessment>;
-  private necCompliances: Map<number, NecCompliance>;
   private workspaceIdCounter: number;
   private projectIdCounter: number;
   private taskIdCounter: number;
   private dcmaIdCounter: number;
-  private necIdCounter: number;
 
   constructor() {
     this.workspaces = new Map();
     this.projects = new Map();
     this.tasks = new Map();
     this.dcmaAssessments = new Map();
-    this.necCompliances = new Map();
     this.workspaceIdCounter = 1;
     this.projectIdCounter = 1;
     this.taskIdCounter = 1;
     this.dcmaIdCounter = 1;
-    this.necIdCounter = 1;
   }
 
   // Workspace operations
@@ -190,13 +178,6 @@ export class MemStorage implements IStorage {
     Array.from(this.dcmaAssessments.entries()).forEach(([assessmentId, assessment]) => {
       if (assessment.projectId === id) {
         this.dcmaAssessments.delete(assessmentId);
-      }
-    });
-    
-    // Delete related NEC compliance
-    Array.from(this.necCompliances.entries()).forEach(([complianceId, compliance]) => {
-      if (compliance.projectId === id) {
-        this.necCompliances.delete(complianceId);
       }
     });
   }
@@ -319,38 +300,6 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
-  // NEC Compliance operations
-  async createNecCompliance(insertCompliance: InsertNecCompliance): Promise<NecCompliance> {
-    const id = this.necIdCounter++;
-    const compliance: NecCompliance = {
-      ...insertCompliance,
-      id,
-      programmeDefined: insertCompliance.programmeDefined ?? null,
-      acceptedProgramme: insertCompliance.acceptedProgramme ?? null,
-      regularUpdates: insertCompliance.regularUpdates ?? null,
-      earlyWarningsManaged: insertCompliance.earlyWarningsManaged ?? null,
-      compensationEventsTracked: insertCompliance.compensationEventsTracked ?? null,
-      keyDatesIdentified: insertCompliance.keyDatesIdentified ?? null,
-      completionDateRealistic: insertCompliance.completionDateRealistic ?? null,
-      resourcesAdequate: insertCompliance.resourcesAdequate ?? null,
-      overallCompliant: insertCompliance.overallCompliant ?? null,
-      notes: insertCompliance.notes ?? null,
-      assessmentDate: insertCompliance.assessmentDate ?? new Date(),
-    };
-    this.necCompliances.set(id, compliance);
-    return compliance;
-  }
-
-  async getNecComplianceByProject(projectId: number): Promise<NecCompliance[]> {
-    return Array.from(this.necCompliances.values())
-      .filter(compliance => compliance.projectId === projectId)
-      .sort((a, b) => b.assessmentDate.getTime() - a.assessmentDate.getTime());
-  }
-
-  async getLatestNecCompliance(projectId: number): Promise<NecCompliance | undefined> {
-    const compliances = await this.getNecComplianceByProject(projectId);
-    return compliances[0];
-  }
 }
 
 // Database storage implementation using Drizzle ORM and PostgreSQL
@@ -491,29 +440,6 @@ export class DbStorage implements IStorage {
     return updated;
   }
 
-  // NEC Compliance operations
-  async createNecCompliance(insertCompliance: InsertNecCompliance): Promise<NecCompliance> {
-    const [compliance] = await this.db.insert(necCompliance).values(insertCompliance).returning();
-    return compliance;
-  }
-
-  async getNecComplianceByProject(projectId: number): Promise<NecCompliance[]> {
-    return await this.db
-      .select()
-      .from(necCompliance)
-      .where(eq(necCompliance.projectId, projectId))
-      .orderBy(desc(necCompliance.assessmentDate));
-  }
-
-  async getLatestNecCompliance(projectId: number): Promise<NecCompliance | undefined> {
-    const [compliance] = await this.db
-      .select()
-      .from(necCompliance)
-      .where(eq(necCompliance.projectId, projectId))
-      .orderBy(desc(necCompliance.assessmentDate))
-      .limit(1);
-    return compliance;
-  }
 }
 
 // Use database storage if DATABASE_URL is available, otherwise fall back to in-memory storage

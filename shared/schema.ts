@@ -22,7 +22,6 @@ export const projects = pgTable("projects", {
   endDate: timestamp("end_date"),
   statusDate: timestamp("status_date"), // Reference date for DCMA check 11 (Late Tasks)
   status: text("status").notNull().default("active"), // active, completed, on-hold
-  necCompliant: boolean("nec_compliant"),
   projectManager: text("project_manager"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
@@ -90,25 +89,6 @@ export const dcmaAssessments = pgTable("dcma_assessments", {
   notes: text("notes"),
 });
 
-// NEC Compliance checks
-export const necCompliance = pgTable("nec_compliance", {
-  id: serial("id").primaryKey(),
-  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
-  assessmentDate: timestamp("assessment_date").defaultNow().notNull(),
-  
-  // NEC compliance criteria
-  programmeDefined: boolean("programme_defined"), // Is there a defined programme?
-  acceptedProgramme: boolean("accepted_programme"), // Has the programme been accepted?
-  regularUpdates: boolean("regular_updates"), // Are regular updates provided?
-  earlyWarningsManaged: boolean("early_warnings_managed"), // Are early warnings properly managed?
-  compensationEventsTracked: boolean("compensation_events_tracked"), // Are compensation events tracked?
-  keyDatesIdentified: boolean("key_dates_identified"), // Are key dates identified?
-  completionDateRealistic: boolean("completion_date_realistic"), // Is the completion date realistic?
-  resourcesAdequate: boolean("resources_adequate"), // Are resources adequate?
-  
-  overallCompliant: boolean("overall_compliant"),
-  notes: text("notes"),
-});
 
 // Insert schemas
 export const insertWorkspaceSchema = createInsertSchema(workspaces).omit({
@@ -143,10 +123,6 @@ export const insertDcmaAssessmentSchema = createInsertSchema(dcmaAssessments).om
   id: true,
 });
 
-export const insertNecComplianceSchema = createInsertSchema(necCompliance).omit({
-  id: true,
-});
-
 // Types
 export type Workspace = typeof workspaces.$inferSelect;
 export type InsertWorkspace = z.infer<typeof insertWorkspaceSchema>;
@@ -159,6 +135,3 @@ export type InsertTask = z.infer<typeof insertTaskSchema>;
 
 export type DcmaAssessment = typeof dcmaAssessments.$inferSelect;
 export type InsertDcmaAssessment = z.infer<typeof insertDcmaAssessmentSchema>;
-
-export type NecCompliance = typeof necCompliance.$inferSelect;
-export type InsertNecCompliance = z.infer<typeof insertNecComplianceSchema>;

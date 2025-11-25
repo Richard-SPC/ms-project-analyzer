@@ -6,12 +6,10 @@ import { parseMppFile, getProjectNameFromFileName } from "./mppParser";
 import { parseProjectXml } from "./xmlParser";
 import { parseExcelFile } from "./excelParser";
 import { analyzeDcmaCompliance } from "./dcmaAnalyzer";
-import { analyzeNecCompliance } from "./necAnalyzer";
 import { 
   insertProjectSchema, 
   insertTaskSchema, 
   insertDcmaAssessmentSchema, 
-  insertNecComplianceSchema,
   insertWorkspaceSchema
 } from "@shared/schema";
 
@@ -408,90 +406,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error updating DCMA assessment:", error);
       res.status(400).json({ 
         error: error instanceof Error ? error.message : "Failed to update DCMA assessment" 
-      });
-    }
-  });
-
-  // NEC Compliance routes
-  app.get("/api/nec-compliance", async (req, res) => {
-    try {
-      // Get all compliance checks across all projects
-      const allProjects = await storage.getAllProjects();
-      const allCompliances = [];
-      
-      for (const project of allProjects) {
-        const compliances = await storage.getNecComplianceByProject(project.id);
-        allCompliances.push(...compliances);
-      }
-      
-      // Sort by assessment date, newest first
-      allCompliances.sort((a, b) => b.assessmentDate.getTime() - a.assessmentDate.getTime());
-      
-      res.json(allCompliances);
-    } catch (error) {
-      console.error("Error fetching all NEC compliance checks:", error);
-      res.status(500).json({ error: "Failed to fetch NEC compliance checks" });
-    }
-  });
-
-  app.get("/api/projects/:projectId/nec-compliance", async (req, res) => {
-    try {
-      const compliances = await storage.getNecComplianceByProject(parseInt(req.params.projectId));
-      res.json(compliances);
-    } catch (error) {
-      console.error("Error fetching NEC compliance:", error);
-      res.status(500).json({ error: "Failed to fetch NEC compliance" });
-    }
-  });
-
-  app.get("/api/projects/:projectId/nec-compliance/latest", async (req, res) => {
-    try {
-      const compliance = await storage.getLatestNecCompliance(parseInt(req.params.projectId));
-      if (!compliance) {
-        return res.status(404).json({ error: "No NEC compliance check found" });
-      }
-      res.json(compliance);
-    } catch (error) {
-      console.error("Error fetching latest NEC compliance:", error);
-      res.status(500).json({ error: "Failed to fetch latest NEC compliance" });
-    }
-  });
-
-  // Run automated NEC compliance analysis on a project
-  app.get("/api/projects/:projectId/nec-analysis", async (req, res) => {
-    try {
-      const projectId = parseInt(req.params.projectId);
-      
-      // Get project
-      const project = await storage.getProject(projectId);
-      if (!project) {
-        return res.status(404).json({ error: "Project not found" });
-      }
-
-      // Get all tasks for the project
-      const tasks = await storage.getTasksByProject(projectId);
-      
-      // Run automated analysis
-      const analysisResult = analyzeNecCompliance(project, tasks);
-      
-      res.json(analysisResult);
-    } catch (error) {
-      console.error("Error running NEC analysis:", error);
-      res.status(500).json({ 
-        error: error instanceof Error ? error.message : "Failed to run NEC analysis" 
-      });
-    }
-  });
-
-  app.post("/api/nec-compliance", async (req, res) => {
-    try {
-      const complianceData = insertNecComplianceSchema.parse(req.body);
-      const compliance = await storage.createNecCompliance(complianceData);
-      res.json(compliance);
-    } catch (error) {
-      console.error("Error creating NEC compliance:", error);
-      res.status(400).json({ 
-        error: error instanceof Error ? error.message : "Failed to create NEC compliance check" 
       });
     }
   });

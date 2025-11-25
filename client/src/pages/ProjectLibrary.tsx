@@ -23,7 +23,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Badge } from "@/components/ui/badge";
 import Dashboard from "@/pages/Dashboard";
 import DcmaAssessment from "@/pages/DcmaAssessment";
-import NecCompliance from "@/pages/NecCompliance";
 
 const projectFormSchema = insertWorkspaceSchema.extend({
   name: z.string().min(1, "Name is required"),
@@ -466,9 +465,6 @@ export default function ProjectLibrary() {
           <TabsTrigger value="dcma" className="rounded-none border-b-2 border-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-background">
             DCMA Assessment
           </TabsTrigger>
-          <TabsTrigger value="nec" className="rounded-none border-b-2 border-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-background">
-            NEC Compliance
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard" className="flex-1 overflow-auto">
@@ -705,10 +701,6 @@ export default function ProjectLibrary() {
 
         <TabsContent value="dcma" className="flex-1 overflow-auto">
           <DcmaAssessment />
-        </TabsContent>
-
-        <TabsContent value="nec" className="flex-1 overflow-auto">
-          <NecCompliance />
         </TabsContent>
       </Tabs>
     </div>

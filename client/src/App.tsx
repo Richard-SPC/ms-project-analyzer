@@ -12,7 +12,6 @@ import Projects from "@/pages/Projects";
 import ProjectLibrary from "@/pages/ProjectLibrary";
 import ProjectDetail from "@/pages/ProjectDetail";
 import DcmaAssessment from "@/pages/DcmaAssessment";
-import NecCompliance from "@/pages/NecCompliance";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -23,7 +22,6 @@ function Router() {
       <Route path="/projects" component={Projects} />
       <Route path="/projects/:id" component={ProjectDetail} />
       <Route path="/dcma" component={DcmaAssessment} />
-      <Route path="/nec" component={NecCompliance} />
       <Route component={NotFound} />
     </Switch>
   );

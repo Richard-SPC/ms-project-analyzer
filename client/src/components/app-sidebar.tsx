@@ -1,4 +1,4 @@
-import { Home, FolderKanban, FileCheck, AlertTriangle, Library } from "lucide-react";
+import { Home, FolderKanban, FileCheck, Library } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -31,11 +31,6 @@ const menuItems = [
     title: "DCMA Assessment",
     url: "/dcma",
     icon: FileCheck,
-  },
-  {
-    title: "NEC Compliance",
-    url: "/nec",
-    icon: AlertTriangle,
   },
 ];
 
