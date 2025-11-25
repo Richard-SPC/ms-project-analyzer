@@ -39,10 +39,17 @@ function formatGanttData(tasks: Task[], projectStart: string | Date): GanttData 
     const taskEnd = task.endDate ? new Date(task.endDate) : new Date(taskStart);
     
     const daysFromStart = Math.floor((taskStart.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    const duration = Math.ceil((taskEnd.getTime() - taskStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
     
-    // Milestones should have 0 duration, regular tasks minimum 1
-    const finalDuration = task.isMilestone ? 0 : Math.max(1, duration);
+    // Use duration from database if available, otherwise calculate
+    let finalDuration = task.duration !== null && task.duration !== undefined ? parseInt(String(task.duration)) : 0;
+    
+    // Milestones should have 0 duration, regular tasks use database duration or calculate
+    if (task.isMilestone) {
+      finalDuration = 0;
+    } else if (finalDuration === 0) {
+      // Fallback calculation if no duration in database
+      finalDuration = Math.max(1, Math.ceil((taskEnd.getTime() - taskStart.getTime()) / (1000 * 60 * 60 * 24)));
+    }
     
     return {
       id: task.id,
