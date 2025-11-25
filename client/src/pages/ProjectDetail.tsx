@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, FileCheck, AlertTriangle, Calendar } from "lucide-react";
 import { formatDateUK } from "@/lib/utils";
-import type { Project, Task, DcmaAssessment, NecCompliance } from "@shared/schema";
+import type { Project, Task, DcmaAssessment, NecCompliance, Workspace } from "@shared/schema";
 
 interface GanttData {
   tasks: Array<{
@@ -102,6 +102,11 @@ export default function ProjectDetail() {
     enabled: !!projectId,
   });
 
+  const { data: workspace } = useQuery<Workspace>({
+    queryKey: ["/api/workspaces", project?.workspaceId],
+    enabled: !!project?.workspaceId,
+  });
+
   const { data: tasks } = useQuery<Task[]>({
     queryKey: ["/api/projects", projectId, "tasks"],
     enabled: !!projectId,
@@ -182,7 +187,7 @@ export default function ProjectDetail() {
           <CardContent className="space-y-3">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Project Manager:</span>
-              <span className="text-sm font-medium">{project.projectManager || "Not assigned"}</span>
+              <span className="text-sm font-medium">{workspace?.projectManager || "Not assigned"}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Start Date:</span>
