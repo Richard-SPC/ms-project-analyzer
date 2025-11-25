@@ -13,7 +13,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { insertWorkspaceSchema, insertProjectSchema, type Workspace, type Project } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, FolderKanban, Library, ChevronDown, ChevronRight, Trash2, Edit, FolderOpen, Upload, MoreHorizontal } from "lucide-react";
+import { Plus, FolderKanban, Library, ChevronDown, ChevronRight, Trash2, Edit, FolderOpen, Upload, MoreHorizontal, MoveRight } from "lucide-react";
+import { DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Link } from "wouter";
 import { z } from "zod";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -307,6 +308,21 @@ export default function ProjectLibrary() {
       toast({
         title: "Programme deleted",
         description: "Programme has been removed.",
+      });
+    },
+  });
+
+  const moveProgrammeMutation = useMutation({
+    mutationFn: async ({ programmeId, projectId }: { programmeId: number; projectId: number }) => {
+      const res = await apiRequest("PATCH", `/api/projects/${programmeId}`, { workspaceId: projectId });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/workspaces"] });
+      toast({
+        title: "Programme moved",
+        description: "Programme has been assigned to the project.",
       });
     },
   });
@@ -746,17 +762,49 @@ export default function ProjectLibrary() {
                             <FolderKanban className="h-4 w-4 text-primary flex-shrink-0" />
                             <CardTitle className="text-sm truncate">{programme.name}</CardTitle>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              deleteProgrammeMutation.mutate(programme.id);
-                            }}
-                            data-testid={`button-delete-programme-${programme.id}`}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" data-testid={`button-programme-menu-${programme.id}`}>
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {projects && projects.length > 0 && (
+                                <>
+                                  <DropdownMenuSub>
+                                    <DropdownMenuSubTrigger data-testid={`button-move-programme-${programme.id}`}>
+                                      <MoveRight className="mr-2 h-4 w-4" />
+                                      Move to Project
+                                    </DropdownMenuSubTrigger>
+                                    <DropdownMenuSubContent>
+                                      {projects.map((project) => (
+                                        <DropdownMenuItem
+                                          key={project.id}
+                                          onClick={() => moveProgrammeMutation.mutate({ programmeId: programme.id, projectId: project.id })}
+                                          data-testid={`button-move-to-project-${project.id}`}
+                                        >
+                                          <div 
+                                            className="w-3 h-3 rounded-full mr-2" 
+                                            style={{ backgroundColor: project.color || "#3B82F6" }}
+                                          />
+                                          {project.name}
+                                        </DropdownMenuItem>
+                                      ))}
+                                    </DropdownMenuSubContent>
+                                  </DropdownMenuSub>
+                                  <DropdownMenuSeparator />
+                                </>
+                              )}
+                              <DropdownMenuItem 
+                                onClick={() => deleteProgrammeMutation.mutate(programme.id)}
+                                className="text-destructive"
+                                data-testid={`button-delete-programme-${programme.id}`}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Programme
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </CardHeader>
                       <CardContent className="pt-0">
