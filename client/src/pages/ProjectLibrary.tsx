@@ -144,7 +144,7 @@ function ProjectSection({
                   <div className="flex flex-col gap-0">
                     <CardTitle className="text-lg">{project.name}</CardTitle>
                     {project.projectManager && (
-                      <p className="text-xs text-muted-foreground">Manager: {project.projectManager}</p>
+                      <p className="text-xs text-muted-foreground">Project Manager: {project.projectManager}</p>
                     )}
                   </div>
                   <Badge variant="secondary" className="ml-2">
