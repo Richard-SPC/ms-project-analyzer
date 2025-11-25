@@ -52,8 +52,8 @@ export default function Projects() {
       setOpen(false);
       form.reset();
       toast({
-        title: "Project created",
-        description: "Your project has been created successfully.",
+        title: "Programme created",
+        description: "Your programme has been created successfully.",
       });
     },
     onError: (error: Error) => {
@@ -73,8 +73,8 @@ export default function Projects() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       toast({
-        title: "Project deleted",
-        description: "Project has been removed.",
+        title: "Programme deleted",
+        description: "Programme has been removed.",
       });
     },
   });
@@ -99,7 +99,6 @@ export default function Projects() {
     },
     onSuccess: (data) => {
       if (data.requiresConversion) {
-        // MPP file that needs conversion
         toast({
           title: "Conversion Required",
           description: data.message,
@@ -109,16 +108,14 @@ export default function Projects() {
         setUploadOpen(false);
         setUploadFile(null);
       } else if (data.success && data.project) {
-        // Successfully uploaded and created project from XML file
         queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
         toast({
-          title: "Project imported",
+          title: "Programme imported",
           description: data.message || `Successfully imported "${data.project.name}"`,
         });
         setUploadOpen(false);
         setUploadFile(null);
       } else if (data.success) {
-        // Successfully uploaded file (legacy response)
         queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
         toast({
           title: "File uploaded",
@@ -127,7 +124,6 @@ export default function Projects() {
         setUploadOpen(false);
         setUploadFile(null);
       } else {
-        // Some other issue
         toast({
           title: "Upload issue",
           description: data.message || "Please check the file and try again",
@@ -158,20 +154,20 @@ export default function Projects() {
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground" data-testid="text-projects-title">Projects</h1>
-          <p className="text-muted-foreground">Manage your programmes and project files</p>
+          <h1 className="text-3xl font-bold text-foreground" data-testid="text-programmes-title">Programmes</h1>
+          <p className="text-muted-foreground">Manage your programmes and schedule files</p>
         </div>
         <div className="flex gap-2">
           <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" data-testid="button-upload-project">
+              <Button variant="outline" data-testid="button-upload-programme">
                 <Upload className="mr-2 h-4 w-4" />
                 Upload File
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Upload Project File</DialogTitle>
+                <DialogTitle>Upload Programme File</DialogTitle>
                 <DialogDescription>Upload a Microsoft Project file (.mpp, .xml) or Excel export (.xlsx, .csv)</DialogDescription>
               </DialogHeader>
               <div className="py-4">
@@ -207,14 +203,14 @@ export default function Projects() {
 
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button data-testid="button-create-project">
+              <Button data-testid="button-create-programme">
                 <Plus className="mr-2 h-4 w-4" />
-                Create Project
+                Create Programme
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create New Project</DialogTitle>
+                <DialogTitle>Create New Programme</DialogTitle>
                 <DialogDescription>Add a new programme to track and analyze</DialogDescription>
               </DialogHeader>
               <Form {...form}>
@@ -224,9 +220,9 @@ export default function Projects() {
                     name="name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Project Name</FormLabel>
+                        <FormLabel>Programme Name</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter project name" {...field} data-testid="input-project-name" />
+                          <Input placeholder="Enter programme name" {...field} data-testid="input-programme-name" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -240,7 +236,7 @@ export default function Projects() {
                       <FormItem>
                         <FormLabel>Description</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="Project description" {...field} value={field.value || ""} data-testid="input-project-description" />
+                          <Textarea placeholder="Programme description" {...field} value={field.value || ""} data-testid="input-programme-description" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -252,9 +248,9 @@ export default function Projects() {
                     name="projectManager"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Project Manager</FormLabel>
+                        <FormLabel>Programme Manager</FormLabel>
                         <FormControl>
-                          <Input placeholder="Manager name" {...field} value={field.value || ""} data-testid="input-project-manager" />
+                          <Input placeholder="Manager name" {...field} value={field.value || ""} data-testid="input-programme-manager" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -269,7 +265,7 @@ export default function Projects() {
                         <FormLabel>Status</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger data-testid="select-project-status">
+                            <SelectTrigger data-testid="select-programme-status">
                               <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                           </FormControl>
@@ -315,7 +311,7 @@ export default function Projects() {
       ) : projects && projects.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {projects.map((project) => (
-            <Card key={project.id} className="hover-elevate" data-testid={`card-project-${project.id}`}>
+            <Card key={project.id} className="hover-elevate" data-testid={`card-programme-${project.id}`}>
               <CardHeader>
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2 flex-1">
@@ -329,7 +325,7 @@ export default function Projects() {
                       e.preventDefault();
                       deleteMutation.mutate(project.id);
                     }}
-                    data-testid={`button-delete-${project.id}`}
+                    data-testid={`button-delete-programme-${project.id}`}
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -352,7 +348,7 @@ export default function Projects() {
                   </div>
                 </div>
                 <Link href={`/projects/${project.id}`}>
-                  <Button className="w-full mt-4" variant="outline" data-testid={`button-view-${project.id}`}>
+                  <Button className="w-full mt-4" variant="outline" data-testid={`button-view-programme-${project.id}`}>
                     View Details
                   </Button>
                 </Link>
@@ -364,11 +360,11 @@ export default function Projects() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <FolderKanban className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No projects yet</h3>
-            <p className="text-sm text-muted-foreground mb-4">Create your first project to get started</p>
+            <h3 className="text-lg font-semibold mb-2">No programmes yet</h3>
+            <p className="text-sm text-muted-foreground mb-4">Create your first programme to get started</p>
             <Button onClick={() => setOpen(true)} data-testid="button-create-first">
               <Plus className="mr-2 h-4 w-4" />
-              Create Project
+              Create Programme
             </Button>
           </CardContent>
         </Card>

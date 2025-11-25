@@ -23,7 +23,7 @@ const menuItems = [
     icon: Library,
   },
   {
-    title: "Projects",
+    title: "Programmes",
     url: "/projects",
     icon: FolderKanban,
   },

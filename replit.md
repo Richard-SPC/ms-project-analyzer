@@ -56,10 +56,13 @@ Preferred communication style: Simple, everyday language.
 **Database Strategy:** Drizzle ORM for type-safe operations, PostgreSQL (configured for Neon serverless), schema-first approach with Zod validation.
 
 **Schema Design:**
-- **Projects Table:** Stores project metadata, NEC compliance status.
+- **Workspaces Table:** Stores "Project" containers (called workspaces in schema) with name, description, and color for organization.
+- **Projects Table:** Stores "Programme" data (called projects in schema) with metadata, NEC compliance status, and optional workspaceId for project association.
 - **Tasks Table:** Stores task details including dependencies, resources, critical path, total float, constraint types. Includes `isSummary` flag, `constraintType` (ASAP, ALAP, MSO, MFO, SNET, SNLT, FNET, FNLT), and `msProjectId` (original MS Project task ID for cross-reference).
-- **DCMA Assessments Table:** Stores assessment results for each project, including criterion-specific results, overall score, and manual override flags (14 boolean fields allowing users to override failed checks with justification).
-- **NEC Compliance Table:** Stores assessment results for each project, including criterion-specific results and overall status.
+- **DCMA Assessments Table:** Stores assessment results for each programme, including criterion-specific results, overall score, and manual override flags (14 boolean fields allowing users to override failed checks with justification).
+- **NEC Compliance Table:** Stores assessment results for each programme, including criterion-specific results and overall status.
+
+**Terminology Note:** The UI uses "Project" to refer to containers/categories (stored in `workspaces` table) and "Programme" to refer to individual schedules (stored in `projects` table). This terminology aligns with construction industry conventions.
 
 **Storage Abstraction:** IStorage interface with MemStorage for development, designed for Drizzle-based PostgreSQL implementation.
 

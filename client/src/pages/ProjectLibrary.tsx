@@ -19,16 +19,16 @@ import { z } from "zod";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 
-const workspaceFormSchema = insertWorkspaceSchema.extend({
+const projectFormSchema = insertWorkspaceSchema.extend({
   name: z.string().min(1, "Name is required"),
 });
 
-const projectFormSchema = insertProjectSchema.extend({
+const programmeFormSchema = insertProjectSchema.extend({
   name: z.string().min(1, "Name is required"),
 });
 
-type WorkspaceFormData = z.infer<typeof workspaceFormSchema>;
 type ProjectFormData = z.infer<typeof projectFormSchema>;
+type ProgrammeFormData = z.infer<typeof programmeFormSchema>;
 
 const colorOptions = [
   { value: "#3B82F6", label: "Blue" },
@@ -41,14 +41,14 @@ const colorOptions = [
   { value: "#64748B", label: "Slate" },
 ];
 
-function WorkspaceSection({ 
-  workspace, 
-  projects, 
+function ProjectSection({ 
+  project, 
+  programmes, 
   onDelete,
   onEdit,
 }: { 
-  workspace: Workspace; 
-  projects: Project[];
+  project: Workspace; 
+  programmes: Project[];
   onDelete: () => void;
   onEdit: () => void;
 }) {
@@ -61,17 +61,17 @@ function WorkspaceSection({
       return await res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/workspaces", workspace.id, "projects"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/workspaces", project.id, "projects"] });
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       toast({
-        title: "Project deleted",
-        description: "Project has been removed.",
+        title: "Programme deleted",
+        description: "Programme has been removed.",
       });
     },
   });
 
   return (
-    <Card className="mb-4" data-testid={`card-workspace-${workspace.id}`}>
+    <Card className="mb-4" data-testid={`card-project-${project.id}`}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between gap-2">
@@ -81,61 +81,61 @@ function WorkspaceSection({
                   {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                   <div 
                     className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: workspace.color || "#3B82F6" }}
+                    style={{ backgroundColor: project.color || "#3B82F6" }}
                   />
-                  <CardTitle className="text-lg">{workspace.name}</CardTitle>
+                  <CardTitle className="text-lg">{project.name}</CardTitle>
                   <Badge variant="secondary" className="ml-2">
-                    {projects.length} project{projects.length !== 1 ? "s" : ""}
+                    {programmes.length} programme{programmes.length !== 1 ? "s" : ""}
                   </Badge>
                 </div>
               </Button>
             </CollapsibleTrigger>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" data-testid={`button-workspace-menu-${workspace.id}`}>
+                <Button variant="ghost" size="icon" data-testid={`button-project-menu-${project.id}`}>
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onEdit} data-testid={`button-edit-workspace-${workspace.id}`}>
+                <DropdownMenuItem onClick={onEdit} data-testid={`button-edit-project-${project.id}`}>
                   <Edit className="mr-2 h-4 w-4" />
-                  Edit Workspace
+                  Edit Project
                 </DropdownMenuItem>
                 <DropdownMenuItem 
                   onClick={onDelete} 
                   className="text-destructive"
-                  data-testid={`button-delete-workspace-${workspace.id}`}
+                  data-testid={`button-delete-project-${project.id}`}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Workspace
+                  Delete Project
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          {workspace.description && (
-            <CardDescription className="ml-9">{workspace.description}</CardDescription>
+          {project.description && (
+            <CardDescription className="ml-9">{project.description}</CardDescription>
           )}
         </CardHeader>
         <CollapsibleContent>
           <CardContent>
-            {projects.length > 0 ? (
+            {programmes.length > 0 ? (
               <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                {projects.map((project) => (
-                  <Card key={project.id} className="hover-elevate" data-testid={`card-project-${project.id}`}>
+                {programmes.map((programme) => (
+                  <Card key={programme.id} className="hover-elevate" data-testid={`card-programme-${programme.id}`}>
                     <CardHeader className="pb-2">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                           <FolderKanban className="h-4 w-4 text-primary flex-shrink-0" />
-                          <CardTitle className="text-sm truncate">{project.name}</CardTitle>
+                          <CardTitle className="text-sm truncate">{programme.name}</CardTitle>
                         </div>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={(e) => {
                             e.preventDefault();
-                            deleteMutation.mutate(project.id);
+                            deleteMutation.mutate(programme.id);
                           }}
-                          data-testid={`button-delete-project-${project.id}`}
+                          data-testid={`button-delete-programme-${programme.id}`}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -145,15 +145,15 @@ function WorkspaceSection({
                       <div className="space-y-1 text-xs text-muted-foreground mb-3">
                         <div className="flex justify-between">
                           <span>Status:</span>
-                          <span className="font-medium text-foreground">{project.status}</span>
+                          <span className="font-medium text-foreground">{programme.status}</span>
                         </div>
                         <div className="flex justify-between">
                           <span>Manager:</span>
-                          <span className="font-medium text-foreground">{project.projectManager || "N/A"}</span>
+                          <span className="font-medium text-foreground">{programme.projectManager || "N/A"}</span>
                         </div>
                       </div>
-                      <Link href={`/projects/${project.id}`}>
-                        <Button className="w-full" variant="outline" size="sm" data-testid={`button-view-project-${project.id}`}>
+                      <Link href={`/projects/${programme.id}`}>
+                        <Button className="w-full" variant="outline" size="sm" data-testid={`button-view-programme-${programme.id}`}>
                           View Details
                         </Button>
                       </Link>
@@ -164,7 +164,7 @@ function WorkspaceSection({
             ) : (
               <div className="text-center py-4 text-muted-foreground">
                 <FolderOpen className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No projects in this workspace yet</p>
+                <p className="text-sm">No programmes in this project yet</p>
               </div>
             )}
           </CardContent>
@@ -175,24 +175,24 @@ function WorkspaceSection({
 }
 
 export default function ProjectLibrary() {
-  const [workspaceDialogOpen, setWorkspaceDialogOpen] = useState(false);
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
-  const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null);
+  const [programmeDialogOpen, setProgrammeDialogOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Workspace | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadWorkspaceId, setUploadWorkspaceId] = useState<number | null>(null);
+  const [uploadProjectId, setUploadProjectId] = useState<number | null>(null);
   const { toast } = useToast();
 
-  const { data: workspaces, isLoading: workspacesLoading } = useQuery<Workspace[]>({
+  const { data: projects, isLoading: projectsLoading } = useQuery<Workspace[]>({
     queryKey: ["/api/workspaces"],
   });
 
-  const { data: allProjects } = useQuery<Project[]>({
+  const { data: allProgrammes } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
   });
 
-  const workspaceForm = useForm<WorkspaceFormData>({
-    resolver: zodResolver(workspaceFormSchema),
+  const projectForm = useForm<ProjectFormData>({
+    resolver: zodResolver(projectFormSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -200,8 +200,8 @@ export default function ProjectLibrary() {
     },
   });
 
-  const projectForm = useForm<ProjectFormData>({
-    resolver: zodResolver(projectFormSchema),
+  const programmeForm = useForm<ProgrammeFormData>({
+    resolver: zodResolver(programmeFormSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -211,18 +211,18 @@ export default function ProjectLibrary() {
     },
   });
 
-  const createWorkspaceMutation = useMutation({
-    mutationFn: async (data: WorkspaceFormData) => {
+  const createProjectMutation = useMutation({
+    mutationFn: async (data: ProjectFormData) => {
       const res = await apiRequest("POST", "/api/workspaces", data);
       return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/workspaces"] });
-      setWorkspaceDialogOpen(false);
-      workspaceForm.reset();
+      setProjectDialogOpen(false);
+      projectForm.reset();
       toast({
-        title: "Workspace created",
-        description: "Your workspace has been created successfully.",
+        title: "Project created",
+        description: "Your project has been created successfully.",
       });
     },
     onError: (error: Error) => {
@@ -234,18 +234,18 @@ export default function ProjectLibrary() {
     },
   });
 
-  const updateWorkspaceMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: Partial<WorkspaceFormData> }) => {
+  const updateProjectMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<ProjectFormData> }) => {
       const res = await apiRequest("PATCH", `/api/workspaces/${id}`, data);
       return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/workspaces"] });
-      setEditingWorkspace(null);
-      workspaceForm.reset();
+      setEditingProject(null);
+      projectForm.reset();
       toast({
-        title: "Workspace updated",
-        description: "Your workspace has been updated successfully.",
+        title: "Project updated",
+        description: "Your project has been updated successfully.",
       });
     },
     onError: (error: Error) => {
@@ -257,7 +257,7 @@ export default function ProjectLibrary() {
     },
   });
 
-  const deleteWorkspaceMutation = useMutation({
+  const deleteProjectMutation = useMutation({
     mutationFn: async (id: number) => {
       const res = await apiRequest("DELETE", `/api/workspaces/${id}`);
       return await res.json();
@@ -266,25 +266,25 @@ export default function ProjectLibrary() {
       queryClient.invalidateQueries({ queryKey: ["/api/workspaces"] });
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       toast({
-        title: "Workspace deleted",
-        description: "Workspace has been removed. Projects are now unassigned.",
+        title: "Project deleted",
+        description: "Project has been removed. Programmes are now unassigned.",
       });
     },
   });
 
-  const createProjectMutation = useMutation({
-    mutationFn: async (data: ProjectFormData) => {
+  const createProgrammeMutation = useMutation({
+    mutationFn: async (data: ProgrammeFormData) => {
       const res = await apiRequest("POST", "/api/projects", data);
       return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
       queryClient.invalidateQueries({ queryKey: ["/api/workspaces"] });
-      setProjectDialogOpen(false);
-      projectForm.reset();
+      setProgrammeDialogOpen(false);
+      programmeForm.reset();
       toast({
-        title: "Project created",
-        description: "Your project has been created successfully.",
+        title: "Programme created",
+        description: "Your programme has been created successfully.",
       });
     },
     onError: (error: Error) => {
@@ -315,9 +315,9 @@ export default function ProjectLibrary() {
       return await res.json();
     },
     onSuccess: async (data) => {
-      if (data.success && data.project && uploadWorkspaceId) {
+      if (data.success && data.project && uploadProjectId) {
         await apiRequest("PATCH", `/api/projects/${data.project.id}`, {
-          workspaceId: uploadWorkspaceId,
+          workspaceId: uploadProjectId,
         });
       }
       
@@ -333,7 +333,7 @@ export default function ProjectLibrary() {
         });
       } else if (data.success && data.project) {
         toast({
-          title: "Project imported",
+          title: "Programme imported",
           description: data.message || `Successfully imported "${data.project.name}"`,
         });
       } else if (data.success) {
@@ -345,7 +345,7 @@ export default function ProjectLibrary() {
       
       setUploadOpen(false);
       setUploadFile(null);
-      setUploadWorkspaceId(null);
+      setUploadProjectId(null);
     },
     onError: (error: Error) => {
       toast({
@@ -356,27 +356,27 @@ export default function ProjectLibrary() {
     },
   });
 
-  const handleCreateWorkspace = (data: WorkspaceFormData) => {
-    createWorkspaceMutation.mutate(data);
+  const handleCreateProject = (data: ProjectFormData) => {
+    createProjectMutation.mutate(data);
   };
 
-  const handleUpdateWorkspace = (data: WorkspaceFormData) => {
-    if (editingWorkspace) {
-      updateWorkspaceMutation.mutate({ id: editingWorkspace.id, data });
+  const handleUpdateProject = (data: ProjectFormData) => {
+    if (editingProject) {
+      updateProjectMutation.mutate({ id: editingProject.id, data });
     }
   };
 
-  const handleEditWorkspace = (workspace: Workspace) => {
-    setEditingWorkspace(workspace);
-    workspaceForm.reset({
-      name: workspace.name,
-      description: workspace.description || "",
-      color: workspace.color || "#3B82F6",
+  const handleEditProject = (project: Workspace) => {
+    setEditingProject(project);
+    projectForm.reset({
+      name: project.name,
+      description: project.description || "",
+      color: project.color || "#3B82F6",
     });
   };
 
-  const handleCreateProject = (data: ProjectFormData) => {
-    createProjectMutation.mutate(data);
+  const handleCreateProgramme = (data: ProgrammeFormData) => {
+    createProgrammeMutation.mutate(data);
   };
 
   const handleUpload = () => {
@@ -385,30 +385,30 @@ export default function ProjectLibrary() {
     }
   };
 
-  const getProjectsForWorkspace = (workspaceId: number) => {
-    return allProjects?.filter(p => p.workspaceId === workspaceId) || [];
+  const getProgrammesForProject = (projectId: number) => {
+    return allProgrammes?.filter(p => p.workspaceId === projectId) || [];
   };
 
-  const unassignedProjects = allProjects?.filter(p => !p.workspaceId) || [];
+  const unassignedProgrammes = allProgrammes?.filter(p => !p.workspaceId) || [];
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h1 className="text-3xl font-bold text-foreground" data-testid="text-library-title">Project Library</h1>
-          <p className="text-muted-foreground">Organize your projects into workspaces</p>
+          <p className="text-muted-foreground">Organize your programmes into projects</p>
         </div>
         <div className="flex gap-2 flex-wrap">
           <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" data-testid="button-upload-project">
+              <Button variant="outline" data-testid="button-upload-programme">
                 <Upload className="mr-2 h-4 w-4" />
                 Upload File
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Upload Project File</DialogTitle>
+                <DialogTitle>Upload Programme File</DialogTitle>
                 <DialogDescription>Upload a Microsoft Project file (.mpp, .xml) or Excel export (.xlsx, .csv)</DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
@@ -424,19 +424,19 @@ export default function ProjectLibrary() {
                   </p>
                 )}
                 <div>
-                  <label className="text-sm font-medium">Assign to Workspace (optional)</label>
+                  <label className="text-sm font-medium">Assign to Project (optional)</label>
                   <Select 
-                    value={uploadWorkspaceId?.toString() || ""} 
-                    onValueChange={(val) => setUploadWorkspaceId(val ? parseInt(val) : null)}
+                    value={uploadProjectId?.toString() || "none"} 
+                    onValueChange={(val) => setUploadProjectId(val === "none" ? null : parseInt(val))}
                   >
-                    <SelectTrigger className="mt-1" data-testid="select-upload-workspace">
-                      <SelectValue placeholder="Select workspace" />
+                    <SelectTrigger className="mt-1" data-testid="select-upload-project">
+                      <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No workspace</SelectItem>
-                      {workspaces?.map((ws) => (
-                        <SelectItem key={ws.id} value={ws.id.toString()}>
-                          {ws.name}
+                      <SelectItem value="none">No project</SelectItem>
+                      {projects?.map((proj) => (
+                        <SelectItem key={proj.id} value={proj.id.toString()}>
+                          {proj.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -447,7 +447,7 @@ export default function ProjectLibrary() {
                 <Button variant="outline" onClick={() => {
                   setUploadOpen(false);
                   setUploadFile(null);
-                  setUploadWorkspaceId(null);
+                  setUploadProjectId(null);
                 }} data-testid="button-cancel-upload">
                   Cancel
                 </Button>
@@ -462,20 +462,146 @@ export default function ProjectLibrary() {
             </DialogContent>
           </Dialog>
 
-          <Dialog open={projectDialogOpen} onOpenChange={setProjectDialogOpen}>
+          <Dialog open={programmeDialogOpen} onOpenChange={setProgrammeDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" data-testid="button-create-project">
+              <Button variant="outline" data-testid="button-create-programme">
                 <Plus className="mr-2 h-4 w-4" />
+                New Programme
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create New Programme</DialogTitle>
+                <DialogDescription>Add a new programme to your library</DialogDescription>
+              </DialogHeader>
+              <Form {...programmeForm}>
+                <form onSubmit={programmeForm.handleSubmit(handleCreateProgramme)} className="space-y-4">
+                  <FormField
+                    control={programmeForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Programme Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter programme name" {...field} data-testid="input-programme-name" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={programmeForm.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="Programme description" {...field} value={field.value || ""} data-testid="input-programme-description" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={programmeForm.control}
+                    name="workspaceId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Project</FormLabel>
+                        <Select 
+                          onValueChange={(val) => field.onChange(val === "none" ? undefined : parseInt(val))} 
+                          value={field.value?.toString() || "none"}
+                        >
+                          <FormControl>
+                            <SelectTrigger data-testid="select-programme-project">
+                              <SelectValue placeholder="Select project (optional)" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">No project</SelectItem>
+                            {projects?.map((proj) => (
+                              <SelectItem key={proj.id} value={proj.id.toString()}>
+                                {proj.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={programmeForm.control}
+                    name="projectManager"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Programme Manager</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Manager name" {...field} value={field.value || ""} data-testid="input-programme-manager" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={programmeForm.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid="select-programme-status">
+                              <SelectValue placeholder="Select status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="on-hold">On Hold</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <DialogFooter>
+                    <Button type="button" variant="outline" onClick={() => setProgrammeDialogOpen(false)} data-testid="button-cancel-programme">
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={createProgrammeMutation.isPending} data-testid="button-submit-programme">
+                      {createProgrammeMutation.isPending ? "Creating..." : "Create"}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={projectDialogOpen || !!editingProject} onOpenChange={(open) => {
+            if (!open) {
+              setProjectDialogOpen(false);
+              setEditingProject(null);
+              projectForm.reset();
+            } else {
+              setProjectDialogOpen(true);
+            }
+          }}>
+            <DialogTrigger asChild>
+              <Button data-testid="button-create-project">
+                <Library className="mr-2 h-4 w-4" />
                 New Project
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Create New Project</DialogTitle>
-                <DialogDescription>Add a new project to your library</DialogDescription>
+                <DialogTitle>{editingProject ? "Edit Project" : "Create New Project"}</DialogTitle>
+                <DialogDescription>
+                  {editingProject ? "Update your project details" : "Create a project to organize your programmes"}
+                </DialogDescription>
               </DialogHeader>
               <Form {...projectForm}>
-                <form onSubmit={projectForm.handleSubmit(handleCreateProject)} className="space-y-4">
+                <form onSubmit={projectForm.handleSubmit(editingProject ? handleUpdateProject : handleCreateProject)} className="space-y-4">
                   <FormField
                     control={projectForm.control}
                     name="name"
@@ -504,132 +630,6 @@ export default function ProjectLibrary() {
                   />
                   <FormField
                     control={projectForm.control}
-                    name="workspaceId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Workspace</FormLabel>
-                        <Select 
-                          onValueChange={(val) => field.onChange(val ? parseInt(val) : undefined)} 
-                          value={field.value?.toString() || ""}
-                        >
-                          <FormControl>
-                            <SelectTrigger data-testid="select-project-workspace">
-                              <SelectValue placeholder="Select workspace (optional)" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="">No workspace</SelectItem>
-                            {workspaces?.map((ws) => (
-                              <SelectItem key={ws.id} value={ws.id.toString()}>
-                                {ws.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={projectForm.control}
-                    name="projectManager"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Project Manager</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Manager name" {...field} value={field.value || ""} data-testid="input-project-manager" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={projectForm.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-project-status">
-                              <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                            <SelectItem value="on-hold">On Hold</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <DialogFooter>
-                    <Button type="button" variant="outline" onClick={() => setProjectDialogOpen(false)} data-testid="button-cancel-project">
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={createProjectMutation.isPending} data-testid="button-submit-project">
-                      {createProjectMutation.isPending ? "Creating..." : "Create"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={workspaceDialogOpen || !!editingWorkspace} onOpenChange={(open) => {
-            if (!open) {
-              setWorkspaceDialogOpen(false);
-              setEditingWorkspace(null);
-              workspaceForm.reset();
-            } else {
-              setWorkspaceDialogOpen(true);
-            }
-          }}>
-            <DialogTrigger asChild>
-              <Button data-testid="button-create-workspace">
-                <Library className="mr-2 h-4 w-4" />
-                New Workspace
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>{editingWorkspace ? "Edit Workspace" : "Create New Workspace"}</DialogTitle>
-                <DialogDescription>
-                  {editingWorkspace ? "Update your workspace details" : "Create a workspace to organize your projects"}
-                </DialogDescription>
-              </DialogHeader>
-              <Form {...workspaceForm}>
-                <form onSubmit={workspaceForm.handleSubmit(editingWorkspace ? handleUpdateWorkspace : handleCreateWorkspace)} className="space-y-4">
-                  <FormField
-                    control={workspaceForm.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Workspace Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter workspace name" {...field} data-testid="input-workspace-name" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={workspaceForm.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Workspace description" {...field} value={field.value || ""} data-testid="input-workspace-description" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={workspaceForm.control}
                     name="color"
                     render={({ field }) => (
                       <FormItem>
@@ -655,20 +655,20 @@ export default function ProjectLibrary() {
                   />
                   <DialogFooter>
                     <Button type="button" variant="outline" onClick={() => {
-                      setWorkspaceDialogOpen(false);
-                      setEditingWorkspace(null);
-                      workspaceForm.reset();
-                    }} data-testid="button-cancel-workspace">
+                      setProjectDialogOpen(false);
+                      setEditingProject(null);
+                      projectForm.reset();
+                    }} data-testid="button-cancel-project">
                       Cancel
                     </Button>
                     <Button 
                       type="submit" 
-                      disabled={createWorkspaceMutation.isPending || updateWorkspaceMutation.isPending} 
-                      data-testid="button-submit-workspace"
+                      disabled={createProjectMutation.isPending || updateProjectMutation.isPending} 
+                      data-testid="button-submit-project"
                     >
-                      {createWorkspaceMutation.isPending || updateWorkspaceMutation.isPending 
-                        ? (editingWorkspace ? "Updating..." : "Creating...") 
-                        : (editingWorkspace ? "Update" : "Create")}
+                      {createProjectMutation.isPending || updateProjectMutation.isPending 
+                        ? (editingProject ? "Updating..." : "Creating...") 
+                        : (editingProject ? "Update" : "Create")}
                     </Button>
                   </DialogFooter>
                 </form>
@@ -678,7 +678,7 @@ export default function ProjectLibrary() {
         </div>
       </div>
 
-      {workspacesLoading ? (
+      {projectsLoading ? (
         <div className="space-y-4">
           {[...Array(3)].map((_, i) => (
             <Card key={i}>
@@ -697,39 +697,39 @@ export default function ProjectLibrary() {
         </div>
       ) : (
         <>
-          {workspaces && workspaces.length > 0 ? (
-            workspaces.map((workspace) => (
-              <WorkspaceSection
-                key={workspace.id}
-                workspace={workspace}
-                projects={getProjectsForWorkspace(workspace.id)}
-                onDelete={() => deleteWorkspaceMutation.mutate(workspace.id)}
-                onEdit={() => handleEditWorkspace(workspace)}
+          {projects && projects.length > 0 ? (
+            projects.map((project) => (
+              <ProjectSection
+                key={project.id}
+                project={project}
+                programmes={getProgrammesForProject(project.id)}
+                onDelete={() => deleteProjectMutation.mutate(project.id)}
+                onEdit={() => handleEditProject(project)}
               />
             ))
           ) : null}
 
-          {unassignedProjects.length > 0 && (
-            <Card data-testid="card-unassigned-projects">
+          {unassignedProgrammes.length > 0 && (
+            <Card data-testid="card-unassigned-programmes">
               <CardHeader>
                 <div className="flex items-center gap-2">
                   <FolderOpen className="h-5 w-5 text-muted-foreground" />
-                  <CardTitle className="text-lg">Unassigned Projects</CardTitle>
+                  <CardTitle className="text-lg">Unassigned Programmes</CardTitle>
                   <Badge variant="secondary">
-                    {unassignedProjects.length} project{unassignedProjects.length !== 1 ? "s" : ""}
+                    {unassignedProgrammes.length} programme{unassignedProgrammes.length !== 1 ? "s" : ""}
                   </Badge>
                 </div>
-                <CardDescription>Projects not assigned to any workspace</CardDescription>
+                <CardDescription>Programmes not assigned to any project</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-                  {unassignedProjects.map((project) => (
-                    <Card key={project.id} className="hover-elevate" data-testid={`card-project-${project.id}`}>
+                  {unassignedProgrammes.map((programme) => (
+                    <Card key={programme.id} className="hover-elevate" data-testid={`card-programme-${programme.id}`}>
                       <CardHeader className="pb-2">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-2 flex-1 min-w-0">
                             <FolderKanban className="h-4 w-4 text-primary flex-shrink-0" />
-                            <CardTitle className="text-sm truncate">{project.name}</CardTitle>
+                            <CardTitle className="text-sm truncate">{programme.name}</CardTitle>
                           </div>
                         </div>
                       </CardHeader>
@@ -737,15 +737,15 @@ export default function ProjectLibrary() {
                         <div className="space-y-1 text-xs text-muted-foreground mb-3">
                           <div className="flex justify-between">
                             <span>Status:</span>
-                            <span className="font-medium text-foreground">{project.status}</span>
+                            <span className="font-medium text-foreground">{programme.status}</span>
                           </div>
                           <div className="flex justify-between">
                             <span>Manager:</span>
-                            <span className="font-medium text-foreground">{project.projectManager || "N/A"}</span>
+                            <span className="font-medium text-foreground">{programme.projectManager || "N/A"}</span>
                           </div>
                         </div>
-                        <Link href={`/projects/${project.id}`}>
-                          <Button className="w-full" variant="outline" size="sm" data-testid={`button-view-project-${project.id}`}>
+                        <Link href={`/projects/${programme.id}`}>
+                          <Button className="w-full" variant="outline" size="sm" data-testid={`button-view-programme-${programme.id}`}>
                             View Details
                           </Button>
                         </Link>
@@ -757,22 +757,22 @@ export default function ProjectLibrary() {
             </Card>
           )}
 
-          {(!workspaces || workspaces.length === 0) && unassignedProjects.length === 0 && (
+          {(!projects || projects.length === 0) && unassignedProgrammes.length === 0 && (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Library className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">Your library is empty</h3>
                 <p className="text-sm text-muted-foreground mb-4 text-center max-w-md">
-                  Create a workspace to start organizing your projects, or add projects directly to get started.
+                  Create a project to start organizing your programmes, or add programmes directly to get started.
                 </p>
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setProjectDialogOpen(true)} data-testid="button-create-first-project">
+                  <Button variant="outline" onClick={() => setProgrammeDialogOpen(true)} data-testid="button-create-first-programme">
                     <Plus className="mr-2 h-4 w-4" />
-                    Add Project
+                    Add Programme
                   </Button>
-                  <Button onClick={() => setWorkspaceDialogOpen(true)} data-testid="button-create-first-workspace">
+                  <Button onClick={() => setProjectDialogOpen(true)} data-testid="button-create-first-project">
                     <Library className="mr-2 h-4 w-4" />
-                    Create Workspace
+                    Create Project
                   </Button>
                 </div>
               </CardContent>
