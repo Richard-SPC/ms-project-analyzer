@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FolderKanban, FileCheck, AlertTriangle, Activity } from "lucide-react";
+import { FolderKanban, FileCheck, Activity } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import type { Project } from "@shared/schema";
@@ -32,12 +32,6 @@ export default function Dashboard() {
       value: completedProjects,
       icon: FileCheck,
       description: "Finished projects",
-    },
-    {
-      title: "NEC Compliant",
-      value: projects?.filter(p => p.necCompliant === true).length || 0,
-      icon: AlertTriangle,
-      description: "Meeting standards",
     },
   ];
 
@@ -145,12 +139,6 @@ export default function Dashboard() {
               <Button variant="outline" className="w-full justify-start" data-testid="button-run-dcma">
                 <FileCheck className="mr-2 h-4 w-4" />
                 Run DCMA Assessment
-              </Button>
-            </Link>
-            <Link href="/nec">
-              <Button variant="outline" className="w-full justify-start" data-testid="button-check-nec">
-                <AlertTriangle className="mr-2 h-4 w-4" />
-                Check NEC Compliance
               </Button>
             </Link>
           </CardContent>
