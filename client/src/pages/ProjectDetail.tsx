@@ -353,15 +353,17 @@ export default function ProjectDetail() {
               {/* Tasks */}
               <div className="space-y-1">
                 {ganttData.tasks.map((task) => (
-                  <div key={task.id} className="flex gap-2 items-start">
-                    <div className="w-56 flex-shrink-0">
-                      <div className="text-xs font-medium" title={task.taskName}>
-                        {task.taskName}
+                  <div key={task.id} className="flex gap-2 items-center">
+                    <div className="w-56 flex-shrink-0 flex items-center gap-2 min-h-6">
+                      <div>
+                        <div className="text-xs font-medium" title={task.taskName}>
+                          {task.taskName}
+                        </div>
                       </div>
-                      <div className="text-xs text-muted-foreground space-y-0.5">
-                        <div>Start: {task.startDate}</div>
-                        <div>Finish: {task.finishDate}</div>
-                        <div>Duration: {task.duration}d</div>
+                      <div className="text-xs text-muted-foreground flex gap-2 flex-wrap">
+                        <span>Start: {task.startDate}</span>
+                        <span>Finish: {task.finishDate}</span>
+                        <span>Duration: {task.duration}d</span>
                       </div>
                     </div>
                     <div className="flex-1 h-6 bg-muted relative rounded" style={{ width: `${Math.max(ganttData.totalDays * 2.5, 500)}px` }}>
