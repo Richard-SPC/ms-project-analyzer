@@ -597,7 +597,7 @@ export default function ProjectLibrary() {
                     name="color"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Color</FormLabel>
+                        <FormLabel>Colour</FormLabel>
                         <div className="flex gap-2 flex-wrap">
                           {colorOptions.map((color) => (
                             <button
