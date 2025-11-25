@@ -27,7 +27,6 @@ import NecCompliance from "@/pages/NecCompliance";
 
 const projectFormSchema = insertWorkspaceSchema.extend({
   name: z.string().min(1, "Name is required"),
-  projectManager: z.string().optional(),
 });
 
 const programmeFormSchema = insertProjectSchema.extend({
@@ -575,19 +574,6 @@ export default function ProjectLibrary() {
                         <FormLabel>Project Name</FormLabel>
                         <FormControl>
                           <Input placeholder="Enter project name" {...field} data-testid="input-project-name" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={projectForm.control}
-                    name="projectManager"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Project Manager</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter project manager name" {...field} value={field.value || ""} data-testid="input-project-manager" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
