@@ -64,6 +64,9 @@ function ProgrammeTile({ programme, onDelete }: { programme: Project; onDelete: 
             <FolderKanban className="h-5 w-5 text-primary flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <CardTitle className="text-base">{programme.name}</CardTitle>
+              {programme.projectManager && (
+                <p className="text-xs text-muted-foreground mt-1">Manager: {programme.projectManager}</p>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-6 flex-wrap">
