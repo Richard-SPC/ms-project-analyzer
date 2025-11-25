@@ -8,6 +8,7 @@ export const workspaces = pgTable("workspaces", {
   name: text("name").notNull(),
   description: text("description"),
   color: text("color").default("#3B82F6"), // hex color for visual distinction
+  projectManager: text("project_manager"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

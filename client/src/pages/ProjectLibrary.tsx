@@ -27,6 +27,7 @@ import NecCompliance from "@/pages/NecCompliance";
 
 const projectFormSchema = insertWorkspaceSchema.extend({
   name: z.string().min(1, "Name is required"),
+  projectManager: z.string().optional(),
 });
 
 const programmeFormSchema = insertProjectSchema.extend({
@@ -142,8 +143,8 @@ function ProjectSection({
                   />
                   <div className="flex flex-col gap-0">
                     <CardTitle className="text-lg">{project.name}</CardTitle>
-                    {programmes.length > 0 && programmes[0]?.projectManager && (
-                      <p className="text-xs text-muted-foreground">Manager: {programmes[0].projectManager}</p>
+                    {project.projectManager && (
+                      <p className="text-xs text-muted-foreground">Manager: {project.projectManager}</p>
                     )}
                   </div>
                   <Badge variant="secondary" className="ml-2">
@@ -432,6 +433,7 @@ export default function ProjectLibrary() {
       name: project.name,
       description: project.description || "",
       color: project.color || "#3B82F6",
+      projectManager: project.projectManager || "",
     });
   };
 
@@ -576,6 +578,19 @@ export default function ProjectLibrary() {
                         <FormLabel>Project Name</FormLabel>
                         <FormControl>
                           <Input placeholder="Enter project name" {...field} data-testid="input-project-name" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={projectForm.control}
+                    name="projectManager"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Project Manager</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter project manager name" {...field} value={field.value || ""} data-testid="input-project-manager" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
