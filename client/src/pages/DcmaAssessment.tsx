@@ -291,6 +291,9 @@ export default function DcmaAssessment() {
                         </CardTitle>
                         <CardDescription>
                           Assessed on {new Date(assessment.assessmentDate).toLocaleDateString()}
+                          {project?.statusDate && (
+                            <span> • Status Date: {new Date(project.statusDate).toLocaleDateString()}</span>
+                          )}
                         </CardDescription>
                       </div>
                       <div className="text-right">

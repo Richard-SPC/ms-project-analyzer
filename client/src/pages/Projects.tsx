@@ -18,6 +18,9 @@ import { z } from "zod";
 
 const formSchema = insertProjectSchema.extend({
   name: z.string().min(1, "Name is required"),
+  statusDate: z.union([z.string(), z.date()]).transform((val) => 
+    typeof val === 'string' ? (val ? new Date(val) : undefined) : val
+  ).optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -39,6 +42,7 @@ export default function Projects() {
       description: "",
       projectManager: "",
       status: "active",
+      statusDate: undefined,
     },
   });
 
@@ -275,6 +279,25 @@ export default function Projects() {
                             <SelectItem value="on-hold">On Hold</SelectItem>
                           </SelectContent>
                         </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="statusDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status Date (Reference date for DCMA check 11)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="date" 
+                            {...field} 
+                            value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : field.value || ""}
+                            data-testid="input-programme-status-date" 
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}

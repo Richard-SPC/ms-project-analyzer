@@ -313,8 +313,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all tasks for the project
       const tasks = await storage.getTasksByProject(projectId);
       
-      // Run automated analysis
-      const analysisResult = analyzeDcmaCompliance(project, tasks);
+      // Run automated analysis with project's status date if available
+      const analysisResult = analyzeDcmaCompliance(project, tasks, project.statusDate || undefined);
       
       res.json(analysisResult);
     } catch (error) {

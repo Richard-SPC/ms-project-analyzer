@@ -19,6 +19,7 @@ export const projects = pgTable("projects", {
   description: text("description"),
   startDate: timestamp("start_date"),
   endDate: timestamp("end_date"),
+  statusDate: timestamp("status_date"), // Reference date for DCMA check 11 (Late Tasks)
   status: text("status").notNull().default("active"), // active, completed, on-hold
   necCompliant: boolean("nec_compliant"),
   projectManager: text("project_manager"),

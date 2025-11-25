@@ -27,6 +27,9 @@ const projectFormSchema = insertWorkspaceSchema.extend({
 
 const programmeFormSchema = insertProjectSchema.extend({
   name: z.string().min(1, "Name is required"),
+  statusDate: z.union([z.string(), z.date()]).transform((val) => 
+    typeof val === 'string' ? (val ? new Date(val) : undefined) : val
+  ).optional(),
 });
 
 type ProjectFormData = z.infer<typeof projectFormSchema>;

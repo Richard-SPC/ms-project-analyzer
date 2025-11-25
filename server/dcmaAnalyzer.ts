@@ -34,7 +34,8 @@ export interface DcmaAnalysisResult {
 
 export function analyzeDcmaCompliance(
   project: Project,
-  tasks: Task[]
+  tasks: Task[],
+  statusDate?: Date
 ): DcmaAnalysisResult {
   const findings: DcmaAnalysisResult["findings"] = {};
   
@@ -385,7 +386,7 @@ export function analyzeDcmaCompliance(
   };
 
   // 9. INVALID TASKS - All dates within project window
-  const now = new Date();
+  const now = statusDate || new Date();
   const invalidDateTasksList = workTasks.filter((t) => {
     if (!t.startDate || !t.endDate) return false;
     const start = new Date(t.startDate);
