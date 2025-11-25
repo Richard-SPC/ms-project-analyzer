@@ -493,82 +493,6 @@ export default function ProjectLibrary() {
             </DialogContent>
           </Dialog>
 
-                  <FormField
-                    control={programmeForm.control}
-                    name="workspaceId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Project</FormLabel>
-                        <Select 
-                          onValueChange={(val) => field.onChange(val === "none" ? undefined : parseInt(val))} 
-                          value={field.value?.toString() || "none"}
-                        >
-                          <FormControl>
-                            <SelectTrigger data-testid="select-programme-project">
-                              <SelectValue placeholder="Select project (optional)" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="none">No project</SelectItem>
-                            {projects?.map((proj) => (
-                              <SelectItem key={proj.id} value={proj.id.toString()}>
-                                {proj.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={programmeForm.control}
-                    name="projectManager"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Programme Manager</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Manager name" {...field} value={field.value || ""} data-testid="input-programme-manager" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={programmeForm.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-programme-status">
-                              <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                            <SelectItem value="on-hold">On Hold</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <DialogFooter>
-                    <Button type="button" variant="outline" onClick={() => setProgrammeDialogOpen(false)} data-testid="button-cancel-programme">
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={createProgrammeMutation.isPending} data-testid="button-submit-programme">
-                      {createProgrammeMutation.isPending ? "Creating..." : "Create"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-
           <Dialog open={projectDialogOpen || !!editingProject} onOpenChange={(open) => {
             if (!open) {
               setProjectDialogOpen(false);
@@ -601,19 +525,6 @@ export default function ProjectLibrary() {
                         <FormLabel>Project Name</FormLabel>
                         <FormControl>
                           <Input placeholder="Enter project name" {...field} data-testid="input-project-name" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={projectForm.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Project description" {...field} value={field.value || ""} data-testid="input-project-description" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
