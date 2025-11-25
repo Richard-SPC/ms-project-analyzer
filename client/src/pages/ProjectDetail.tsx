@@ -5,7 +5,31 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, FileCheck, AlertTriangle, Calendar } from "lucide-react";
 import { formatDateUK } from "@/lib/utils";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import type { Project, Task, DcmaAssessment, NecCompliance } from "@shared/schema";
+
+function formatGanttData(tasks: Task[], projectStart: string | Date) {
+  if (!tasks || !projectStart) return [];
+  
+  const startDate = new Date(projectStart);
+  const criticalTasks = tasks.filter(t => t.isCriticalPath);
+  
+  return criticalTasks.map(task => {
+    const taskStart = task.startDate ? new Date(task.startDate) : startDate;
+    const taskEnd = task.endDate ? new Date(task.endDate) : new Date(taskStart);
+    
+    const daysFromStart = Math.floor((taskStart.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    const duration = Math.ceil((taskEnd.getTime() - taskStart.getTime()) / (1000 * 60 * 60 * 24));
+    
+    return {
+      name: task.name.substring(0, 30),
+      start: Math.max(0, daysFromStart),
+      duration: Math.max(1, duration),
+      fullName: task.name,
+      percentComplete: parseFloat(task.percentComplete || "0"),
+    };
+  }).sort((a, b) => a.start - b.start);
+}
 
 export default function ProjectDetail() {
   const [, params] = useRoute("/projects/:id");
@@ -30,6 +54,8 @@ export default function ProjectDetail() {
     queryKey: ["/api/projects", projectId, "nec-compliance", "latest"],
     enabled: !!projectId,
   });
+
+  const ganttData = project && tasks && project.startDate ? formatGanttData(tasks, project.startDate) : [];
 
   if (projectLoading) {
     return (
@@ -245,41 +271,34 @@ export default function ProjectDetail() {
         </Card>
       </div>
 
-      {tasks && tasks.length > 0 && (
+      {ganttData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Task List</CardTitle>
-            <CardDescription>All tasks in this project</CardDescription>
+            <CardTitle>Critical Path Timeline</CardTitle>
+            <CardDescription>Gantt chart showing critical tasks schedule</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              {tasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="flex items-center justify-between p-3 border rounded-md"
-                  data-testid={`task-item-${task.id}`}
+            <div className="overflow-x-auto">
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart
+                  data={ganttData}
+                  layout="vertical"
+                  margin={{ top: 5, right: 30, left: 200, bottom: 5 }}
                 >
-                  <div className="flex items-center gap-3 flex-1">
-                    <div className="flex flex-col">
-                      <span className="font-medium text-sm">{task.name}</span>
-                      {task.wbsCode && (
-                        <span className="text-xs text-muted-foreground">WBS: {task.wbsCode}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {task.isCriticalPath && (
-                      <Badge variant="destructive">Critical</Badge>
-                    )}
-                    {task.isMilestone && (
-                      <Badge variant="secondary">Milestone</Badge>
-                    )}
-                    <span className="text-sm text-muted-foreground">
-                      {task.percentComplete}% complete
-                    </span>
-                  </div>
-                </div>
-              ))}
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" />
+                  <YAxis type="category" dataKey="name" width={190} tick={{ fontSize: 12 }} />
+                  <Tooltip 
+                    formatter={(value) => `${value} days`}
+                    labelFormatter={(label) => `Task: ${label}`}
+                    cursor={{ fill: "rgba(0,0,0,0.1)" }}
+                  />
+                  <Bar dataKey="duration" fill="#ef4444" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-4 text-xs text-muted-foreground">
+              <p>Shows {ganttData.length} critical path task{ganttData.length !== 1 ? "s" : ""} from project start date</p>
             </div>
           </CardContent>
         </Card>
