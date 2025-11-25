@@ -27,8 +27,30 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
   const projectName = projectData.Name || projectData.Title || fileName.replace(/\.xml$/i, '');
   const startDate = projectData.StartDate ? new Date(projectData.StartDate) : new Date();
   const finishDate = projectData.FinishDate ? new Date(projectData.FinishDate) : undefined;
-  const statusDate = projectData.StatusDate ? new Date(projectData.StatusDate) : undefined;
+  // Try multiple field names for status date: StatusDate, CurrentDate, DataDate
+  let statusDate = projectData.StatusDate || projectData.CurrentDate || projectData.DataDate
+    ? new Date(projectData.StatusDate || projectData.CurrentDate || projectData.DataDate)
+    : undefined;
+  
+  // Fallback: try to extract status date from filename (e.g., "filename 16-11-25.xml")
+  if (!statusDate) {
+    const dateMatch = fileName.match(/(\d{1,2})-(\d{1,2})-(\d{2,4})\./);
+    if (dateMatch) {
+      const day = dateMatch[1];
+      const month = dateMatch[2];
+      let year = dateMatch[3];
+      // Convert 2-digit year to 4-digit
+      if (year.length === 2) {
+        year = parseInt(year) < 50 ? '20' + year : '19' + year;
+      }
+      statusDate = new Date(`${year}-${month}-${day}`);
+      console.log(`[XML Parser] Extracted status date from filename: ${statusDate}`);
+    }
+  }
+  
   const projectManager = projectData.Manager || projectData.Author || '';
+  
+  console.log(`[XML Parser] Extracted project: ${projectName}, StatusDate: ${statusDate}`);
 
   const project: Omit<InsertProject, 'id'> = {
     name: projectName,
