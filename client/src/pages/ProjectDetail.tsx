@@ -207,7 +207,20 @@ export default function ProjectDetail() {
               <span className="text-sm text-muted-foreground">% Complete:</span>
               <span className="text-sm font-medium">
                 {tasks && tasks.length > 0
-                  ? `${Math.round(tasks.reduce((sum, t) => sum + parseFloat(t.percentComplete || "0"), 0) / tasks.length)}%`
+                  ? (() => {
+                      // Exclude summary tasks and calculate based on duration-weighted completion
+                      const nonSummaryTasks = tasks.filter(t => !t.isSummary);
+                      if (nonSummaryTasks.length === 0) return "0%";
+                      
+                      const totalDuration = nonSummaryTasks.reduce((sum, t) => sum + (t.duration || 0), 0);
+                      if (totalDuration === 0) return "0%";
+                      
+                      const completedDuration = nonSummaryTasks.reduce((sum, t) => 
+                        sum + ((t.duration || 0) * (parseFloat(t.percentComplete || "0") / 100)), 0
+                      );
+                      
+                      return `${Math.round((completedDuration / totalDuration) * 100)}%`;
+                    })()
                   : "0%"}
               </span>
             </div>
