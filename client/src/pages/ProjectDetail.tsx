@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, FileCheck, AlertTriangle, Calendar } from "lucide-react";
 import { formatDateUK } from "@/lib/utils";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import type { Project, Task, DcmaAssessment, NecCompliance } from "@shared/schema";
 
 function formatGanttData(tasks: Task[], projectStart: string | Date) {
@@ -19,16 +18,18 @@ function formatGanttData(tasks: Task[], projectStart: string | Date) {
     const taskEnd = task.endDate ? new Date(task.endDate) : new Date(taskStart);
     
     const daysFromStart = Math.floor((taskStart.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    const duration = Math.ceil((taskEnd.getTime() - taskStart.getTime()) / (1000 * 60 * 60 * 24));
+    const duration = Math.ceil((taskEnd.getTime() - taskStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
     
     return {
-      name: task.name.substring(0, 30),
-      start: Math.max(0, daysFromStart),
+      id: task.id,
+      taskName: task.name,
+      startDate: formatDateUK(taskStart),
+      finishDate: formatDateUK(taskEnd),
       duration: Math.max(1, duration),
-      fullName: task.name,
+      daysFromStart: Math.max(0, daysFromStart),
       percentComplete: parseFloat(task.percentComplete || "0"),
     };
-  }).sort((a, b) => a.start - b.start);
+  }).sort((a, b) => a.daysFromStart - b.daysFromStart);
 }
 
 export default function ProjectDetail() {
@@ -274,31 +275,46 @@ export default function ProjectDetail() {
       {ganttData.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Critical Path Timeline</CardTitle>
-            <CardDescription>Gantt chart showing critical tasks schedule</CardDescription>
+            <CardTitle>Critical Path Gantt Chart</CardTitle>
+            <CardDescription>Schedule visualization of critical path tasks</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart
-                  data={ganttData}
-                  layout="vertical"
-                  margin={{ top: 5, right: 30, left: 200, bottom: 5 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis type="category" dataKey="name" width={190} tick={{ fontSize: 12 }} />
-                  <Tooltip 
-                    formatter={(value) => `${value} days`}
-                    labelFormatter={(label) => `Task: ${label}`}
-                    cursor={{ fill: "rgba(0,0,0,0.1)" }}
-                  />
-                  <Bar dataKey="duration" fill="#ef4444" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="mt-4 text-xs text-muted-foreground">
-              <p>Shows {ganttData.length} critical path task{ganttData.length !== 1 ? "s" : ""} from project start date</p>
+            <div className="space-y-4">
+              <div className="overflow-x-auto">
+                <div className="min-w-max">
+                  {ganttData.map((task) => (
+                    <div key={task.id} className="mb-4">
+                      <div className="flex items-start gap-3 mb-1">
+                        <div className="w-48 flex-shrink-0">
+                          <div className="font-medium text-sm truncate" title={task.taskName}>
+                            {task.taskName}
+                          </div>
+                          <div className="text-xs text-muted-foreground space-y-1">
+                            <div>Start: {task.startDate}</div>
+                            <div>Finish: {task.finishDate}</div>
+                            <div>Duration: {task.duration} days</div>
+                          </div>
+                        </div>
+                        <div className="flex-1 h-6 bg-muted relative rounded">
+                          <div
+                            className="h-full bg-red-500 rounded flex items-center justify-center text-white text-xs font-medium"
+                            style={{
+                              marginLeft: `${(task.daysFromStart * 40)}px`,
+                              width: `${Math.max(40, task.duration * 40)}px`,
+                            }}
+                            title={`${task.duration} days`}
+                          >
+                            {task.duration > 2 ? `${task.duration}d` : ""}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground pt-2 border-t">
+                <p>Critical path: {ganttData.length} task{ganttData.length !== 1 ? "s" : ""}</p>
+              </div>
             </div>
           </CardContent>
         </Card>
