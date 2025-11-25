@@ -63,9 +63,6 @@ function ProgrammeTile({ programme, onDelete }: { programme: Project; onDelete: 
             <FolderKanban className="h-5 w-5 text-primary flex-shrink-0" />
             <div className="flex-1 min-w-0">
               <CardTitle className="text-base">{programme.name}</CardTitle>
-              {programme.projectManager && (
-                <p className="text-xs text-muted-foreground mt-1">Manager: {programme.projectManager}</p>
-              )}
             </div>
           </div>
           <div className="flex items-center gap-6 flex-wrap">
@@ -143,7 +140,12 @@ function ProjectSection({
                     className="w-3 h-3 rounded-full" 
                     style={{ backgroundColor: project.color || "#3B82F6" }}
                   />
-                  <CardTitle className="text-lg">{project.name}</CardTitle>
+                  <div className="flex flex-col gap-0">
+                    <CardTitle className="text-lg">{project.name}</CardTitle>
+                    {programmes.length > 0 && programmes[0]?.projectManager && (
+                      <p className="text-xs text-muted-foreground">Manager: {programmes[0].projectManager}</p>
+                    )}
+                  </div>
                   <Badge variant="secondary" className="ml-2">
                     {programmes.length} programme{programmes.length !== 1 ? "s" : ""}
                   </Badge>
