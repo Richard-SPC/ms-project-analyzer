@@ -1,4 +1,4 @@
-import { Home, FolderKanban, FileCheck, Library } from "lucide-react";
+import { Home, FileCheck, Library } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -21,11 +21,6 @@ const menuItems = [
     title: "Project Library",
     url: "/library",
     icon: Library,
-  },
-  {
-    title: "Programmes",
-    url: "/projects",
-    icon: FolderKanban,
   },
   {
     title: "DCMA Assessment",
