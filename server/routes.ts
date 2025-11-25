@@ -5,7 +5,7 @@ import { storage } from "./storage";
 import { parseMppFile, getProjectNameFromFileName } from "./mppParser";
 import { parseProjectXml } from "./xmlParser";
 import { parseExcelFile } from "./excelParser";
-import { analyzeDcmaCompliance } from "./dcmaAnalyzer";
+import { analyzeDcmaCompliance } from "./dcmaAnalyser";
 import { 
   insertProjectSchema, 
   insertTaskSchema, 

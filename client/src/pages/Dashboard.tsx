@@ -43,7 +43,7 @@ export default function Dashboard() {
             Programme Dashboard
           </h1>
           <p className="text-muted-foreground">
-            Microsoft Project Programme Analyzer
+            Microsoft Project Programme Analyser
           </p>
         </div>
         <Link href="/projects">

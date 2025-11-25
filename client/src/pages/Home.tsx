@@ -172,7 +172,7 @@ export default function Home() {
           <div className="space-y-6">
             <div className="text-center space-y-2 mb-8">
               <h1 className="text-3xl font-bold tracking-tight text-foreground">
-                Contract Analyzer
+                Contract Analyser
               </h1>
               <p className="text-muted-foreground">
                 Extract key data from construction contracts using AI
