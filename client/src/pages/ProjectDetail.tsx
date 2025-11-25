@@ -225,14 +225,6 @@ export default function ProjectDetail() {
                 {tasks?.filter(t => t.isMilestone).length || 0}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Avg. Completion:</span>
-              <span className="text-sm font-medium">
-                {tasks && tasks.length > 0
-                  ? `${Math.round(tasks.reduce((sum, t) => sum + parseFloat(t.percentComplete || "0"), 0) / tasks.length)}%`
-                  : "0%"}
-              </span>
-            </div>
           </CardContent>
         </Card>
 
