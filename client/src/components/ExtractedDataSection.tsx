@@ -44,7 +44,7 @@ export function ExtractedDataSection({
           <div className="rounded-md border">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="h-4">
                   <TableHead className="w-[30%]">Field</TableHead>
                   <TableHead>Value</TableHead>
                   <TableHead className="w-[120px] text-right">Confidence</TableHead>
@@ -52,7 +52,7 @@ export function ExtractedDataSection({
               </TableHeader>
               <TableBody>
                 {data.map((item, index) => (
-                  <TableRow key={index} data-testid={`row-${title.toLowerCase().replace(/\s+/g, '-')}-${index}`}>
+                  <TableRow key={index} className="h-4" data-testid={`row-${title.toLowerCase().replace(/\s+/g, '-')}-${index}`}>
                     <TableCell className="font-medium text-sm">
                       {item.label}
                     </TableCell>

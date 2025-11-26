@@ -34,14 +34,14 @@ export function CompletionDatesTable({ data }: CompletionDatesTableProps) {
           <div className="rounded-md border">
             <Table>
               <TableHeader>
-                <TableRow>
+                <TableRow className="h-4">
                   <TableHead className="font-semibold">Section</TableHead>
                   <TableHead className="font-semibold">Completion Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {data.map((item, index) => (
-                  <TableRow key={index} data-testid={`row-completion-date-${index}`}>
+                  <TableRow key={index} className="h-4" data-testid={`row-completion-date-${index}`}>
                     <TableCell className="text-sm">
                       {item.section}
                     </TableCell>

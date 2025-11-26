@@ -330,7 +330,7 @@ export default function CompareProgrammes() {
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow>
+                    <TableRow className="h-4">
                       <TableHead>Milestone</TableHead>
                       {selectedProgrammesWithTasks.flatMap((progWithTasks, progIdx) => {
                         const cells = [
@@ -360,7 +360,7 @@ export default function CompareProgrammes() {
                   </TableHeader>
                   <TableBody>
                     {contractKeyDatesMilestones.map((milestone, idx) => (
-                      <TableRow key={idx} className={milestone.isHeader ? "bg-muted hover:bg-muted" : ""}>
+                      <TableRow key={idx} className={`h-4 ${milestone.isHeader ? "bg-muted hover:bg-muted" : ""}`}>
                         <TableCell className={milestone.isHeader ? "font-bold text-foreground py-3" : "font-medium max-w-xs"}>
                           <div className="flex items-center gap-2">
                             {!milestone.isHeader && milestone.data.some(d => d.moved) && (
