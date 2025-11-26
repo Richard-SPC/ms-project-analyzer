@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertWorkspaceSchema, insertProjectSchema, type Workspace, type Project } from "@shared/schema";
@@ -21,8 +20,6 @@ import { Link } from "wouter";
 import { z } from "zod";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
-import Dashboard from "@/pages/Dashboard";
-import DcmaAssessment from "@/pages/DcmaAssessment";
 
 const projectFormSchema = insertWorkspaceSchema.extend({
   name: z.string().min(1, "Name is required"),
@@ -232,7 +229,6 @@ export default function ProjectLibrary() {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadProjectId, setUploadProjectId] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState("library");
   const [searchText, setSearchText] = useState("");
   const { toast } = useToast();
 
@@ -491,53 +487,34 @@ export default function ProjectLibrary() {
   }) || [];
 
   return (
-    <div className="flex flex-col h-full">
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col h-full">
-        <TabsList className="w-full justify-start rounded-none border-b bg-background p-0 h-auto">
-          <TabsTrigger value="dashboard" className="rounded-none border-b-2 border-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-background">
-            Dashboard
-          </TabsTrigger>
-          <TabsTrigger value="library" className="rounded-none border-b-2 border-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-background">
-            Project Library
-          </TabsTrigger>
-          <TabsTrigger value="dcma" className="rounded-none border-b-2 border-transparent data-[state=active]:border-b-2 data-[state=active]:border-foreground data-[state=active]:bg-background">
-            DCMA Assessment
-          </TabsTrigger>
-        </TabsList>
+    <div className="flex flex-col h-full p-6 space-y-6">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground" data-testid="text-library-title">Project Library</h1>
+          <p className="text-muted-foreground">Organize your programmes into projects</p>
+        </div>
+        <Input
+          placeholder="Search projects..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          className="max-w-xs"
+          data-testid="input-search-library"
+        />
+      </div>
 
-        <TabsContent value="dashboard" className="flex-1 overflow-auto">
-          <Dashboard />
-        </TabsContent>
+      {(searchText) && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setSearchText("")}
+          data-testid="button-clear-search"
+        >
+          <X className="h-4 w-4 mr-2" />
+          Clear Search
+        </Button>
+      )}
 
-        <TabsContent value="library" className="flex-1 overflow-auto">
-          <div className="p-6 space-y-6">
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div>
-                <h1 className="text-3xl font-bold text-foreground" data-testid="text-library-title">Project Library</h1>
-                <p className="text-muted-foreground">Organize your programmes into projects</p>
-              </div>
-              <Input
-                placeholder="Search projects..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                className="max-w-xs"
-                data-testid="input-search-library"
-              />
-            </div>
-
-            {(searchText) && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSearchText("")}
-                data-testid="button-clear-search"
-              >
-                <X className="h-4 w-4 mr-2" />
-                Clear Search
-              </Button>
-            )}
-
-            <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-2 flex-wrap">
           <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" data-testid="button-upload-programme">
@@ -710,8 +687,8 @@ export default function ProjectLibrary() {
                 </form>
               </Form>
             </DialogContent>
-          </Dialog>
-        </div>
+      </Dialog>
+      </div>
 
       {projectsLoading ? (
         <div className="space-y-4">
@@ -786,13 +763,6 @@ export default function ProjectLibrary() {
           )}
         </>
       )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="dcma" className="flex-1 overflow-auto">
-          <DcmaAssessment />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 }
