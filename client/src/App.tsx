@@ -14,7 +14,7 @@ import ProjectDetail from "@/pages/ProjectDetail";
 import DcmaAssessment from "@/pages/DcmaAssessment";
 import ProcurementDurations from "@/pages/ProcurementDurations";
 import CompareProgrammes from "@/pages/CompareProgrammes";
-import ProgrammeExemptions from "@/pages/ProgrammeExemptions";
+import ProgrammeExceptions from "@/pages/ProgrammeExceptions";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -27,7 +27,7 @@ function Router() {
       <Route path="/dcma" component={DcmaAssessment} />
       <Route path="/procurement" component={ProcurementDurations} />
       <Route path="/compare" component={CompareProgrammes} />
-      <Route path="/exemptions" component={ProgrammeExemptions} />
+      <Route path="/exceptions" component={ProgrammeExceptions} />
       <Route component={NotFound} />
     </Switch>
   );

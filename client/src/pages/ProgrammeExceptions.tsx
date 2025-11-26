@@ -6,9 +6,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { X } from "lucide-react";
 import { formatDateUK } from "@/lib/utils";
 import type { Project } from "@shared/schema";
-import Exemptions from "@/pages/Exemptions";
+import Exceptions from "@/pages/Exceptions";
 
-export default function ProgrammeExemptions() {
+export default function ProgrammeExceptions() {
   const { data: allProgrammes, isLoading: programmesLoading } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
   });
@@ -18,18 +18,18 @@ export default function ProgrammeExemptions() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground" data-testid="text-exemptions-title">
+        <h1 className="text-3xl font-bold text-foreground" data-testid="text-exceptions-title">
           Holidays & Non-Working Days
         </h1>
         <p className="text-muted-foreground">
-          Manage calendar exemptions for each programme
+          Manage calendar exceptions for each programme
         </p>
       </div>
 
       <Card data-testid="card-programme-selection">
         <CardHeader>
           <CardTitle>Select Programme</CardTitle>
-          <CardDescription>Choose a programme to manage its exemptions</CardDescription>
+          <CardDescription>Choose a programme to manage its exceptions</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {selectedId && (
@@ -104,7 +104,7 @@ export default function ProgrammeExemptions() {
       </Card>
 
       {selectedId && (
-        <Exemptions projectId={selectedId} />
+        <Exceptions projectId={selectedId} />
       )}
     </div>
   );

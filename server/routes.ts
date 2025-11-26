@@ -697,17 +697,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Calendar Exception routes
-  app.get("/api/projects/:id/exemptions", async (req, res) => {
+  app.get("/api/projects/:id/exceptions", async (req, res) => {
     try {
-      const exemptions = await storage.getCalendarExceptionsByProject(parseInt(req.params.id));
-      res.json(exemptions);
+      const exceptions = await storage.getCalendarExceptionsByProject(parseInt(req.params.id));
+      res.json(exceptions);
     } catch (error) {
-      console.error("Error fetching exemptions:", error);
-      res.status(500).json({ error: "Failed to fetch exemptions" });
+      console.error("Error fetching exceptions:", error);
+      res.status(500).json({ error: "Failed to fetch exceptions" });
     }
   });
 
-  app.post("/api/projects/:id/exemptions", async (req, res) => {
+  app.post("/api/projects/:id/exceptions", async (req, res) => {
     try {
       const exceptionData = insertCalendarExceptionSchema.parse({
         ...req.body,
@@ -723,7 +723,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/exemptions/:id", async (req, res) => {
+  app.delete("/api/exceptions/:id", async (req, res) => {
     try {
       await storage.deleteCalendarException(parseInt(req.params.id));
       res.json({ success: true });

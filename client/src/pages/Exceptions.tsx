@@ -25,25 +25,25 @@ const formSchema = insertCalendarExceptionSchema.extend({
 
 type FormData = z.infer<typeof formSchema>;
 
-export default function Exemptions({ projectId }: { projectId: number }) {
+export default function Exceptions({ projectId }: { projectId: number }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const { data: exemptions, isLoading } = useQuery<CalendarException[]>({
-    queryKey: [`/api/projects/${projectId}/exemptions`],
+  const { data: exceptions, isLoading } = useQuery<CalendarException[]>({
+    queryKey: [`/api/projects/${projectId}/exceptions`],
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: Omit<FormData, "projectId">) => {
-      const res = await apiRequest("POST", `/api/projects/${projectId}/exemptions`, data);
+      const res = await apiRequest("POST", `/api/projects/${projectId}/exceptions`, data);
       return await res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/exemptions`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/exceptions`] });
       setDialogOpen(false);
       form.reset();
       toast({
-        title: "Exemption added",
+        title: "Exception added",
         description: "Holiday or non-working day has been added.",
       });
     },
@@ -58,13 +58,13 @@ export default function Exemptions({ projectId }: { projectId: number }) {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const res = await apiRequest("DELETE", `/api/exemptions/${id}`);
+      const res = await apiRequest("DELETE", `/api/exceptions/${id}`);
       return await res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/exemptions`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${projectId}/exceptions`] });
       toast({
-        title: "Exemption deleted",
+        title: "Exception deleted",
         description: "Holiday or non-working day has been removed.",
       });
     },
@@ -102,17 +102,17 @@ export default function Exemptions({ projectId }: { projectId: number }) {
   }
 
   return (
-    <Card data-testid="card-exemptions">
+    <Card data-testid="card-exceptions">
       <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
         <div>
           <CardTitle>Holidays & Non-Working Days</CardTitle>
-          <CardDescription>Manage calendar exemptions for this programme</CardDescription>
+          <CardDescription>Manage calendar exceptions for this programme</CardDescription>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button size="sm" data-testid="button-add-exemption">
+            <Button size="sm" data-testid="button-add-exception">
               <Plus className="h-4 w-4 mr-2" />
-              Add Exemption
+              Add Exception
             </Button>
           </DialogTrigger>
           <DialogContent>
@@ -135,7 +135,7 @@ export default function Exemptions({ projectId }: { projectId: number }) {
                           type="date"
                           value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : ''}
                           onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
-                          data-testid="input-exemption-date"
+                          data-testid="input-exception-date"
                         />
                       </FormControl>
                       <FormMessage />
@@ -151,7 +151,7 @@ export default function Exemptions({ projectId }: { projectId: number }) {
                       <FormControl>
                         <Input
                           placeholder="e.g., Christmas Day, Bank Holiday"
-                          data-testid="input-exemption-name"
+                          data-testid="input-exception-name"
                           {...field}
                         />
                       </FormControl>
@@ -167,8 +167,8 @@ export default function Exemptions({ projectId }: { projectId: number }) {
                       <FormLabel>Description (Optional)</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Additional notes about this exemption"
-                          data-testid="input-exemption-description"
+                          placeholder="Additional notes about this exception"
+                          data-testid="input-exception-description"
                           {...field}
                           value={field.value ?? ""}
                         />
@@ -178,8 +178,8 @@ export default function Exemptions({ projectId }: { projectId: number }) {
                   )}
                 />
                 <DialogFooter>
-                  <Button type="submit" disabled={createMutation.isPending} data-testid="button-save-exemption">
-                    {createMutation.isPending ? "Adding..." : "Add Exemption"}
+                  <Button type="submit" disabled={createMutation.isPending} data-testid="button-save-exception">
+                    {createMutation.isPending ? "Adding..." : "Add Exception"}
                   </Button>
                 </DialogFooter>
               </form>
@@ -188,7 +188,7 @@ export default function Exemptions({ projectId }: { projectId: number }) {
         </Dialog>
       </CardHeader>
       <CardContent>
-        {exemptions && exemptions.length > 0 ? (
+        {exceptions && exceptions.length > 0 ? (
           <div className="border rounded-md overflow-hidden">
             <Table>
               <TableHeader>
@@ -200,20 +200,20 @@ export default function Exemptions({ projectId }: { projectId: number }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {exemptions.map((exemption) => (
-                  <TableRow key={exemption.id} data-testid={`row-exemption-${exemption.id}`}>
-                    <TableCell className="font-medium">{formatDateUK(exemption.date)}</TableCell>
-                    <TableCell>{exemption.name}</TableCell>
+                {exceptions.map((exception) => (
+                  <TableRow key={exception.id} data-testid={`row-exception-${exception.id}`}>
+                    <TableCell className="font-medium">{formatDateUK(exception.date)}</TableCell>
+                    <TableCell>{exception.name}</TableCell>
                     <TableCell className="text-muted-foreground text-sm">
-                      {exemption.description || "-"}
+                      {exception.description || "-"}
                     </TableCell>
                     <TableCell>
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => deleteMutation.mutate(exemption.id)}
+                        onClick={() => deleteMutation.mutate(exception.id)}
                         disabled={deleteMutation.isPending}
-                        data-testid={`button-delete-exemption-${exemption.id}`}
+                        data-testid={`button-delete-exception-${exception.id}`}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -225,7 +225,7 @@ export default function Exemptions({ projectId }: { projectId: number }) {
           </div>
         ) : (
           <div className="text-center py-8 text-muted-foreground">
-            <p className="text-sm">No exemptions defined yet</p>
+            <p className="text-sm">No exceptions defined yet</p>
             <p className="text-xs mt-1">Add holidays and non-working days to help track project schedules</p>
           </div>
         )}

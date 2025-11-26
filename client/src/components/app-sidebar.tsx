@@ -38,8 +38,8 @@ const menuItems = [
     icon: GitCompare,
   },
   {
-    title: "Holidays & Exemptions",
-    url: "/exemptions",
+    title: "Holidays & Exceptions",
+    url: "/exceptions",
     icon: Calendar,
   },
 ];
