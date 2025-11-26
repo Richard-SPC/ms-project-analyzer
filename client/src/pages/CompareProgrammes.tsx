@@ -76,7 +76,8 @@ export default function CompareProgrammes() {
       const directMilestones = progWithTasks.tasks.filter(
         t => t.wbsCode && 
              /^1\.\d+$/.test(t.wbsCode) &&  // Matches 1.1, 1.2, 1.3, etc (exactly 3 parts)
-             t.isMilestone
+             t.isMilestone &&
+             !t.isSummary  // Exclude summary tasks
       );
 
       directMilestones.forEach(m => {
@@ -92,7 +93,8 @@ export default function CompareProgrammes() {
           t => t.wbsCode && 
                t.wbsCode.startsWith(subsection.wbsCode || "") &&
                t.id !== subsection.id &&
-               t.isMilestone
+               t.isMilestone &&
+               !t.isSummary  // Exclude summary tasks
         );
 
         subsectionChildren.forEach(m => {
