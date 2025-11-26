@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { X, Calendar, AlertCircle } from "lucide-react";
 import { formatDateUK } from "@/lib/utils";
-import type { Project } from "@shared/schema";
+import type { Project, CalendarException } from "@shared/schema";
 import Exceptions from "@/pages/Exceptions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -76,17 +76,41 @@ export default function ProgrammeExceptions() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
   const selectedProgramme = selectedId ? allProgrammes?.find((p) => p.id === selectedId) : null;
-  
-  const isHolidayInRange = (holiday: { date: Date }) => {
-    if (!selectedProgramme?.startDate || !selectedProgramme?.endDate) return false;
+
+  const { data: exceptions = [] } = useQuery<CalendarException[]>({
+    queryKey: ["/api/projects", selectedId, "exceptions"],
+    enabled: !!selectedId,
+  });
+
+  const getHolidayStatus = (holiday: { date: Date }): "red" | "yellow" | "green" | "none" => {
+    if (!selectedProgramme) return "none";
+    if (!selectedProgramme.startDate || !selectedProgramme.endDate) return "red";
+
     const start = new Date(selectedProgramme.startDate);
     const end = new Date(selectedProgramme.endDate);
     const holidayDate = new Date(holiday.date);
-    return holidayDate >= start && holidayDate <= end;
+    
+    // Check if holiday falls within range
+    const isInRange = holidayDate >= start && holidayDate <= end;
+    
+    if (!isInRange) return "none";
+
+    // Check if it's listed in the programme's calendar exceptions
+    const isListed = exceptions.some((exc) => {
+      const excStart = new Date(exc.startDate);
+      const excEnd = new Date(exc.endDate);
+      return excStart.toDateString() === holidayDate.toDateString() ||
+             excEnd.toDateString() === holidayDate.toDateString();
+    });
+
+    return isListed ? "green" : "yellow";
   };
 
   const hasMissingDates = selectedProgramme && (!selectedProgramme.startDate || !selectedProgramme.endDate);
-  const overlappingHolidays = selectedProgramme ? SCOTLAND_HOLIDAYS.filter(isHolidayInRange) : [];
+  const holidayStatuses = selectedProgramme ? SCOTLAND_HOLIDAYS.map(getHolidayStatus) : [];
+  const redCount = holidayStatuses.filter(s => s === "red").length;
+  const yellowCount = holidayStatuses.filter(s => s === "yellow").length;
+  const greenCount = holidayStatuses.filter(s => s === "green").length;
 
   return (
     <div className="p-6 space-y-6">
@@ -107,15 +131,20 @@ export default function ProgrammeExceptions() {
               <CardTitle className="text-sm">Scotland Public Holidays</CardTitle>
             </div>
             <div className="flex items-center gap-2">
-              {hasMissingDates && (
-                <Badge variant="destructive" className="text-xs" data-testid="badge-missing-dates">
+              {redCount > 0 && (
+                <Badge className="text-xs bg-red-500 text-white" data-testid="badge-red-holidays">
                   <AlertCircle className="h-3 w-3 mr-1" />
-                  Missing dates
+                  {redCount} missing dates
                 </Badge>
               )}
-              {overlappingHolidays.length > 0 && (
-                <Badge variant="secondary" className="text-xs" data-testid="badge-overlapping">
-                  {overlappingHolidays.length} overlap
+              {yellowCount > 0 && (
+                <Badge className="text-xs bg-yellow-500 text-black" data-testid="badge-yellow-holidays">
+                  {yellowCount} not listed
+                </Badge>
+              )}
+              {greenCount > 0 && (
+                <Badge className="text-xs bg-green-600 text-white" data-testid="badge-green-holidays">
+                  {greenCount} listed
                 </Badge>
               )}
             </div>
@@ -127,20 +156,29 @@ export default function ProgrammeExceptions() {
               <div key={year} className="space-y-1">
                 <p className="font-semibold text-xs text-foreground mb-2">{year}</p>
                 <div className="space-y-1">
-                  {SCOTLAND_HOLIDAYS.filter((h) => h.date.getFullYear() === year).map((holiday) => {
-                    const isOverlapping = overlappingHolidays.includes(holiday);
+                  {SCOTLAND_HOLIDAYS.filter((h) => h.date.getFullYear() === year).map((holiday, idx) => {
+                    const status = getHolidayStatus(holiday);
+                    const bgColors = {
+                      red: "bg-red-100 dark:bg-red-950 border border-red-300 dark:border-red-700",
+                      yellow: "bg-yellow-100 dark:bg-yellow-950 border border-yellow-300 dark:border-yellow-700",
+                      green: "bg-green-100 dark:bg-green-950 border border-green-300 dark:border-green-700",
+                      none: "",
+                    };
+                    const textColors = {
+                      red: "text-red-900 dark:text-red-100",
+                      yellow: "text-yellow-900 dark:text-yellow-100",
+                      green: "text-green-900 dark:text-green-100",
+                      none: "text-muted-foreground",
+                    };
+                    
                     return (
                       <div 
-                        key={`${holiday.name}-${formatDateUK(holiday.date)}`} 
-                        className={`text-xs p-1 rounded transition-colors ${
-                          isOverlapping 
-                            ? 'bg-destructive/20 border border-destructive/50' 
-                            : ''
-                        }`}
+                        key={`${holiday.name}-${formatDateUK(holiday.date)}-${idx}`} 
+                        className={`text-xs p-1 rounded transition-colors ${bgColors[status]}`}
                         data-testid={`row-holiday-${holiday.name}-${formatDateUK(holiday.date)}`}
                       >
                         <p className="font-medium text-foreground leading-tight">{holiday.name}</p>
-                        <p className={`leading-tight ${isOverlapping ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                        <p className={`leading-tight font-medium ${textColors[status]}`}>
                           {formatDateUK(holiday.date)}
                         </p>
                       </div>
