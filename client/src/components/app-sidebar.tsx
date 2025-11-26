@@ -1,4 +1,4 @@
-import { Home, FileCheck, Library, Package, GitCompare, Calendar } from "lucide-react";
+import { Home, FileCheck, Library, Folder, Package, GitCompare, Calendar } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -21,6 +21,11 @@ const menuItems = [
     title: "Project Library",
     url: "/library",
     icon: Library,
+  },
+  {
+    title: "Projects",
+    url: "/projects",
+    icon: Folder,
   },
   {
     title: "DCMA Assessment",
