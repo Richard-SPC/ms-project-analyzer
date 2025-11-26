@@ -27,7 +27,6 @@ import DcmaAssessment from "@/pages/DcmaAssessment";
 const projectFormSchema = insertWorkspaceSchema.extend({
   name: z.string().min(1, "Name is required"),
   projectManager: z.string().optional(),
-  client: z.string().optional(),
 });
 
 const programmeFormSchema = insertProjectSchema.extend({
@@ -142,12 +141,7 @@ function ProjectSection({
                     style={{ backgroundColor: project.color || "#3B82F6" }}
                   />
                   <div className="flex flex-col gap-0">
-                    <div className="flex items-center gap-2">
-                      <CardTitle className="text-lg">{project.name}</CardTitle>
-                      {project.client && (
-                        <span className="text-sm text-muted-foreground">Client: {project.client}</span>
-                      )}
-                    </div>
+                    <CardTitle className="text-lg">{project.name}</CardTitle>
                     {project.projectManager && (
                       <p className="text-xs text-muted-foreground">Project Manager: {project.projectManager}</p>
                     )}
@@ -234,7 +228,6 @@ export default function ProjectLibrary() {
       name: "",
       description: "",
       color: "#3B82F6",
-      client: "",
     },
   });
 
@@ -441,7 +434,6 @@ export default function ProjectLibrary() {
       description: project.description || "",
       color: project.color || "#3B82F6",
       projectManager: project.projectManager || "",
-      client: project.client || "",
     });
   };
 
@@ -630,19 +622,6 @@ export default function ProjectLibrary() {
                         <FormLabel>Project Manager</FormLabel>
                         <FormControl>
                           <Input placeholder="Enter project manager name" {...field} value={field.value || ""} data-testid="input-project-manager" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={projectForm.control}
-                    name="client"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Client</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter client name" {...field} value={field.value || ""} data-testid="input-project-client" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
