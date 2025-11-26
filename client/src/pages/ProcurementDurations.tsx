@@ -78,9 +78,9 @@ export default function ProcurementDurations() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="text-stat-shortest-duration">
-              {shortestDuration || "-"}
+              {shortestDuration ? (shortestDuration / 5).toFixed(1) : "-"}
             </div>
-            <p className="text-xs text-muted-foreground">days</p>
+            <p className="text-xs text-muted-foreground">weeks</p>
           </CardContent>
         </Card>
 
@@ -91,9 +91,9 @@ export default function ProcurementDurations() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="text-stat-longest-duration">
-              {longestDuration || "-"}
+              {longestDuration ? (longestDuration / 5).toFixed(1) : "-"}
             </div>
-            <p className="text-xs text-muted-foreground">days</p>
+            <p className="text-xs text-muted-foreground">weeks</p>
           </CardContent>
         </Card>
 
@@ -104,9 +104,9 @@ export default function ProcurementDurations() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="text-stat-average-duration">
-              {averageDuration ? averageDuration.toFixed(1) : "-"}
+              {averageDuration ? (averageDuration / 5).toFixed(1) : "-"}
             </div>
-            <p className="text-xs text-muted-foreground">days</p>
+            <p className="text-xs text-muted-foreground">weeks</p>
           </CardContent>
         </Card>
       </div>
