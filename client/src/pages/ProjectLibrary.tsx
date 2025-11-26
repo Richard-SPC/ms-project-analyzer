@@ -68,6 +68,18 @@ function ProgrammeTile({ programme, onDelete }: { programme: Project; onDelete: 
           </div>
           <div className="flex items-center gap-6 flex-wrap">
             <div className="text-sm">
+              <p className="text-muted-foreground">Start Date</p>
+              <p className="font-medium text-foreground">
+                {programme.startDate ? formatDateUK(programme.startDate) : "N/A"}
+              </p>
+            </div>
+            <div className="text-sm">
+              <p className="text-muted-foreground">End Date</p>
+              <p className="font-medium text-foreground">
+                {programme.endDate ? formatDateUK(programme.endDate) : "N/A"}
+              </p>
+            </div>
+            <div className="text-sm">
               <p className="text-muted-foreground">Status Date</p>
               <p className="font-medium text-foreground">
                 {programme.statusDate ? formatDateUK(programme.statusDate) : "N/A"}

@@ -62,6 +62,12 @@ export default function ProgrammeExceptions() {
                     <p className="text-muted-foreground">Programme</p>
                   </div>
                   <div className="w-20 flex-shrink-0">
+                    <p className="text-muted-foreground">Start Date</p>
+                  </div>
+                  <div className="w-20 flex-shrink-0">
+                    <p className="text-muted-foreground">End Date</p>
+                  </div>
+                  <div className="w-20 flex-shrink-0">
                     <p className="text-muted-foreground">Status Date</p>
                   </div>
                 </div>
@@ -86,6 +92,16 @@ export default function ProgrammeExceptions() {
                         </p>
                       )}
                     </div>
+                    {programme.startDate && (
+                      <span className="text-xs text-muted-foreground flex-shrink-0">
+                        {formatDateUK(programme.startDate)}
+                      </span>
+                    )}
+                    {programme.endDate && (
+                      <span className="text-xs text-muted-foreground flex-shrink-0">
+                        {formatDateUK(programme.endDate)}
+                      </span>
+                    )}
                     {programme.statusDate && (
                       <span className="text-xs text-muted-foreground flex-shrink-0">
                         {formatDateUK(programme.statusDate)}
