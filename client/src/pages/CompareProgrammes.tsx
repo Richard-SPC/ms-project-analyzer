@@ -322,8 +322,8 @@ export default function CompareProgrammes() {
                     <TableRow>
                       <TableHead>Milestone</TableHead>
                       {selectedProgrammesWithTasks.map((progWithTasks, progIdx) => (
-                        <div key={progWithTasks.programme.id} className="contents">
-                          <TableHead data-testid={`header-programme-${progWithTasks.programme.id}`}>
+                        <>
+                          <TableHead key={`prog-${progWithTasks.programme.id}`} data-testid={`header-programme-${progWithTasks.programme.id}`}>
                             <div className="flex items-center justify-between gap-2">
                               <span className="truncate max-w-[120px] text-xs">{progWithTasks.programme.name}</span>
                               <Button
@@ -338,9 +338,9 @@ export default function CompareProgrammes() {
                             </div>
                           </TableHead>
                           {progIdx < selectedProgrammesWithTasks.length - 1 && (
-                            <TableHead className="text-xs text-muted-foreground">Movement</TableHead>
+                            <TableHead key={`move-${progWithTasks.programme.id}`} className="text-xs text-muted-foreground">Movement</TableHead>
                           )}
-                        </div>
+                        </>
                       ))}
                     </TableRow>
                   </TableHeader>
@@ -356,8 +356,9 @@ export default function CompareProgrammes() {
                           </div>
                         </TableCell>
                         {milestone.data.map((dateData, dateIdx) => (
-                          <div key={`${idx}-${dateIdx}`} className="contents">
+                          <>
                             <TableCell 
+                              key={`date-${idx}-${dateIdx}`}
                               className={milestone.isHeader ? "bg-muted text-muted-foreground" : dateData.moved ? "bg-amber-50 dark:bg-amber-950" : ""}
                               data-testid={`cell-milestone-${idx}-${dateIdx}`}
                             >
@@ -371,6 +372,7 @@ export default function CompareProgrammes() {
                             </TableCell>
                             {dateIdx < milestone.data.length - 1 && (
                               <TableCell 
+                                key={`move-${idx}-${dateIdx}`}
                                 className={milestone.isHeader ? "bg-muted text-muted-foreground" : ""}
                                 data-testid={`cell-movement-${idx}-${dateIdx}`}
                               >
@@ -383,7 +385,7 @@ export default function CompareProgrammes() {
                                 ) : null}
                               </TableCell>
                             )}
-                          </div>
+                          </>
                         ))}
                       </TableRow>
                     ))}
