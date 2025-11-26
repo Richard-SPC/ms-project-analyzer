@@ -3,10 +3,24 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X } from "lucide-react";
+import { X, Calendar } from "lucide-react";
 import { formatDateUK } from "@/lib/utils";
 import type { Project } from "@shared/schema";
 import Exceptions from "@/pages/Exceptions";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+const SCOTLAND_HOLIDAYS = [
+  { name: "New Year's Day", date: new Date(2025, 0, 1) },
+  { name: "2 January", date: new Date(2025, 0, 2) },
+  { name: "Good Friday", date: new Date(2025, 3, 18) },
+  { name: "Easter Monday", date: new Date(2025, 3, 21) },
+  { name: "Early May Bank Holiday", date: new Date(2025, 4, 5) },
+  { name: "Spring Bank Holiday", date: new Date(2025, 4, 26) },
+  { name: "Summer Bank Holiday", date: new Date(2025, 7, 4) },
+  { name: "St Andrew's Day", date: new Date(2025, 10, 30) },
+  { name: "Christmas Day", date: new Date(2025, 11, 25) },
+  { name: "Boxing Day", date: new Date(2025, 11, 26) },
+];
 
 export default function ProgrammeExceptions() {
   const { data: allProgrammes, isLoading: programmesLoading } = useQuery<Project[]>({
@@ -25,6 +39,38 @@ export default function ProgrammeExceptions() {
           Manage calendar exceptions for each programme
         </p>
       </div>
+
+      <Card data-testid="card-scotland-holidays">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            <div>
+              <CardTitle>Scotland Public Holidays</CardTitle>
+              <CardDescription>Standard public holidays for Scotland</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="border rounded-md overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Holiday</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {SCOTLAND_HOLIDAYS.map((holiday) => (
+                  <TableRow key={holiday.name} data-testid={`row-holiday-${holiday.name}`}>
+                    <TableCell className="font-medium">{holiday.name}</TableCell>
+                    <TableCell>{formatDateUK(holiday.date)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card data-testid="card-programme-selection">
         <CardHeader>
