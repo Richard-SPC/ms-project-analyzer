@@ -86,10 +86,16 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
         
         for (const exc of exceptionList) {
           try {
-            // Microsoft Project stores exception dates in TimephasedData or directly in Start
+            // Check if this is a non-working day (DayWorking = 0)
+            const dayWorking = exc.DayWorking ? parseInt(String(exc.DayWorking)) : 1;
+            if (dayWorking !== 0) continue; // Skip working days
+            
+            // Microsoft Project stores exception dates in TimePeriod.FromDate or Start
             let excDate: Date | undefined;
             
-            if (exc.Start) {
+            if (exc.TimePeriod && exc.TimePeriod.FromDate) {
+              excDate = new Date(exc.TimePeriod.FromDate);
+            } else if (exc.Start) {
               excDate = new Date(exc.Start);
             } else if (exc.TimephasedData && exc.TimephasedData.Start) {
               excDate = new Date(exc.TimephasedData.Start);
