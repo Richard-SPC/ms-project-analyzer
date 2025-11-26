@@ -658,9 +658,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               try {
                 await storage.createCalendarException({
                   projectId: createdProject.id,
-                  date: exc.date,
+                  startDate: exc.startDate,
+                  endDate: exc.endDate,
                   name: exc.name,
-                  description: exc.description,
                 });
                 exceptionsCreated++;
               } catch (e) {
