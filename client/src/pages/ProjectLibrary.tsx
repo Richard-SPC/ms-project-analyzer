@@ -15,7 +15,7 @@ import { insertWorkspaceSchema, insertProjectSchema, type Workspace, type Projec
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatDateUK } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, FolderKanban, Library, ChevronDown, ChevronRight, Trash2, Edit, FolderOpen, Upload, MoreHorizontal, MoveRight } from "lucide-react";
+import { Plus, FolderKanban, Library, ChevronDown, ChevronRight, Trash2, Edit, FolderOpen, Upload, MoreHorizontal, MoveRight, X } from "lucide-react";
 import { DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Link } from "wouter";
 import { z } from "zod";
@@ -211,6 +211,7 @@ export default function ProjectLibrary() {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [uploadProjectId, setUploadProjectId] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState("library");
+  const [searchText, setSearchText] = useState("");
   const { toast } = useToast();
 
   const { data: projects, isLoading: projectsLoading } = useQuery<Workspace[]>({
@@ -451,6 +452,19 @@ export default function ProjectLibrary() {
   };
 
   const unassignedProgrammes = allProgrammes?.filter(p => !p.workspaceId) || [];
+
+  const filteredProjects = projects?.filter(project => {
+    const searchLower = searchText.toLowerCase();
+    const matchesProject = project.name.toLowerCase().includes(searchLower) ||
+      project.projectManager?.toLowerCase().includes(searchLower) ||
+      project.description?.toLowerCase().includes(searchLower);
+    
+    if (matchesProject) return true;
+    
+    // Also include project if any of its programmes match
+    const projectProgrammes = getProgrammesForProject(project.id);
+    return projectProgrammes.some(p => p.name.toLowerCase().includes(searchLower));
+  }) || [];
 
   return (
     <div className="flex flex-col h-full">
