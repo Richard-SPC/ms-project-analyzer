@@ -47,6 +47,13 @@ export default function Exemptions({ projectId }: { projectId: number }) {
         description: "Holiday or non-working day has been added.",
       });
     },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   const deleteMutation = useMutation({

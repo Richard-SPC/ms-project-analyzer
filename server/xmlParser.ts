@@ -1,13 +1,20 @@
 import xml2js from 'xml2js';
-import type { InsertProject, InsertTask } from '@shared/schema';
+import type { InsertProject, InsertTask, InsertCalendarException } from '@shared/schema';
 
 interface ParsedTask extends Omit<InsertTask, 'id' | 'projectId'> {
   uid?: string; // MS Project UID for mapping predecessors
 }
 
+export interface CalendarException {
+  date: Date;
+  name: string;
+  description?: string;
+}
+
 interface ParsedXmlData {
   project: Omit<InsertProject, 'id'>;
   tasks: ParsedTask[];
+  exceptions: CalendarException[];
 }
 
 /**
@@ -63,6 +70,51 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
   };
 
   // First, build a map of resources by UID
+  // Extract calendar exceptions (holidays/non-working days)
+  const exceptions: CalendarException[] = [];
+  if (projectData.Calendars && projectData.Calendars.Calendar) {
+    const calendars = Array.isArray(projectData.Calendars.Calendar)
+      ? projectData.Calendars.Calendar
+      : [projectData.Calendars.Calendar];
+    
+    for (const calendar of calendars) {
+      // Look for exceptions in the calendar
+      if (calendar.Exceptions && calendar.Exceptions.Exception) {
+        const exceptionList = Array.isArray(calendar.Exceptions.Exception)
+          ? calendar.Exceptions.Exception
+          : [calendar.Exceptions.Exception];
+        
+        for (const exc of exceptionList) {
+          try {
+            // Microsoft Project stores exception dates in TimephasedData or directly in Start
+            let excDate: Date | undefined;
+            
+            if (exc.Start) {
+              excDate = new Date(exc.Start);
+            } else if (exc.TimephasedData && exc.TimephasedData.Start) {
+              excDate = new Date(exc.TimephasedData.Start);
+            }
+            
+            if (excDate && !isNaN(excDate.getTime())) {
+              const excName = exc.Name || exc.Type || `Non-working day`;
+              exceptions.push({
+                date: excDate,
+                name: excName,
+                description: `Imported from project calendar`,
+              });
+            }
+          } catch (e) {
+            console.log(`[XML Parser] Skipping invalid calendar exception`, e);
+          }
+        }
+      }
+    }
+  }
+  
+  if (exceptions.length > 0) {
+    console.log(`[XML Parser] Found ${exceptions.length} calendar exceptions`);
+  }
+
   const resourceMap = new Map<string, string>();
   if (projectData.Resources && projectData.Resources.Resource) {
     const resourceList = Array.isArray(projectData.Resources.Resource)
@@ -244,5 +296,5 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
     }
   }
 
-  return { project, tasks };
+  return { project, tasks, exceptions };
 }

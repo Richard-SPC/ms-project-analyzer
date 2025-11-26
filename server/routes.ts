@@ -651,12 +651,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
             }
           }
           
+          // Third pass: Create calendar exceptions from parsed data
+          let exceptionsCreated = 0;
+          if (parsedData.exceptions && parsedData.exceptions.length > 0) {
+            for (const exc of parsedData.exceptions) {
+              try {
+                await storage.createCalendarException({
+                  projectId: createdProject.id,
+                  date: exc.date,
+                  name: exc.name,
+                  description: exc.description,
+                });
+                exceptionsCreated++;
+              } catch (e) {
+                console.log(`[Routes] Error creating calendar exception:`, e);
+              }
+            }
+          }
+          
           res.json({ 
             success: true, 
             fileName: req.file.originalname,
             project: createdProject,
             tasksCreated: createdTasks.length,
-            message: `Successfully imported project "${createdProject.name}" with ${createdTasks.length} tasks`
+            exceptionsCreated,
+            message: `Successfully imported project "${createdProject.name}" with ${createdTasks.length} tasks and ${exceptionsCreated} calendar exceptions`
           });
         } catch (parseError) {
           console.error("Error parsing XML:", parseError);
