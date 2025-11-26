@@ -79,6 +79,12 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
     
     for (const calendar of calendars) {
       const calendarName = String(calendar.Name || 'Standard Calendar');
+      
+      // Skip the baseline calendar
+      if (calendarName === 'Used for Microsoft Project 98 Baseline Calendar') {
+        continue;
+      }
+      
       // Look for exceptions in the calendar
       if (calendar.Exceptions && calendar.Exceptions.Exception) {
         const exceptionList = Array.isArray(calendar.Exceptions.Exception)
