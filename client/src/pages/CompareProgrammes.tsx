@@ -156,14 +156,14 @@ export default function CompareProgrammes() {
         let movementDays: number | undefined;
 
         if (idx > 0 && d.date && dates[idx - 1].date) {
-          const prevDate = typeof dates[idx - 1].date === 'string' ? new Date(dates[idx - 1].date) : dates[idx - 1].date;
-          const currDate = typeof d.date === 'string' ? new Date(d.date) : d.date;
+          const prevDateRaw = dates[idx - 1].date;
+          const currDateRaw = d.date;
+          const prevDate = typeof prevDateRaw === 'string' ? new Date(prevDateRaw) : (prevDateRaw as Date);
+          const currDate = typeof currDateRaw === 'string' ? new Date(currDateRaw) : (currDateRaw as Date);
           
-          if (prevDate && currDate) {
-            const diffMs = currDate.getTime() - prevDate.getTime();
-            movementDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-            movementWeeks = Math.round((movementDays / 5) * 10) / 10; // Round to 1 decimal place
-          }
+          const diffMs = currDate.getTime() - prevDate.getTime();
+          movementDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+          movementWeeks = Math.round((movementDays / 5) * 10) / 10; // Round to 1 decimal place
         }
 
         return {
@@ -321,21 +321,26 @@ export default function CompareProgrammes() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Milestone</TableHead>
-                      {selectedProgrammesWithTasks.map((progWithTasks) => (
-                        <TableHead key={progWithTasks.programme.id} data-testid={`header-programme-${progWithTasks.programme.id}`}>
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="truncate max-w-[150px]">{progWithTasks.programme.name}</span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-4 w-4"
-                              onClick={() => toggleSelection(progWithTasks.programme.id)}
-                              data-testid={`button-remove-${progWithTasks.programme.id}`}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </TableHead>
+                      {selectedProgrammesWithTasks.map((progWithTasks, progIdx) => (
+                        <div key={progWithTasks.programme.id} className="contents">
+                          <TableHead data-testid={`header-programme-${progWithTasks.programme.id}`}>
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="truncate max-w-[120px] text-xs">{progWithTasks.programme.name}</span>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-4 w-4"
+                                onClick={() => toggleSelection(progWithTasks.programme.id)}
+                                data-testid={`button-remove-${progWithTasks.programme.id}`}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          </TableHead>
+                          {progIdx < selectedProgrammesWithTasks.length - 1 && (
+                            <TableHead className="text-xs text-muted-foreground">Movement</TableHead>
+                          )}
+                        </div>
                       ))}
                     </TableRow>
                   </TableHeader>
@@ -351,19 +356,34 @@ export default function CompareProgrammes() {
                           </div>
                         </TableCell>
                         {milestone.data.map((dateData, dateIdx) => (
-                          <TableCell 
-                            key={`${idx}-${dateIdx}`}
-                            className={milestone.isHeader ? "bg-muted text-muted-foreground" : dateData.moved ? "bg-amber-50 dark:bg-amber-950" : ""}
-                            data-testid={`cell-milestone-${idx}-${dateIdx}`}
-                          >
-                            {!milestone.isHeader && dateData.date ? (
-                              <span className={dateData.moved ? "font-semibold text-amber-900 dark:text-amber-100" : ""}>
-                                {formatDateUK(dateData.date)}
-                              </span>
-                            ) : !milestone.isHeader ? (
-                              <span className="text-muted-foreground italic">-</span>
-                            ) : null}
-                          </TableCell>
+                          <div key={`${idx}-${dateIdx}`} className="contents">
+                            <TableCell 
+                              className={milestone.isHeader ? "bg-muted text-muted-foreground" : dateData.moved ? "bg-amber-50 dark:bg-amber-950" : ""}
+                              data-testid={`cell-milestone-${idx}-${dateIdx}`}
+                            >
+                              {!milestone.isHeader && dateData.date ? (
+                                <span className={dateData.moved ? "font-semibold text-amber-900 dark:text-amber-100" : "text-sm"}>
+                                  {formatDateUK(dateData.date)}
+                                </span>
+                              ) : !milestone.isHeader ? (
+                                <span className="text-muted-foreground italic">-</span>
+                              ) : null}
+                            </TableCell>
+                            {dateIdx < milestone.data.length - 1 && (
+                              <TableCell 
+                                className={milestone.isHeader ? "bg-muted text-muted-foreground" : ""}
+                                data-testid={`cell-movement-${idx}-${dateIdx}`}
+                              >
+                                {!milestone.isHeader && dateData.movementWeeks !== undefined ? (
+                                  <span className="text-xs font-medium">
+                                    {dateData.movementWeeks > 0 ? "+" : ""}{dateData.movementWeeks}w ({dateData.movementDays}d)
+                                  </span>
+                                ) : !milestone.isHeader ? (
+                                  <span className="text-muted-foreground italic">-</span>
+                                ) : null}
+                              </TableCell>
+                            )}
+                          </div>
                         ))}
                       </TableRow>
                     ))}
