@@ -10,7 +10,8 @@ import {
   insertProjectSchema, 
   insertTaskSchema, 
   insertDcmaAssessmentSchema, 
-  insertWorkspaceSchema
+  insertWorkspaceSchema,
+  insertCalendarExceptionSchema
 } from "@shared/schema";
 
 const upload = multer({
@@ -673,6 +674,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         error: error instanceof Error ? error.message : "Failed to process file" 
       });
+    }
+  });
+
+  // Calendar Exception routes
+  app.get("/api/projects/:id/exemptions", async (req, res) => {
+    try {
+      const exemptions = await storage.getCalendarExceptionsByProject(parseInt(req.params.id));
+      res.json(exemptions);
+    } catch (error) {
+      console.error("Error fetching exemptions:", error);
+      res.status(500).json({ error: "Failed to fetch exemptions" });
+    }
+  });
+
+  app.post("/api/projects/:id/exemptions", async (req, res) => {
+    try {
+      const exceptionData = insertCalendarExceptionSchema.parse({
+        ...req.body,
+        projectId: parseInt(req.params.id),
+      });
+      const exception = await storage.createCalendarException(exceptionData);
+      res.json(exception);
+    } catch (error) {
+      console.error("Error creating exemption:", error);
+      res.status(400).json({ 
+        error: error instanceof Error ? error.message : "Failed to create exemption" 
+      });
+    }
+  });
+
+  app.delete("/api/exemptions/:id", async (req, res) => {
+    try {
+      await storage.deleteCalendarException(parseInt(req.params.id));
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting exemption:", error);
+      res.status(500).json({ error: "Failed to delete exemption" });
     }
   });
 

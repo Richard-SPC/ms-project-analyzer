@@ -59,20 +59,24 @@ export class MemStorage implements IStorage {
   private projects: Map<number, Project>;
   private tasks: Map<number, Task>;
   private dcmaAssessments: Map<number, DcmaAssessment>;
+  private calendarExceptions: Map<number, CalendarException>;
   private workspaceIdCounter: number;
   private projectIdCounter: number;
   private taskIdCounter: number;
   private dcmaIdCounter: number;
+  private exceptionIdCounter: number;
 
   constructor() {
     this.workspaces = new Map();
     this.projects = new Map();
     this.tasks = new Map();
     this.dcmaAssessments = new Map();
+    this.calendarExceptions = new Map();
     this.workspaceIdCounter = 1;
     this.projectIdCounter = 1;
     this.taskIdCounter = 1;
     this.dcmaIdCounter = 1;
+    this.exceptionIdCounter = 1;
   }
 
   // Workspace operations
@@ -308,6 +312,28 @@ export class MemStorage implements IStorage {
     return updated;
   }
 
+  async createCalendarException(insertException: InsertCalendarException): Promise<CalendarException> {
+    const id = this.exceptionIdCounter++;
+    const exception: CalendarException = {
+      ...insertException,
+      id,
+      description: insertException.description ?? null,
+      createdAt: new Date(),
+    };
+    this.calendarExceptions.set(id, exception);
+    return exception;
+  }
+
+  async getCalendarExceptionsByProject(projectId: number): Promise<CalendarException[]> {
+    return Array.from(this.calendarExceptions.values())
+      .filter(exc => exc.projectId === projectId)
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
+  }
+
+  async deleteCalendarException(id: number): Promise<void> {
+    this.calendarExceptions.delete(id);
+  }
+
 }
 
 // Database storage implementation using Drizzle ORM and PostgreSQL
@@ -446,6 +472,23 @@ export class DbStorage implements IStorage {
       .where(eq(dcmaAssessments.id, id))
       .returning();
     return updated;
+  }
+
+  async createCalendarException(insertException: InsertCalendarException): Promise<CalendarException> {
+    const [exception] = await this.db.insert(calendarExceptions).values(insertException).returning();
+    return exception;
+  }
+
+  async getCalendarExceptionsByProject(projectId: number): Promise<CalendarException[]> {
+    return await this.db
+      .select()
+      .from(calendarExceptions)
+      .where(eq(calendarExceptions.projectId, projectId))
+      .orderBy(calendarExceptions.date);
+  }
+
+  async deleteCalendarException(id: number): Promise<void> {
+    await this.db.delete(calendarExceptions).where(eq(calendarExceptions.id, id));
   }
 
 }
