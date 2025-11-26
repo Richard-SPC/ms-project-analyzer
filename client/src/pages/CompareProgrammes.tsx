@@ -375,15 +375,16 @@ export default function CompareProgrammes() {
                             </TableCell>
                           ];
                           if (dateIdx < milestone.data.length - 1) {
+                            const nextDateData = milestone.data[dateIdx + 1];
                             cells.push(
                               <TableCell 
                                 key={`move-${idx}-${dateIdx}`}
                                 className={milestone.isHeader ? "bg-muted text-muted-foreground" : ""}
                                 data-testid={`cell-movement-${idx}-${dateIdx}`}
                               >
-                                {!milestone.isHeader && dateData.movementWeeks !== undefined ? (
+                                {!milestone.isHeader && nextDateData.movementWeeks !== undefined ? (
                                   <span className="text-xs font-medium">
-                                    {dateData.movementWeeks > 0 ? "+" : ""}{dateData.movementWeeks}w ({dateData.movementDays}d)
+                                    {nextDateData.movementWeeks > 0 ? "+" : ""}{nextDateData.movementWeeks}w ({nextDateData.movementDays}d)
                                   </span>
                                 ) : !milestone.isHeader ? (
                                   <span className="text-muted-foreground italic">-</span>
