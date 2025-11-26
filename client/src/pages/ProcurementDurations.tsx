@@ -185,36 +185,36 @@ export default function ProcurementDurations() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead data-testid="header-programme">Programme</TableHead>
-                    <TableHead data-testid="header-task-name">Task Name</TableHead>
-                    <TableHead className="text-right" data-testid="header-duration-days">
+                  <TableRow className="h-7">
+                    <TableHead className="text-xs" data-testid="header-programme">Programme</TableHead>
+                    <TableHead className="text-xs" data-testid="header-task-name">Task Name</TableHead>
+                    <TableHead className="text-right text-xs" data-testid="header-duration-days">
                       Duration (days)
                     </TableHead>
-                    <TableHead className="text-right" data-testid="header-duration-weeks">
+                    <TableHead className="text-right text-xs" data-testid="header-duration-weeks">
                       Duration (weeks)
                     </TableHead>
-                    <TableHead className="text-right" data-testid="header-complete">
+                    <TableHead className="text-right text-xs" data-testid="header-complete">
                       % Complete
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredTasks.map((task) => (
-                    <TableRow key={task.id} data-testid={`row-procurement-task-${task.id}`}>
-                      <TableCell className="font-medium" data-testid={`text-programme-${task.id}`}>
+                    <TableRow key={task.id} className="h-7" data-testid={`row-procurement-task-${task.id}`}>
+                      <TableCell className="font-medium text-xs" data-testid={`text-programme-${task.id}`}>
                         {task.projectName}
                       </TableCell>
-                      <TableCell data-testid={`text-task-name-${task.id}`}>
+                      <TableCell className="text-xs" data-testid={`text-task-name-${task.id}`}>
                         {task.name}
                       </TableCell>
-                      <TableCell className="text-right" data-testid={`text-duration-days-${task.id}`}>
+                      <TableCell className="text-right text-xs" data-testid={`text-duration-days-${task.id}`}>
                         {task.duration ?? "-"}
                       </TableCell>
-                      <TableCell className="text-right" data-testid={`text-duration-weeks-${task.id}`}>
+                      <TableCell className="text-right text-xs" data-testid={`text-duration-weeks-${task.id}`}>
                         {task.duration ? (task.duration / 5).toFixed(1) : "-"}
                       </TableCell>
-                      <TableCell className="text-right" data-testid={`text-complete-${task.id}`}>
+                      <TableCell className="text-right text-xs" data-testid={`text-complete-${task.id}`}>
                         {task.percentComplete}%
                       </TableCell>
                     </TableRow>
