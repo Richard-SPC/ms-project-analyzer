@@ -1,4 +1,4 @@
-import { Home, FileCheck, Library } from "lucide-react";
+import { Home, FileCheck, Library, Package } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -26,6 +26,11 @@ const menuItems = [
     title: "DCMA Assessment",
     url: "/dcma",
     icon: FileCheck,
+  },
+  {
+    title: "Procurement Durations",
+    url: "/procurement",
+    icon: Package,
   },
 ];
 

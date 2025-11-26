@@ -288,6 +288,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Procurement tasks route
+  app.get("/api/procurement-tasks", async (req, res) => {
+    try {
+      const allProjects = await storage.getAllProjects();
+      const procurementTasks: Array<{ id: number; name: string; duration: number | null; projectId: number; projectName: string }> = [];
+      
+      for (const project of allProjects) {
+        const tasks = await storage.getTasksByProject(project.id);
+        const procurement = tasks.filter(task => 
+          task.name.toLowerCase().includes("procurement") && !task.isSummary
+        ).map(task => ({
+          id: task.id,
+          name: task.name,
+          duration: task.duration,
+          projectId: project.id,
+          projectName: project.name
+        }));
+        procurementTasks.push(...procurement);
+      }
+      
+      // Sort by project name, then task name
+      procurementTasks.sort((a, b) => {
+        if (a.projectName !== b.projectName) {
+          return a.projectName.localeCompare(b.projectName);
+        }
+        return a.name.localeCompare(b.name);
+      });
+      
+      res.json(procurementTasks);
+    } catch (error) {
+      console.error("Error fetching procurement tasks:", error);
+      res.status(500).json({ error: "Failed to fetch procurement tasks" });
+    }
+  });
+
   // DCMA Assessment routes
   app.get("/api/dcma-assessments", async (req, res) => {
     try {
