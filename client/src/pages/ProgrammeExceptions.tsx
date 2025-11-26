@@ -41,33 +41,20 @@ export default function ProgrammeExceptions() {
       </div>
 
       <Card data-testid="card-scotland-holidays">
-        <CardHeader>
+        <CardHeader className="pb-3">
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            <div>
-              <CardTitle>Scotland Public Holidays</CardTitle>
-              <CardDescription>Standard public holidays for Scotland</CardDescription>
-            </div>
+            <CardTitle className="text-base">Scotland Public Holidays</CardTitle>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="border rounded-md overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Holiday</TableHead>
-                  <TableHead>Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {SCOTLAND_HOLIDAYS.map((holiday) => (
-                  <TableRow key={holiday.name} data-testid={`row-holiday-${holiday.name}`}>
-                    <TableCell className="font-medium">{holiday.name}</TableCell>
-                    <TableCell>{formatDateUK(holiday.date)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+        <CardContent className="pt-0">
+          <div className="grid grid-cols-2 gap-3">
+            {SCOTLAND_HOLIDAYS.map((holiday) => (
+              <div key={holiday.name} className="text-sm" data-testid={`row-holiday-${holiday.name}`}>
+                <p className="font-medium text-foreground">{holiday.name}</p>
+                <p className="text-xs text-muted-foreground">{formatDateUK(holiday.date)}</p>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
