@@ -10,7 +10,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertCalendarExceptionSchema, type CalendarException } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { formatDateUK } from "@/lib/utils";
+import { formatDateUK, calculateWorkingDays } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, Trash2 } from "lucide-react";
 import { z } from "zod";
@@ -206,12 +206,12 @@ export default function Exceptions({ projectId }: { projectId: number }) {
                 {exceptions.map((exception) => {
                   const startDate = new Date(exception.startDate);
                   const endDate = new Date(exception.endDate);
-                  const duration = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                  const duration = calculateWorkingDays(startDate, endDate);
                   return (
                     <TableRow key={exception.id} data-testid={`row-exception-${exception.id}`}>
                       <TableCell>{exception.name}</TableCell>
                       <TableCell className="font-medium">{formatDateUK(startDate)}</TableCell>
-                      <TableCell>{isNaN(duration) ? '-' : duration}</TableCell>
+                      <TableCell>{duration}</TableCell>
                       <TableCell className="font-medium">{formatDateUK(endDate)}</TableCell>
                       <TableCell>
                         <Button

@@ -15,3 +15,19 @@ export function formatDateUK(date: string | Date | undefined | null): string {
   const year = String(d.getFullYear()).slice(-2);
   return `${day}-${month}-${year}`;
 }
+
+export function calculateWorkingDays(startDate: Date, endDate: Date): number {
+  let count = 0;
+  const current = new Date(startDate);
+  
+  while (current <= endDate) {
+    const dayOfWeek = current.getDay();
+    // 0 = Sunday, 1 = Monday, ..., 5 = Friday, 6 = Saturday
+    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      count++;
+    }
+    current.setDate(current.getDate() + 1);
+  }
+  
+  return count;
+}
