@@ -106,54 +106,30 @@ export default function CompareProgrammes() {
       }
     });
 
-    // Create comparison data - group actual and planned milestones
-    const milestoneGroups = new Map<string, Array<{
+    // Create comparison data
+    const milestones: Array<{
       name: string;
-      data: Array<{ progId: number; actualDate: Date | null; plannedDate: Date | null; moved: boolean }>;
-    }>>();
+      data: Array<{ progId: number; date: Date | null; moved: boolean }>;
+    }> = [];
 
     allMilestones.forEach((progIds, milestoneName) => {
-      // Skip if this is a planned milestone (we'll pair it with the actual)
-      if (milestoneName.toLowerCase().startsWith("planned - ")) {
-        return;
-      }
-
-      const actualDates: Array<{ progId: number; date: Date | null }> = [];
-      const plannedDates: Array<{ progId: number; date: Date | null }> = [];
+      const dates: Array<{ progId: number; date: Date | null }> = [];
       
       selectedProgrammesWithTasks.forEach((progWithTasks) => {
         const wbsCodePrefix = contractSummaryWbsCodes.get(progWithTasks.programme.id);
         
         if (wbsCodePrefix) {
-          // Find actual milestone
           const milestone = progWithTasks.tasks.find(
             t => t.isMilestone && t.name === milestoneName &&
                 t.wbsCode && 
                 t.wbsCode.startsWith(wbsCodePrefix)
           );
-          
-          // Find planned version
-          const plannedMilestone = progWithTasks.tasks.find(
-            t => t.isMilestone && t.name === `Planned - ${milestoneName}` &&
-                t.wbsCode && 
-                t.wbsCode.startsWith(wbsCodePrefix)
-          );
-          
-          actualDates.push({
+          dates.push({
             progId: progWithTasks.programme.id,
             date: milestone?.startDate || milestone?.endDate || null,
           });
-          
-          plannedDates.push({
-            progId: progWithTasks.programme.id,
-            date: plannedMilestone?.startDate || plannedMilestone?.endDate || null,
-          });
         } else {
-          actualDates.push({
-            progId: progWithTasks.programme.id,
-            date: null,
-          });
-          plannedDates.push({
+          dates.push({
             progId: progWithTasks.programme.id,
             date: null,
           });
@@ -161,28 +137,23 @@ export default function CompareProgrammes() {
       });
 
       // Check if dates have moved (are different across programmes)
-      const allDates = [...actualDates, ...plannedDates]
+      const validDates = dates
         .filter(d => d.date)
         .map(d => {
           const date = typeof d.date === 'string' ? new Date(d.date) : d.date;
           return date?.getTime?.() || 0;
         });
-      const moved = allDates.length > 0 && new Set(allDates).size > 1;
+      const moved = validDates.length > 0 && new Set(validDates).size > 1;
 
-      const data = actualDates.map((actual, idx) => ({
-        progId: actual.progId,
-        actualDate: actual.date,
-        plannedDate: plannedDates[idx]?.date || null,
-        moved,
-      }));
-
-      milestoneGroups.set(milestoneName, [{
+      milestones.push({
         name: milestoneName,
-        data,
-      }]);
+        data: dates.map(d => ({
+          progId: d.progId,
+          date: d.date,
+          moved,
+        })),
+      });
     });
-
-    const milestones = Array.from(milestoneGroups.values()).flat();
 
     return milestones.sort((a, b) => {
       // Show moved milestones first
@@ -341,24 +312,13 @@ export default function CompareProgrammes() {
                             className={dateData.moved ? "bg-amber-50 dark:bg-amber-950" : ""}
                             data-testid={`cell-milestone-${idx}-${dateIdx}`}
                           >
-                            <div className="space-y-1">
-                              {dateData.actualDate ? (
-                                <div className={dateData.moved ? "font-semibold text-amber-900 dark:text-amber-100" : ""}>
-                                  <div className="text-xs text-muted-foreground">Actual:</div>
-                                  <div>{formatDateUK(dateData.actualDate)}</div>
-                                </div>
-                              ) : (
-                                <div className="text-xs text-muted-foreground italic">Actual: -</div>
-                              )}
-                              {dateData.plannedDate ? (
-                                <div className="text-muted-foreground">
-                                  <div className="text-xs">Planned:</div>
-                                  <div className="text-sm">{formatDateUK(dateData.plannedDate)}</div>
-                                </div>
-                              ) : (
-                                <div className="text-xs text-muted-foreground italic">Planned: -</div>
-                              )}
-                            </div>
+                            {dateData.date ? (
+                              <span className={dateData.moved ? "font-semibold text-amber-900 dark:text-amber-100" : ""}>
+                                {formatDateUK(dateData.date)}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground italic">-</span>
+                            )}
                           </TableCell>
                         ))}
                       </TableRow>
