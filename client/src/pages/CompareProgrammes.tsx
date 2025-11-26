@@ -55,74 +55,53 @@ export default function CompareProgrammes() {
   const contractKeyDatesMilestones = useMemo(() => {
     if (selectedProgrammesWithTasks.length === 0) return [];
 
-    // Store both milestones and their subsection info
-    const allMilestonesWithSection = new Map<string, { section: string; wbsCode: string; set: Set<number> }>();
-    const contractSummaryWbsCodes = new Map<number, string>();
+    // Collect all milestones from all programmes
+    const allMilestonesByName = new Map<string, { section: string; name: string }>();
     
     selectedProgrammesWithTasks.forEach((progWithTasks) => {
-      // Look for Contract & Key Dates summary
-      let contractSummary = progWithTasks.tasks.find(
-        t => t.isSummary && t.name.toLowerCase().includes("contract") && t.name.toLowerCase().includes("key")
+      // Find the main Contract & Key Dates summary (WBS = 1)
+      const mainSummary = progWithTasks.tasks.find(t => t.wbsCode === "1" && t.isSummary);
+      
+      if (!mainSummary) return;
+
+      // Find all subsections (direct children with isSummary)
+      const subsections = progWithTasks.tasks.filter(
+        t => t.wbsCode && 
+             t.wbsCode.startsWith("1.") &&
+             !t.wbsCode.includes("..", "1.".length) &&
+             t.isSummary
       );
-      
-      if (!contractSummary) {
-        contractSummary = progWithTasks.tasks.find(
-          t => t.isSummary && t.wbsCode === "1"
-        );
-      }
-      
-      if (!contractSummary) {
-        const summariesWithMilestones = progWithTasks.tasks.filter(t => t.isSummary);
-        for (const summary of summariesWithMilestones) {
-          const hasMilestones = progWithTasks.tasks.some(
-            t => t.isMilestone && t.wbsCode && t.wbsCode.startsWith(summary.wbsCode || "")
-          );
-          if (hasMilestones) {
-            contractSummary = summary;
-            break;
-          }
+
+      // Get all milestones directly under main summary (1.1, 1.2, 1.3, 1.4 - direct children)
+      const directMilestones = progWithTasks.tasks.filter(
+        t => t.wbsCode && 
+             /^1\.\d+$/.test(t.wbsCode) &&  // Matches 1.1, 1.2, 1.3, etc (exactly 3 parts)
+             t.isMilestone
+      );
+
+      directMilestones.forEach(m => {
+        const key = `1:::${m.name}`;
+        if (!allMilestonesByName.has(key)) {
+          allMilestonesByName.set(key, { section: "Contract & Key Dates", name: m.name });
         }
-      }
+      });
 
-      if (contractSummary) {
-        contractSummaryWbsCodes.set(progWithTasks.programme.id, contractSummary.wbsCode || "");
-        
-        // Find subsection summaries under main summary
-        const subsections = progWithTasks.tasks.filter(
-          t => t.isSummary && 
-               t.wbsCode && 
-               t.wbsCode.startsWith(contractSummary.wbsCode || "") &&
-               t.id !== contractSummary.id
-        );
-
-        // Get all milestones under this summary
-        const allTasksUnderSummary = progWithTasks.tasks.filter(
+      // Get milestones from subsections (1.5.x, 1.6.x, 1.4.x, etc)
+      subsections.forEach(subsection => {
+        const subsectionChildren = progWithTasks.tasks.filter(
           t => t.wbsCode && 
-               t.wbsCode.startsWith(contractSummary!.wbsCode || "") &&
-               t.id !== contractSummary.id &&
-               (t.isMilestone || t.name.toLowerCase().includes("date"))
+               t.wbsCode.startsWith(subsection.wbsCode || "") &&
+               t.id !== subsection.id &&
+               t.isMilestone
         );
 
-        allTasksUnderSummary.forEach(m => {
-          // Find which subsection this milestone belongs to
-          let subsectionName = "Contract & Key Dates";
-          let subsectionWbs = "";
-          
-          for (const subsection of subsections) {
-            if (m.wbsCode && m.wbsCode.startsWith(subsection.wbsCode || "") && m.id !== subsection.id) {
-              subsectionName = subsection.name;
-              subsectionWbs = subsection.wbsCode || "";
-              break;
-            }
+        subsectionChildren.forEach(m => {
+          const key = `${subsection.wbsCode}:::${m.name}`;
+          if (!allMilestonesByName.has(key)) {
+            allMilestonesByName.set(key, { section: subsection.name, name: m.name });
           }
-
-          const key = `${subsectionName}:::${m.name}`;
-          if (!allMilestonesWithSection.has(key)) {
-            allMilestonesWithSection.set(key, { section: subsectionName, wbsCode: subsectionWbs, set: new Set() });
-          }
-          allMilestonesWithSection.get(key)!.set.add(progWithTasks.programme.id);
         });
-      }
+      });
     });
 
     // Create comparison data grouped by section
@@ -135,44 +114,32 @@ export default function CompareProgrammes() {
 
     const processedSections = new Set<string>();
 
-    allMilestonesWithSection.forEach((sectionInfo, key) => {
-      const [sectionName, milestoneName] = key.split(":::") as [string, string];
+    allMilestonesByName.forEach((info, key) => {
+      const { section, name } = info;
       
       // Add section header if not already added
-      if (!processedSections.has(sectionName)) {
+      if (!processedSections.has(section)) {
         groupedMilestones.push({
-          section: sectionName,
+          section,
           isHeader: true,
-          name: sectionName,
+          name: section,
           data: [],
         });
-        processedSections.add(sectionName);
+        processedSections.add(section);
       }
 
+      // Get dates from each programme for this milestone
       const dates: Array<{ progId: number; date: Date | null }> = [];
       
       selectedProgrammesWithTasks.forEach((progWithTasks) => {
-        const wbsCodePrefix = contractSummaryWbsCodes.get(progWithTasks.programme.id);
-        
-        if (wbsCodePrefix) {
-          const milestone = progWithTasks.tasks.find(
-            t => t.name === milestoneName &&
-                t.wbsCode && 
-                t.wbsCode.startsWith(wbsCodePrefix)
-          );
-          dates.push({
-            progId: progWithTasks.programme.id,
-            date: milestone?.startDate || milestone?.endDate || null,
-          });
-        } else {
-          dates.push({
-            progId: progWithTasks.programme.id,
-            date: null,
-          });
-        }
+        const milestone = progWithTasks.tasks.find(t => t.name === name && t.isMilestone);
+        dates.push({
+          progId: progWithTasks.programme.id,
+          date: milestone?.startDate || milestone?.endDate || null,
+        });
       });
 
-      // Check if dates have moved
+      // Check if dates have moved (are different across programmes)
       const validDates = dates
         .filter(d => d.date)
         .map(d => {
@@ -182,9 +149,9 @@ export default function CompareProgrammes() {
       const moved = validDates.length > 0 && new Set(validDates).size > 1;
 
       groupedMilestones.push({
-        section: sectionName,
+        section,
         isHeader: false,
-        name: milestoneName,
+        name,
         data: dates.map(d => ({
           progId: d.progId,
           date: d.date,
