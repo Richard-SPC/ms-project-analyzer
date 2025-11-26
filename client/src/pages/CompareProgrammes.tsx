@@ -321,8 +321,8 @@ export default function CompareProgrammes() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Milestone</TableHead>
-                      {selectedProgrammesWithTasks.map((progWithTasks, progIdx) => (
-                        <>
+                      {selectedProgrammesWithTasks.flatMap((progWithTasks, progIdx) => {
+                        const cells = [
                           <TableHead key={`prog-${progWithTasks.programme.id}`} data-testid={`header-programme-${progWithTasks.programme.id}`}>
                             <div className="flex items-center justify-between gap-2">
                               <span className="truncate max-w-[120px] text-xs">{progWithTasks.programme.name}</span>
@@ -337,11 +337,14 @@ export default function CompareProgrammes() {
                               </Button>
                             </div>
                           </TableHead>
-                          {progIdx < selectedProgrammesWithTasks.length - 1 && (
+                        ];
+                        if (progIdx < selectedProgrammesWithTasks.length - 1) {
+                          cells.push(
                             <TableHead key={`move-${progWithTasks.programme.id}`} className="text-xs text-muted-foreground">Movement</TableHead>
-                          )}
-                        </>
-                      ))}
+                          );
+                        }
+                        return cells;
+                      })}
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -355,8 +358,8 @@ export default function CompareProgrammes() {
                             <span className={milestone.isHeader ? "" : "pl-4"}>{milestone.name}</span>
                           </div>
                         </TableCell>
-                        {milestone.data.map((dateData, dateIdx) => (
-                          <>
+                        {milestone.data.flatMap((dateData, dateIdx) => {
+                          const cells = [
                             <TableCell 
                               key={`date-${idx}-${dateIdx}`}
                               className={milestone.isHeader ? "bg-muted text-muted-foreground" : dateData.moved ? "bg-amber-50 dark:bg-amber-950" : ""}
@@ -370,7 +373,9 @@ export default function CompareProgrammes() {
                                 <span className="text-muted-foreground italic">-</span>
                               ) : null}
                             </TableCell>
-                            {dateIdx < milestone.data.length - 1 && (
+                          ];
+                          if (dateIdx < milestone.data.length - 1) {
+                            cells.push(
                               <TableCell 
                                 key={`move-${idx}-${dateIdx}`}
                                 className={milestone.isHeader ? "bg-muted text-muted-foreground" : ""}
@@ -384,9 +389,10 @@ export default function CompareProgrammes() {
                                   <span className="text-muted-foreground italic">-</span>
                                 ) : null}
                               </TableCell>
-                            )}
-                          </>
-                        ))}
+                            );
+                          }
+                          return cells;
+                        })}
                       </TableRow>
                     ))}
                   </TableBody>
