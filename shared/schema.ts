@@ -47,6 +47,16 @@ export const tasks = pgTable("tasks", {
   constraintType: text("constraint_type"), // ASAP, ALAP, SNET, SNLT, FNET, FNLT, MSO, MFO
 });
 
+// Calendar exceptions - holidays and non-working days
+export const calendarExceptions = pgTable("calendar_exceptions", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+  date: timestamp("date").notNull(),
+  name: text("name").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // DCMA 14-point assessments
 export const dcmaAssessments = pgTable("dcma_assessments", {
   id: serial("id").primaryKey(),
@@ -124,6 +134,15 @@ export const insertDcmaAssessmentSchema = createInsertSchema(dcmaAssessments).om
   id: true,
 });
 
+export const insertCalendarExceptionSchema = createInsertSchema(calendarExceptions, {
+  date: z.union([z.string(), z.date()]).transform((val) => 
+    typeof val === 'string' ? new Date(val) : val
+  ),
+}).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type Workspace = typeof workspaces.$inferSelect;
 export type InsertWorkspace = z.infer<typeof insertWorkspaceSchema>;
@@ -136,3 +155,6 @@ export type InsertTask = z.infer<typeof insertTaskSchema>;
 
 export type DcmaAssessment = typeof dcmaAssessments.$inferSelect;
 export type InsertDcmaAssessment = z.infer<typeof insertDcmaAssessmentSchema>;
+
+export type CalendarException = typeof calendarExceptions.$inferSelect;
+export type InsertCalendarException = z.infer<typeof insertCalendarExceptionSchema>;

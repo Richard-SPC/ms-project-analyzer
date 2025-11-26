@@ -7,10 +7,13 @@ import {
   type InsertTask,
   type DcmaAssessment,
   type InsertDcmaAssessment,
+  type CalendarException,
+  type InsertCalendarException,
   workspaces,
   projects,
   tasks,
   dcmaAssessments,
+  calendarExceptions,
 } from "@shared/schema";
 import { db, type DbClient } from "../db";
 import { eq, desc, isNull } from "drizzle-orm";
@@ -44,6 +47,11 @@ export interface IStorage {
   getDcmaAssessmentsByProject(projectId: number): Promise<DcmaAssessment[]>;
   getLatestDcmaAssessment(projectId: number): Promise<DcmaAssessment | undefined>;
   updateDcmaAssessment(id: number, assessment: Partial<InsertDcmaAssessment>): Promise<DcmaAssessment | undefined>;
+  
+  // Calendar Exception operations
+  createCalendarException(exception: InsertCalendarException): Promise<CalendarException>;
+  getCalendarExceptionsByProject(projectId: number): Promise<CalendarException[]>;
+  deleteCalendarException(id: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
