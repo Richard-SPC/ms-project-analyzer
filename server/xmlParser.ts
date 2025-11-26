@@ -78,6 +78,7 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
       : [projectData.Calendars.Calendar];
     
     for (const calendar of calendars) {
+      const calendarName = String(calendar.Name || 'Standard Calendar');
       // Look for exceptions in the calendar
       if (calendar.Exceptions && calendar.Exceptions.Exception) {
         const exceptionList = Array.isArray(calendar.Exceptions.Exception)
@@ -140,6 +141,7 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
                 startDate,
                 endDate,
                 name: excName,
+                calendarName,
               });
             } else {
               console.log(`[XML Parser]   ✗ Skipped: Invalid dates - start=${startDate}, end=${endDate}`);

@@ -54,6 +54,7 @@ export const calendarExceptions = pgTable("calendar_exceptions", {
   startDate: timestamp("start_date").notNull(),
   endDate: timestamp("end_date").notNull(),
   name: text("name").notNull(),
+  calendarName: text("calendar_name"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

@@ -196,6 +196,7 @@ export default function Exceptions({ projectId }: { projectId: number }) {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
+                  <TableHead>Calendar</TableHead>
                   <TableHead>Start Date</TableHead>
                   <TableHead>Duration (Days)</TableHead>
                   <TableHead>Finish Date</TableHead>
@@ -210,6 +211,7 @@ export default function Exceptions({ projectId }: { projectId: number }) {
                   return (
                     <TableRow key={exception.id} data-testid={`row-exception-${exception.id}`}>
                       <TableCell>{exception.name}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{exception.calendarName || 'Standard Calendar'}</TableCell>
                       <TableCell className="font-medium">{formatDateUK(startDate)}</TableCell>
                       <TableCell>{duration}</TableCell>
                       <TableCell className="font-medium">{formatDateUK(endDate)}</TableCell>

@@ -661,6 +661,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                   startDate: exc.startDate,
                   endDate: exc.endDate,
                   name: exc.name,
+                  calendarName: exc.calendarName,
                 });
                 exceptionsCreated++;
               } catch (e) {
