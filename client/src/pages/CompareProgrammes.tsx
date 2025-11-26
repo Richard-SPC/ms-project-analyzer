@@ -111,7 +111,7 @@ export default function CompareProgrammes() {
       section: string;
       isHeader: boolean;
       name: string;
-      data: Array<{ progId: number; date: Date | null; moved: boolean }>;
+      data: Array<{ progId: number; date: Date | null; moved: boolean; movementWeeks?: number; movementDays?: number }>;
     }> = [];
 
     const processedSections = new Set<string>();
@@ -150,15 +150,36 @@ export default function CompareProgrammes() {
         });
       const moved = validDates.length > 0 && new Set(validDates).size > 1;
 
+      // Calculate movement between consecutive programmes
+      const dataWithMovement = dates.map((d, idx) => {
+        let movementWeeks: number | undefined;
+        let movementDays: number | undefined;
+
+        if (idx > 0 && d.date && dates[idx - 1].date) {
+          const prevDate = typeof dates[idx - 1].date === 'string' ? new Date(dates[idx - 1].date) : dates[idx - 1].date;
+          const currDate = typeof d.date === 'string' ? new Date(d.date) : d.date;
+          
+          if (prevDate && currDate) {
+            const diffMs = currDate.getTime() - prevDate.getTime();
+            movementDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+            movementWeeks = Math.round((movementDays / 5) * 10) / 10; // Round to 1 decimal place
+          }
+        }
+
+        return {
+          progId: d.progId,
+          date: d.date,
+          moved,
+          movementWeeks,
+          movementDays,
+        };
+      });
+
       groupedMilestones.push({
         section,
         isHeader: false,
         name,
-        data: dates.map(d => ({
-          progId: d.progId,
-          date: d.date,
-          moved,
-        })),
+        data: dataWithMovement,
       });
     });
 
