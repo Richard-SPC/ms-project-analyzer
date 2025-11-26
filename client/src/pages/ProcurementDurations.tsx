@@ -185,7 +185,7 @@ export default function ProcurementDurations() {
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="h-5">
+                  <TableRow className="h-4">
                     <TableHead className="text-xs" data-testid="header-programme">Programme</TableHead>
                     <TableHead className="text-xs" data-testid="header-task-name">Task Name</TableHead>
                     <TableHead className="text-right text-xs" data-testid="header-duration-days">
@@ -201,7 +201,7 @@ export default function ProcurementDurations() {
                 </TableHeader>
                 <TableBody>
                   {filteredTasks.map((task) => (
-                    <TableRow key={task.id} className="h-5" data-testid={`row-procurement-task-${task.id}`}>
+                    <TableRow key={task.id} className="h-4" data-testid={`row-procurement-task-${task.id}`}>
                       <TableCell className="font-medium text-xs" data-testid={`text-programme-${task.id}`}>
                         {task.projectName}
                       </TableCell>
