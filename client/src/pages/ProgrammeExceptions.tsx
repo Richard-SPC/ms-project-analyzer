@@ -3,11 +3,12 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X, Calendar } from "lucide-react";
+import { X, Calendar, AlertCircle } from "lucide-react";
 import { formatDateUK } from "@/lib/utils";
 import type { Project } from "@shared/schema";
 import Exceptions from "@/pages/Exceptions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 const SCOTLAND_HOLIDAYS = [
   // 2025
@@ -74,6 +75,19 @@ export default function ProgrammeExceptions() {
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
+  const selectedProgramme = selectedId ? allProgrammes?.find((p) => p.id === selectedId) : null;
+  
+  const isHolidayInRange = (holiday: { date: Date }) => {
+    if (!selectedProgramme?.startDate || !selectedProgramme?.endDate) return false;
+    const start = new Date(selectedProgramme.startDate);
+    const end = new Date(selectedProgramme.endDate);
+    const holidayDate = new Date(holiday.date);
+    return holidayDate >= start && holidayDate <= end;
+  };
+
+  const hasMissingDates = selectedProgramme && (!selectedProgramme.startDate || !selectedProgramme.endDate);
+  const overlappingHolidays = selectedProgramme ? SCOTLAND_HOLIDAYS.filter(isHolidayInRange) : [];
+
   return (
     <div className="p-6 space-y-6">
       <div>
@@ -87,9 +101,24 @@ export default function ProgrammeExceptions() {
 
       <Card data-testid="card-scotland-holidays">
         <CardHeader className="pb-2">
-          <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            <CardTitle className="text-sm">Scotland Public Holidays</CardTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <CardTitle className="text-sm">Scotland Public Holidays</CardTitle>
+            </div>
+            <div className="flex items-center gap-2">
+              {hasMissingDates && (
+                <Badge variant="destructive" className="text-xs" data-testid="badge-missing-dates">
+                  <AlertCircle className="h-3 w-3 mr-1" />
+                  Missing dates
+                </Badge>
+              )}
+              {overlappingHolidays.length > 0 && (
+                <Badge variant="secondary" className="text-xs" data-testid="badge-overlapping">
+                  {overlappingHolidays.length} overlap
+                </Badge>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="pt-1 px-4">
@@ -98,12 +127,25 @@ export default function ProgrammeExceptions() {
               <div key={year} className="space-y-1">
                 <p className="font-semibold text-xs text-foreground mb-2">{year}</p>
                 <div className="space-y-1">
-                  {SCOTLAND_HOLIDAYS.filter((h) => h.date.getFullYear() === year).map((holiday) => (
-                    <div key={`${holiday.name}-${formatDateUK(holiday.date)}`} className="text-xs" data-testid={`row-holiday-${holiday.name}-${formatDateUK(holiday.date)}`}>
-                      <p className="font-medium text-foreground leading-tight">{holiday.name}</p>
-                      <p className="text-muted-foreground leading-tight">{formatDateUK(holiday.date)}</p>
-                    </div>
-                  ))}
+                  {SCOTLAND_HOLIDAYS.filter((h) => h.date.getFullYear() === year).map((holiday) => {
+                    const isOverlapping = overlappingHolidays.includes(holiday);
+                    return (
+                      <div 
+                        key={`${holiday.name}-${formatDateUK(holiday.date)}`} 
+                        className={`text-xs p-1 rounded transition-colors ${
+                          isOverlapping 
+                            ? 'bg-destructive/20 border border-destructive/50' 
+                            : ''
+                        }`}
+                        data-testid={`row-holiday-${holiday.name}-${formatDateUK(holiday.date)}`}
+                      >
+                        <p className="font-medium text-foreground leading-tight">{holiday.name}</p>
+                        <p className={`leading-tight ${isOverlapping ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                          {formatDateUK(holiday.date)}
+                        </p>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))}
