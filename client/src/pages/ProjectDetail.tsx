@@ -174,13 +174,13 @@ export default function ProjectDetail() {
         </Badge>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
-          <CardHeader>
-            <CardTitle>Project Information</CardTitle>
-            <CardDescription>Basic details and metadata</CardDescription>
+          <CardHeader className="py-2 px-4">
+            <CardTitle className="text-sm">Project Information</CardTitle>
+            <CardDescription className="text-xs">Basic details and metadata</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2 pt-2 pb-2">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Project Manager:</span>
               <span className="text-sm font-medium">{workspace?.projectManager || "Not assigned"}</span>
@@ -228,14 +228,14 @@ export default function ProjectDetail() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
+          <CardHeader className="py-2 px-4">
+            <CardTitle className="flex items-center gap-1 text-sm">
+              <Calendar className="h-4 w-4" />
               Tasks Overview
             </CardTitle>
-            <CardDescription>Project activities and milestones</CardDescription>
+            <CardDescription className="text-xs">Project activities and milestones</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="space-y-2 pt-2 pb-2">
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Total Tasks:</span>
               <span className="text-sm font-medium">{tasks?.length || 0}</span>
@@ -256,16 +256,16 @@ export default function ProjectDetail() {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileCheck className="h-5 w-5" />
+          <CardHeader className="py-2 px-4">
+            <CardTitle className="flex items-center gap-1 text-sm">
+              <FileCheck className="h-4 w-4" />
               DCMA Assessment
             </CardTitle>
-            <CardDescription>14-point schedule health check</CardDescription>
+            <CardDescription className="text-xs">14-point schedule health check</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2 pb-2">
             {dcmaAssessment ? (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div className="flex justify-between items-center">
                   <span className="text-sm text-muted-foreground">Overall Score:</span>
                   <span className="text-2xl font-bold">

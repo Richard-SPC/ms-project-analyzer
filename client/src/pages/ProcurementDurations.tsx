@@ -72,11 +72,11 @@ export default function ProcurementDurations() {
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card data-testid="card-stat-shortest-duration">
-          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 py-2 px-4">
             <CardTitle className="text-sm font-medium">Shortest Duration</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2 pb-2">
             <div className="text-2xl font-bold" data-testid="text-stat-shortest-duration">
               {shortestDuration ? (shortestDuration / 5).toFixed(1) : "-"}
             </div>
@@ -85,11 +85,11 @@ export default function ProcurementDurations() {
         </Card>
 
         <Card data-testid="card-stat-longest-duration">
-          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 py-2 px-4">
             <CardTitle className="text-sm font-medium">Longest Duration</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2 pb-2">
             <div className="text-2xl font-bold" data-testid="text-stat-longest-duration">
               {longestDuration ? (longestDuration / 5).toFixed(1) : "-"}
             </div>
@@ -98,11 +98,11 @@ export default function ProcurementDurations() {
         </Card>
 
         <Card data-testid="card-stat-average-duration">
-          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 py-2 px-4">
             <CardTitle className="text-sm font-medium">Average Duration</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2 pb-2">
             <div className="text-2xl font-bold" data-testid="text-stat-average-duration">
               {averageDuration ? (averageDuration / 5).toFixed(1) : "-"}
             </div>
@@ -112,12 +112,12 @@ export default function ProcurementDurations() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Procurement Tasks</CardTitle>
-          <CardDescription>Search and filter procurement-related tasks</CardDescription>
+        <CardHeader className="py-2 px-4">
+          <CardTitle className="text-sm">Procurement Tasks</CardTitle>
+          <CardDescription className="text-xs">Search and filter procurement-related tasks</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-3">
+        <CardContent className="space-y-2 pt-2 pb-2">
+          <div className="grid gap-2 md:grid-cols-3">
             <div>
               <label className="text-sm font-medium mb-2 block">Search Task Name</label>
               <Input

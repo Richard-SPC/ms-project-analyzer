@@ -87,27 +87,27 @@ export default function Dashboard() {
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
-          <CardHeader>
-            <CardTitle>Recent Projects</CardTitle>
-            <CardDescription>Latest programme uploads and updates</CardDescription>
+          <CardHeader className="py-2 px-4">
+            <CardTitle className="text-sm">Recent Projects</CardTitle>
+            <CardDescription className="text-xs">Latest programme uploads and updates</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-2 pb-2">
             {isLoading ? (
-              <div className="space-y-2">
+              <div className="space-y-1">
                 {[...Array(3)].map((_, i) => (
-                  <div key={i} className="h-12 bg-muted animate-pulse rounded" />
+                  <div key={i} className="h-8 bg-muted animate-pulse rounded" />
                 ))}
               </div>
             ) : projects && projects.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-1">
                 {projects.slice(0, 5).map((project) => (
                   <Link key={project.id} href={`/projects/${project.id}`}>
-                    <div className="flex items-center justify-between p-3 hover-elevate rounded-md border" data-testid={`card-recent-project-${project.id}`}>
-                      <div className="flex items-center gap-3">
-                        <FolderKanban className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex items-center justify-between p-2 hover-elevate rounded-md border text-xs" data-testid={`card-recent-project-${project.id}`}>
+                      <div className="flex items-center gap-2">
+                        <FolderKanban className="h-3 w-3 text-muted-foreground" />
                         <div>
-                          <p className="font-medium text-sm">{project.name}</p>
-                          <p className="text-xs text-muted-foreground">{project.projectManager || "No manager assigned"}</p>
+                          <p className="font-medium text-xs">{project.name}</p>
+                          <p className="text-xs text-muted-foreground">{project.projectManager || "No manager"}</p>
                         </div>
                       </div>
                       <div className="text-xs text-muted-foreground">
@@ -118,26 +118,26 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No projects yet</p>
+              <p className="text-xs text-muted-foreground">No projects yet</p>
             )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Common tasks and assessments</CardDescription>
+          <CardHeader className="py-2 px-4">
+            <CardTitle className="text-sm">Quick Actions</CardTitle>
+            <CardDescription className="text-xs">Common tasks and assessments</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="space-y-1 pt-2 pb-2">
             <Link href="/projects">
-              <Button variant="outline" className="w-full justify-start" data-testid="button-create-project">
-                <FolderKanban className="mr-2 h-4 w-4" />
+              <Button variant="outline" size="sm" className="w-full justify-start text-xs" data-testid="button-create-project">
+                <FolderKanban className="mr-2 h-3 w-3" />
                 Create New Project
               </Button>
             </Link>
             <Link href="/dcma">
-              <Button variant="outline" className="w-full justify-start" data-testid="button-run-dcma">
-                <FileCheck className="mr-2 h-4 w-4" />
+              <Button variant="outline" size="sm" className="w-full justify-start text-xs" data-testid="button-run-dcma">
+                <FileCheck className="mr-2 h-3 w-3" />
                 Run DCMA Assessment
               </Button>
             </Link>

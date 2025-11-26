@@ -231,11 +231,11 @@ export default function CompareProgrammes() {
       </div>
 
       <Card data-testid="card-programme-selection">
-        <CardHeader>
-          <CardTitle>Select Programmes</CardTitle>
-          <CardDescription>Choose programmes to compare their Contract & Key Dates milestones</CardDescription>
+        <CardHeader className="py-2 px-4">
+          <CardTitle className="text-sm">Select Programmes</CardTitle>
+          <CardDescription className="text-xs">Choose programmes to compare their Contract & Key Dates milestones</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-2 pt-2 pb-2">
           {selectedIds.length > 0 && (
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">

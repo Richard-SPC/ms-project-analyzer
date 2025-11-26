@@ -226,24 +226,24 @@ export default function DcmaAssessment() {
 
       {/* Run Analysis Section */}
       <Card>
-        <CardHeader>
-          <CardTitle>Run Automated Analysis</CardTitle>
-          <CardDescription>Select a project to automatically analyze against DCMA 14-point criteria</CardDescription>
+        <CardHeader className="py-2 px-4">
+          <CardTitle className="text-sm">Run Automated Analysis</CardTitle>
+          <CardDescription className="text-xs">Select a project to automatically analyze against DCMA 14-point criteria</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
+        <CardContent className="pt-2 pb-2">
+          <div className="space-y-1">
             {projects?.map((project) => (
               <Card key={project.id} className="hover-elevate">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
-                    <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <FolderKanban className="h-5 w-5 text-primary flex-shrink-0" />
+                <CardHeader className="py-2 px-4">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <FolderKanban className="h-4 w-4 text-primary flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <CardTitle className="text-base">{project.name}</CardTitle>
+                        <CardTitle className="text-sm">{project.name}</CardTitle>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 flex-wrap">
-                      <div className="text-sm">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <div className="text-xs">
                         <p className="text-muted-foreground">Status Date</p>
                         <p className="font-medium text-foreground">
                           {project.statusDate ? formatDateUK(project.statusDate) : "N/A"}
@@ -257,12 +257,12 @@ export default function DcmaAssessment() {
                       >
                         {analysisMutation.isPending && analysisMutation.variables === project.id ? (
                           <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <Loader2 className="mr-2 h-3 w-3 animate-spin" />
                             Analyzing...
                           </>
                         ) : (
                           <>
-                            <PlayCircle className="mr-2 h-4 w-4" />
+                            <PlayCircle className="mr-2 h-3 w-3" />
                             Run Analysis
                           </>
                         )}
