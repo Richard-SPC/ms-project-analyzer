@@ -51,9 +51,9 @@ export const tasks = pgTable("tasks", {
 export const calendarExceptions = pgTable("calendar_exceptions", {
   id: serial("id").primaryKey(),
   projectId: integer("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
-  date: timestamp("date").notNull(),
+  startDate: timestamp("start_date").notNull(),
+  endDate: timestamp("end_date").notNull(),
   name: text("name").notNull(),
-  description: text("description"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -135,7 +135,10 @@ export const insertDcmaAssessmentSchema = createInsertSchema(dcmaAssessments).om
 });
 
 export const insertCalendarExceptionSchema = createInsertSchema(calendarExceptions, {
-  date: z.union([z.string(), z.date()]).transform((val) => 
+  startDate: z.union([z.string(), z.date()]).transform((val) => 
+    typeof val === 'string' ? new Date(val) : val
+  ),
+  endDate: z.union([z.string(), z.date()]).transform((val) => 
     typeof val === 'string' ? new Date(val) : val
   ),
 }).omit({

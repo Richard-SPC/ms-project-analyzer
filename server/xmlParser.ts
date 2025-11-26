@@ -90,23 +90,33 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
             const dayWorking = exc.DayWorking ? parseInt(String(exc.DayWorking)) : 1;
             if (dayWorking !== 0) continue; // Skip working days
             
-            // Microsoft Project stores exception dates in TimePeriod.FromDate or Start
-            let excDate: Date | undefined;
+            // Microsoft Project stores exception dates in TimePeriod.FromDate and ToDate
+            let startDate: Date | undefined;
+            let endDate: Date | undefined;
             
-            if (exc.TimePeriod && exc.TimePeriod.FromDate) {
-              excDate = new Date(exc.TimePeriod.FromDate);
-            } else if (exc.Start) {
-              excDate = new Date(exc.Start);
-            } else if (exc.TimephasedData && exc.TimephasedData.Start) {
-              excDate = new Date(exc.TimephasedData.Start);
+            if (exc.TimePeriod) {
+              if (exc.TimePeriod.FromDate) {
+                startDate = new Date(exc.TimePeriod.FromDate);
+              }
+              if (exc.TimePeriod.ToDate) {
+                endDate = new Date(exc.TimePeriod.ToDate);
+              }
             }
             
-            if (excDate && !isNaN(excDate.getTime())) {
+            // Fallback for alternative date fields
+            if (!startDate && exc.Start) {
+              startDate = new Date(exc.Start);
+            }
+            if (!endDate && exc.Finish) {
+              endDate = new Date(exc.Finish);
+            }
+            
+            if (startDate && !isNaN(startDate.getTime()) && endDate && !isNaN(endDate.getTime())) {
               const excName = exc.Name || exc.Type || `Non-working day`;
               exceptions.push({
-                date: excDate,
+                startDate,
+                endDate,
                 name: excName,
-                description: `Imported from project calendar`,
               });
             }
           } catch (e) {

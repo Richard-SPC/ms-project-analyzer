@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,7 +17,10 @@ import { z } from "zod";
 
 const formSchema = insertCalendarExceptionSchema.extend({
   name: z.string().min(1, "Name is required"),
-  date: z.union([z.string(), z.date()]).transform((val) => 
+  startDate: z.union([z.string(), z.date()]).transform((val) => 
+    typeof val === 'string' ? (val ? new Date(val) : undefined) : val
+  ),
+  endDate: z.union([z.string(), z.date()]).transform((val) => 
     typeof val === 'string' ? (val ? new Date(val) : undefined) : val
   ),
 });
@@ -74,16 +76,16 @@ export default function Exceptions({ projectId }: { projectId: number }) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
-      description: "",
-      date: undefined,
+      startDate: undefined,
+      endDate: undefined,
     },
   });
 
   const onSubmit = (data: FormData) => {
     createMutation.mutate({ 
       name: data.name, 
-      description: data.description,
-      date: data.date,
+      startDate: data.startDate,
+      endDate: data.endDate,
     });
   };
 
@@ -126,16 +128,34 @@ export default function Exceptions({ projectId }: { projectId: number }) {
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="date"
+                  name="startDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Date</FormLabel>
+                      <FormLabel>Start Date</FormLabel>
                       <FormControl>
                         <Input
                           type="date"
                           value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : ''}
                           onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
-                          data-testid="input-exception-date"
+                          data-testid="input-exception-start-date"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="endDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>End Date</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="date"
+                          value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : ''}
+                          onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : undefined)}
+                          data-testid="input-exception-end-date"
                         />
                       </FormControl>
                       <FormMessage />
@@ -159,24 +179,6 @@ export default function Exceptions({ projectId }: { projectId: number }) {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description (Optional)</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Additional notes about this exception"
-                          data-testid="input-exception-description"
-                          {...field}
-                          value={field.value ?? ""}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
                 <DialogFooter>
                   <Button type="submit" disabled={createMutation.isPending} data-testid="button-save-exception">
                     {createMutation.isPending ? "Adding..." : "Add Exception"}
@@ -193,33 +195,36 @@ export default function Exceptions({ projectId }: { projectId: number }) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Date</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead>Description</TableHead>
+                  <TableHead>Start Date</TableHead>
+                  <TableHead>Duration (Days)</TableHead>
+                  <TableHead>Finish Date</TableHead>
                   <TableHead className="w-12">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {exceptions.map((exception) => (
-                  <TableRow key={exception.id} data-testid={`row-exception-${exception.id}`}>
-                    <TableCell className="font-medium">{formatDateUK(exception.date)}</TableCell>
-                    <TableCell>{exception.name}</TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {exception.description || "-"}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deleteMutation.mutate(exception.id)}
-                        disabled={deleteMutation.isPending}
-                        data-testid={`button-delete-exception-${exception.id}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {exceptions.map((exception) => {
+                  const duration = Math.ceil((new Date(exception.endDate).getTime() - new Date(exception.startDate).getTime()) / (1000 * 60 * 60 * 24));
+                  return (
+                    <TableRow key={exception.id} data-testid={`row-exception-${exception.id}`}>
+                      <TableCell>{exception.name}</TableCell>
+                      <TableCell className="font-medium">{formatDateUK(exception.startDate)}</TableCell>
+                      <TableCell>{duration}</TableCell>
+                      <TableCell className="font-medium">{formatDateUK(exception.endDate)}</TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deleteMutation.mutate(exception.id)}
+                          disabled={deleteMutation.isPending}
+                          data-testid={`button-delete-exception-${exception.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
