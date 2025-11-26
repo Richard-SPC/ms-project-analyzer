@@ -43,6 +43,28 @@ const SCOTLAND_HOLIDAYS = [
   { name: "St Andrew's Day", date: new Date(2027, 10, 30) },
   { name: "Christmas Day", date: new Date(2027, 11, 25) },
   { name: "Boxing Day", date: new Date(2027, 11, 28) },
+  // 2028
+  { name: "New Year's Day", date: new Date(2028, 0, 1) },
+  { name: "2 January", date: new Date(2028, 0, 3) },
+  { name: "Good Friday", date: new Date(2028, 3, 14) },
+  { name: "Easter Monday", date: new Date(2028, 3, 17) },
+  { name: "Early May Bank Holiday", date: new Date(2028, 4, 1) },
+  { name: "Spring Bank Holiday", date: new Date(2028, 4, 29) },
+  { name: "Summer Bank Holiday", date: new Date(2028, 7, 7) },
+  { name: "St Andrew's Day", date: new Date(2028, 10, 30) },
+  { name: "Christmas Day", date: new Date(2028, 11, 25) },
+  { name: "Boxing Day", date: new Date(2028, 11, 26) },
+  // 2029
+  { name: "New Year's Day", date: new Date(2029, 0, 1) },
+  { name: "2 January", date: new Date(2029, 0, 2) },
+  { name: "Good Friday", date: new Date(2029, 3, 30) },
+  { name: "Easter Monday", date: new Date(2029, 4, 2) },
+  { name: "Early May Bank Holiday", date: new Date(2029, 4, 7) },
+  { name: "Spring Bank Holiday", date: new Date(2029, 5, 28) },
+  { name: "Summer Bank Holiday", date: new Date(2029, 7, 6) },
+  { name: "St Andrew's Day", date: new Date(2029, 10, 30) },
+  { name: "Christmas Day", date: new Date(2029, 11, 25) },
+  { name: "Boxing Day", date: new Date(2029, 11, 26) },
 ];
 
 export default function ProgrammeExceptions() {
@@ -71,8 +93,8 @@ export default function ProgrammeExceptions() {
           </div>
         </CardHeader>
         <CardContent className="pt-1 px-4">
-          <div className="grid grid-cols-3 gap-2">
-            {[2025, 2026, 2027].map((year) => (
+          <div className="grid grid-cols-5 gap-2">
+            {[2025, 2026, 2027, 2028, 2029].map((year) => (
               <div key={year} className="space-y-1">
                 <p className="font-semibold text-xs text-foreground mb-2">{year}</p>
                 <div className="space-y-1">
