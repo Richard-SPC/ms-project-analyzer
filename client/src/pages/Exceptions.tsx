@@ -105,10 +105,10 @@ export default function Exceptions({ projectId }: { projectId: number }) {
 
   return (
     <Card data-testid="card-exceptions">
-      <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
-        <div>
-          <CardTitle>Holidays & Non-Working Days</CardTitle>
-          <CardDescription>Manage calendar exceptions for this programme</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0 py-2">
+        <div className="space-y-0">
+          <CardTitle className="text-base">Holidays & Non-Working Days</CardTitle>
+          <CardDescription className="text-xs">Manage calendar exceptions for this programme</CardDescription>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
@@ -189,18 +189,18 @@ export default function Exceptions({ projectId }: { projectId: number }) {
           </DialogContent>
         </Dialog>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-2 pb-2">
         {exceptions && exceptions.length > 0 ? (
           <div className="border rounded-md overflow-hidden">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Calendar</TableHead>
-                  <TableHead>Start Date</TableHead>
-                  <TableHead>Duration (Days)</TableHead>
-                  <TableHead>Finish Date</TableHead>
-                  <TableHead className="w-12">Action</TableHead>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead className="h-7 text-xs font-semibold">Name</TableHead>
+                  <TableHead className="h-7 text-xs font-semibold">Calendar</TableHead>
+                  <TableHead className="h-7 text-xs font-semibold">Start Date</TableHead>
+                  <TableHead className="h-7 text-xs font-semibold">Duration (Days)</TableHead>
+                  <TableHead className="h-7 text-xs font-semibold">Finish Date</TableHead>
+                  <TableHead className="w-12 h-7 text-xs font-semibold">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -209,21 +209,22 @@ export default function Exceptions({ projectId }: { projectId: number }) {
                   const endDate = new Date(exception.endDate);
                   const duration = calculateWorkingDays(startDate, endDate);
                   return (
-                    <TableRow key={exception.id} data-testid={`row-exception-${exception.id}`}>
-                      <TableCell>{exception.name}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{exception.calendarName || 'Standard Calendar'}</TableCell>
-                      <TableCell className="font-medium">{formatDateUK(startDate)}</TableCell>
-                      <TableCell>{duration}</TableCell>
-                      <TableCell className="font-medium">{formatDateUK(endDate)}</TableCell>
-                      <TableCell>
+                    <TableRow key={exception.id} data-testid={`row-exception-${exception.id}`} className="h-7">
+                      <TableCell className="text-xs py-1">{exception.name}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground py-1">{exception.calendarName || 'Standard Calendar'}</TableCell>
+                      <TableCell className="text-xs font-medium py-1">{formatDateUK(startDate)}</TableCell>
+                      <TableCell className="text-xs py-1">{duration}</TableCell>
+                      <TableCell className="text-xs font-medium py-1">{formatDateUK(endDate)}</TableCell>
+                      <TableCell className="py-1">
                         <Button
                           variant="ghost"
                           size="icon"
+                          className="h-6 w-6"
                           onClick={() => deleteMutation.mutate(exception.id)}
                           disabled={deleteMutation.isPending}
                           data-testid={`button-delete-exception-${exception.id}`}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash2 className="h-3 w-3" />
                         </Button>
                       </TableCell>
                     </TableRow>
