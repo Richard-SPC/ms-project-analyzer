@@ -63,19 +63,26 @@ export default function ProgrammeExceptions() {
         </p>
       </div>
 
-      <Card data-testid="card-scotland-holidays">
-        <CardHeader className="pb-3">
+      <Card data-testid="card-scotland-holidays" className="max-w-2xl">
+        <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            <CardTitle className="text-base">Scotland Public Holidays</CardTitle>
+            <Calendar className="h-4 w-4" />
+            <CardTitle className="text-sm">Scotland Public Holidays</CardTitle>
           </div>
         </CardHeader>
-        <CardContent className="pt-0">
-          <div className="grid grid-cols-3 gap-3">
-            {SCOTLAND_HOLIDAYS.map((holiday) => (
-              <div key={`${holiday.name}-${formatDateUK(holiday.date)}`} className="text-sm" data-testid={`row-holiday-${holiday.name}-${formatDateUK(holiday.date)}`}>
-                <p className="font-medium text-foreground">{holiday.name}</p>
-                <p className="text-xs text-muted-foreground">{formatDateUK(holiday.date)}</p>
+        <CardContent className="pt-1 px-4">
+          <div className="grid grid-cols-3 gap-2">
+            {[2025, 2026, 2027].map((year) => (
+              <div key={year} className="space-y-1">
+                <p className="font-semibold text-xs text-foreground mb-2">{year}</p>
+                <div className="space-y-1">
+                  {SCOTLAND_HOLIDAYS.filter((h) => h.date.getFullYear() === year).map((holiday) => (
+                    <div key={`${holiday.name}-${formatDateUK(holiday.date)}`} className="text-xs" data-testid={`row-holiday-${holiday.name}-${formatDateUK(holiday.date)}`}>
+                      <p className="font-medium text-foreground leading-tight">{holiday.name}</p>
+                      <p className="text-muted-foreground leading-tight">{formatDateUK(holiday.date)}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             ))}
           </div>
