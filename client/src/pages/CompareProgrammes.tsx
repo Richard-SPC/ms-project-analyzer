@@ -382,9 +382,9 @@ export default function CompareProgrammes() {
                                 className={milestone.isHeader ? "bg-muted text-muted-foreground" : ""}
                                 data-testid={`cell-movement-${idx}-${dateIdx}`}
                               >
-                                {!milestone.isHeader && nextDateData.movementWeeks !== undefined ? (
+                                {!milestone.isHeader && nextDateData.movementDays !== undefined && nextDateData.movementDays !== 0 ? (
                                   <span className="text-xs font-medium">
-                                    {nextDateData.movementWeeks > 0 ? "+" : ""}{nextDateData.movementWeeks}w ({nextDateData.movementDays}d)
+                                    {nextDateData.movementDays > 0 ? "+" : ""}{nextDateData.movementDays}d
                                   </span>
                                 ) : !milestone.isHeader ? (
                                   <span className="text-muted-foreground italic">-</span>
