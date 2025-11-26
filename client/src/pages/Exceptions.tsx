@@ -197,8 +197,8 @@ export default function Exceptions({ projectId }: { projectId: number }) {
                 <TableRow className="hover:bg-transparent">
                   <TableHead className="h-7 text-xs font-semibold">Name</TableHead>
                   <TableHead className="h-7 text-xs font-semibold">Calendar</TableHead>
-                  <TableHead className="h-7 text-xs font-semibold">Start Date</TableHead>
                   <TableHead className="h-7 text-xs font-semibold">Duration (Days)</TableHead>
+                  <TableHead className="h-7 text-xs font-semibold">Start Date</TableHead>
                   <TableHead className="h-7 text-xs font-semibold">Finish Date</TableHead>
                   <TableHead className="w-12 h-7 text-xs font-semibold">Action</TableHead>
                 </TableRow>
@@ -212,8 +212,8 @@ export default function Exceptions({ projectId }: { projectId: number }) {
                     <TableRow key={exception.id} data-testid={`row-exception-${exception.id}`} className="h-7">
                       <TableCell className="text-xs py-1">{exception.name}</TableCell>
                       <TableCell className="text-xs text-muted-foreground py-1">{exception.calendarName || 'Standard Calendar'}</TableCell>
-                      <TableCell className="text-xs font-medium py-1">{formatDateUK(startDate)}</TableCell>
                       <TableCell className="text-xs py-1">{duration}</TableCell>
+                      <TableCell className="text-xs font-medium py-1">{formatDateUK(startDate)}</TableCell>
                       <TableCell className="text-xs font-medium py-1">{formatDateUK(endDate)}</TableCell>
                       <TableCell className="py-1">
                         <Button
