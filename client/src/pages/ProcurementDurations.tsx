@@ -186,15 +186,15 @@ export default function ProcurementDurations() {
               <Table>
                 <TableHeader>
                   <TableRow className="h-2">
-                    <TableHead className="text-sm" data-testid="header-programme">Programme</TableHead>
-                    <TableHead className="text-sm" data-testid="header-task-name">Task Name</TableHead>
-                    <TableHead className="text-right text-sm" data-testid="header-duration-days">
+                    <TableHead className="text-sm py-0" data-testid="header-programme">Programme</TableHead>
+                    <TableHead className="text-sm py-0" data-testid="header-task-name">Task Name</TableHead>
+                    <TableHead className="text-right text-sm py-0" data-testid="header-duration-days">
                       Duration (days)
                     </TableHead>
-                    <TableHead className="text-right text-sm" data-testid="header-duration-weeks">
+                    <TableHead className="text-right text-sm py-0" data-testid="header-duration-weeks">
                       Duration (weeks)
                     </TableHead>
-                    <TableHead className="text-right text-sm" data-testid="header-complete">
+                    <TableHead className="text-right text-sm py-0" data-testid="header-complete">
                       % Complete
                     </TableHead>
                   </TableRow>
@@ -202,19 +202,19 @@ export default function ProcurementDurations() {
                 <TableBody>
                   {filteredTasks.map((task) => (
                     <TableRow key={task.id} className="h-2" data-testid={`row-procurement-task-${task.id}`}>
-                      <TableCell className="font-medium text-sm" data-testid={`text-programme-${task.id}`}>
+                      <TableCell className="font-medium text-sm py-0" data-testid={`text-programme-${task.id}`}>
                         {task.projectName}
                       </TableCell>
-                      <TableCell className="text-sm" data-testid={`text-task-name-${task.id}`}>
+                      <TableCell className="text-sm py-0" data-testid={`text-task-name-${task.id}`}>
                         {task.name}
                       </TableCell>
-                      <TableCell className="text-right text-sm" data-testid={`text-duration-days-${task.id}`}>
+                      <TableCell className="text-right text-sm py-0" data-testid={`text-duration-days-${task.id}`}>
                         {task.duration ?? "-"}
                       </TableCell>
-                      <TableCell className="text-right text-sm" data-testid={`text-duration-weeks-${task.id}`}>
+                      <TableCell className="text-right text-sm py-0" data-testid={`text-duration-weeks-${task.id}`}>
                         {task.duration ? (task.duration / 5).toFixed(1) : "-"}
                       </TableCell>
-                      <TableCell className="text-right text-sm" data-testid={`text-complete-${task.id}`}>
+                      <TableCell className="text-right text-sm py-0" data-testid={`text-complete-${task.id}`}>
                         {task.percentComplete}%
                       </TableCell>
                     </TableRow>
