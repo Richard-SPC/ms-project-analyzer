@@ -57,14 +57,39 @@ export default function CompareProgrammes() {
 
     // Find all unique milestone names across all programmes
     const allMilestones = new Map<string, Set<number>>();
+    const contractSummaryWbsCodes = new Map<number, string>(); // programme id -> wbs code of summary
     
     selectedProgrammesWithTasks.forEach((progWithTasks) => {
-      const contractSummary = progWithTasks.tasks.find(
-        t => t.isSummary && t.name.toLowerCase().includes("contract") && t.name.toLowerCase().includes("key date")
+      // Look for Contract & Key Dates summary - try multiple patterns
+      let contractSummary = progWithTasks.tasks.find(
+        t => t.isSummary && t.name.toLowerCase().includes("contract") && t.name.toLowerCase().includes("key")
       );
+      
+      // If not found, try to find the top-level summary (wbs code like "1")
+      if (!contractSummary) {
+        contractSummary = progWithTasks.tasks.find(
+          t => t.isSummary && t.wbsCode === "1"
+        );
+      }
+      
+      // If still not found, find any summary with milestones under it
+      if (!contractSummary) {
+        const summariesWithMilestones = progWithTasks.tasks.filter(t => t.isSummary);
+        for (const summary of summariesWithMilestones) {
+          const hasMilestones = progWithTasks.tasks.some(
+            t => t.isMilestone && t.wbsCode && t.wbsCode.startsWith(summary.wbsCode || "")
+          );
+          if (hasMilestones) {
+            contractSummary = summary;
+            break;
+          }
+        }
+      }
 
       if (contractSummary) {
-        // Get milestones under this summary
+        contractSummaryWbsCodes.set(progWithTasks.programme.id, contractSummary.wbsCode || "");
+        
+        // Get all milestones under this summary (including nested ones)
         const milestones = progWithTasks.tasks.filter(
           t => t.isMilestone && 
               t.wbsCode && 
@@ -91,15 +116,13 @@ export default function CompareProgrammes() {
       const dates: Array<{ progId: number; date: Date | null }> = [];
       
       selectedProgrammesWithTasks.forEach((progWithTasks) => {
-        const contractSummary = progWithTasks.tasks.find(
-          t => t.isSummary && t.name.toLowerCase().includes("contract") && t.name.toLowerCase().includes("key date")
-        );
-
-        if (contractSummary) {
+        const wbsCodePrefix = contractSummaryWbsCodes.get(progWithTasks.programme.id);
+        
+        if (wbsCodePrefix) {
           const milestone = progWithTasks.tasks.find(
             t => t.isMilestone && t.name === milestoneName &&
                 t.wbsCode && 
-                t.wbsCode.startsWith(contractSummary.wbsCode || "")
+                t.wbsCode.startsWith(wbsCodePrefix)
           );
           dates.push({
             progId: progWithTasks.programme.id,
