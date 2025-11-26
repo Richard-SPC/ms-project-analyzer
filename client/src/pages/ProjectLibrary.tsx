@@ -675,7 +675,6 @@ export default function ProjectLibrary() {
             </DialogContent>
           </Dialog>
         </div>
-      </div>
 
       {projectsLoading ? (
         <div className="space-y-4">
@@ -750,7 +749,7 @@ export default function ProjectLibrary() {
           )}
         </>
       )}
-            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="dcma" className="flex-1 overflow-auto">
