@@ -193,7 +193,7 @@ export default function ProcurementDurations() {
                         {task.duration ?? "-"}
                       </TableCell>
                       <TableCell className="text-right" data-testid={`text-duration-weeks-${task.id}`}>
-                        {task.duration ? (task.duration / 7).toFixed(1) : "-"}
+                        {task.duration ? (task.duration / 5).toFixed(1) : "-"}
                       </TableCell>
                       <TableCell className="text-right" data-testid={`text-complete-${task.id}`}>
                         {task.percentComplete}%
