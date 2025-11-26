@@ -51,7 +51,7 @@ const colorOptions = [
 ];
 
 function ProgrammeTile({ programme, onDelete }: { programme: Project; onDelete: () => void }) {
-  const { data: completion } = useQuery({
+  const { data: completion } = useQuery<{ percentComplete?: number }>({
     queryKey: [`/api/projects/${programme.id}/completion`],
   });
 
@@ -492,7 +492,28 @@ export default function ProjectLibrary() {
                 <h1 className="text-3xl font-bold text-foreground" data-testid="text-library-title">Project Library</h1>
                 <p className="text-muted-foreground">Organize your programmes into projects</p>
               </div>
-        <div className="flex gap-2 flex-wrap">
+              <Input
+                placeholder="Search projects..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                className="max-w-xs"
+                data-testid="input-search-library"
+              />
+            </div>
+
+            {(searchText) && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSearchText("")}
+                data-testid="button-clear-search"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Clear Search
+              </Button>
+            )}
+
+            <div className="flex gap-2 flex-wrap">
           <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" data-testid="button-upload-programme">
@@ -675,8 +696,8 @@ export default function ProjectLibrary() {
         </div>
       ) : (
         <>
-          {projects && projects.length > 0 ? (
-            projects.map((project) => (
+          {filteredProjects && filteredProjects.length > 0 ? (
+            filteredProjects.map((project) => (
               <ProjectSection
                 key={project.id}
                 project={project}
@@ -686,6 +707,25 @@ export default function ProjectLibrary() {
               />
             ))
           ) : null}
+
+          {filteredProjects.length === 0 && projects && projects.length > 0 && (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <Library className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No projects match your search</h3>
+                <p className="text-sm text-muted-foreground mb-4 text-center max-w-md">
+                  Try adjusting your search terms to find what you're looking for.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={() => setSearchText("")}
+                  data-testid="button-clear-search-empty"
+                >
+                  Clear Search
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
           {(!projects || projects.length === 0) && (
             <Card>
@@ -711,7 +751,7 @@ export default function ProjectLibrary() {
         </>
       )}
             </div>
-          </TabsContent>
+        </TabsContent>
 
         <TabsContent value="dcma" className="flex-1 overflow-auto">
           <DcmaAssessment />
