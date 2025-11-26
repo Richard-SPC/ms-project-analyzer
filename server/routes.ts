@@ -292,7 +292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/procurement-tasks", async (req, res) => {
     try {
       const allProjects = await storage.getAllProjects();
-      const procurementTasks: Array<{ id: number; name: string; duration: number | null; projectId: number; projectName: string }> = [];
+      const procurementTasks: Array<{ id: number; name: string; duration: number | null; percentComplete: number; projectId: number; projectName: string }> = [];
       
       for (const project of allProjects) {
         const tasks = await storage.getTasksByProject(project.id);
@@ -302,6 +302,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: task.id,
           name: task.name,
           duration: task.duration,
+          percentComplete: parseFloat(task.percentComplete?.toString() || "0"),
           projectId: project.id,
           projectName: project.name
         }));

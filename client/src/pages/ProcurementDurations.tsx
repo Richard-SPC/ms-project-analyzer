@@ -7,6 +7,7 @@ interface ProcurementTask {
   id: number;
   name: string;
   duration: number | null;
+  percentComplete: number;
   projectId: number;
   projectName: string;
 }
@@ -80,6 +81,9 @@ export default function ProcurementDurations() {
                     <TableHead className="text-right" data-testid="header-duration">
                       Duration (days)
                     </TableHead>
+                    <TableHead className="text-right" data-testid="header-complete">
+                      % Complete
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -93,6 +97,9 @@ export default function ProcurementDurations() {
                       </TableCell>
                       <TableCell className="text-right" data-testid={`text-duration-${task.id}`}>
                         {task.duration ?? "-"}
+                      </TableCell>
+                      <TableCell className="text-right" data-testid={`text-complete-${task.id}`}>
+                        {task.percentComplete}%
                       </TableCell>
                     </TableRow>
                   ))}
