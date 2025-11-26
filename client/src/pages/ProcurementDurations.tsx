@@ -48,10 +48,16 @@ export default function ProcurementDurations() {
     });
   }, [procurementTasks, searchText, selectedProgramme, completionFilter]);
 
-  const totalDuration = procurementTasks?.reduce((sum, task) => sum + (task.duration || 0), 0) || 0;
-  const filteredDuration = filteredTasks.reduce((sum, task) => sum + (task.duration || 0), 0);
-  const taskCount = procurementTasks?.length || 0;
-  const filteredCount = filteredTasks.length;
+  const filteredTasksWithDuration = filteredTasks.filter(task => task.duration && task.duration > 0);
+  const shortestDuration = filteredTasksWithDuration.length > 0 
+    ? Math.min(...filteredTasksWithDuration.map(t => t.duration || 0))
+    : 0;
+  const longestDuration = filteredTasksWithDuration.length > 0
+    ? Math.max(...filteredTasksWithDuration.map(t => t.duration || 0))
+    : 0;
+  const averageDuration = filteredTasksWithDuration.length > 0
+    ? filteredTasksWithDuration.reduce((sum, task) => sum + (task.duration || 0), 0) / filteredTasksWithDuration.length
+    : 0;
 
   return (
     <div className="p-6 space-y-6">
@@ -64,30 +70,43 @@ export default function ProcurementDurations() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card data-testid="card-stat-task-count">
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card data-testid="card-stat-shortest-duration">
           <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tasks</CardTitle>
+            <CardTitle className="text-sm font-medium">Shortest Duration</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold" data-testid="text-stat-task-count">
-              {filteredCount} / {taskCount}
+            <div className="text-2xl font-bold" data-testid="text-stat-shortest-duration">
+              {shortestDuration || "-"}
             </div>
-            <p className="text-xs text-muted-foreground">Filtered / Total</p>
+            <p className="text-xs text-muted-foreground">days</p>
           </CardContent>
         </Card>
 
-        <Card data-testid="card-stat-total-duration">
+        <Card data-testid="card-stat-longest-duration">
           <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Duration</CardTitle>
+            <CardTitle className="text-sm font-medium">Longest Duration</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold" data-testid="text-stat-total-duration">
-              {filteredDuration} / {totalDuration} days
+            <div className="text-2xl font-bold" data-testid="text-stat-longest-duration">
+              {longestDuration || "-"}
             </div>
-            <p className="text-xs text-muted-foreground">Filtered / Total</p>
+            <p className="text-xs text-muted-foreground">days</p>
+          </CardContent>
+        </Card>
+
+        <Card data-testid="card-stat-average-duration">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Average Duration</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold" data-testid="text-stat-average-duration">
+              {averageDuration ? averageDuration.toFixed(1) : "-"}
+            </div>
+            <p className="text-xs text-muted-foreground">days</p>
           </CardContent>
         </Card>
       </div>
