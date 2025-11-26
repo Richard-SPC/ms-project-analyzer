@@ -135,24 +135,28 @@ function ProjectSection({
           <div className="flex items-center justify-between gap-2">
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="p-0 hover:bg-transparent">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-4 flex-1">
                   {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                   <div 
                     className="w-3 h-3 rounded-full" 
                     style={{ backgroundColor: project.color || "#3B82F6" }}
                   />
-                  <div className="flex flex-col gap-0">
-                    <div className="flex items-center gap-2">
+                  <div className="flex-1 flex items-center justify-between gap-4">
+                    <div className="flex-shrink-0">
                       <CardTitle className="text-lg">{project.name}</CardTitle>
+                    </div>
+                    <div className="flex-1 flex justify-center">
                       {project.client && (
                         <span className="text-sm text-muted-foreground">Client: {project.client}</span>
                       )}
                     </div>
-                    {project.projectManager && (
-                      <p className="text-xs text-muted-foreground">Project Manager: {project.projectManager}</p>
-                    )}
+                    <div className="flex-shrink-0">
+                      {project.projectManager && (
+                        <p className="text-sm text-muted-foreground">PM: {project.projectManager}</p>
+                      )}
+                    </div>
                   </div>
-                  <Badge variant="secondary" className="ml-2">
+                  <Badge variant="secondary" className="ml-2 flex-shrink-0">
                     {programmes.length} programme{programmes.length !== 1 ? "s" : ""}
                   </Badge>
                 </div>
