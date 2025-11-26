@@ -162,9 +162,22 @@ export default function CompareProgrammes() {
       });
     });
 
+    // Define custom section order
+    const sectionOrder = [
+      "Contract & Key Dates",
+      "Access Dates",
+      "Contract Key Dates",
+      "Planned Contract Key Dates"
+    ];
+
     return groupedMilestones.sort((a, b) => {
-      // Sort by section first, then show moved items first, then by name
-      if (a.section !== b.section) return a.section.localeCompare(b.section);
+      // Sort by section first using custom order
+      const aOrder = sectionOrder.indexOf(a.section);
+      const bOrder = sectionOrder.indexOf(b.section);
+      if (aOrder !== bOrder) {
+        return (aOrder === -1 ? sectionOrder.length : aOrder) - (bOrder === -1 ? sectionOrder.length : bOrder);
+      }
+      
       if (a.isHeader) return -1;
       if (b.isHeader) return 1;
       if (a.data.some(d => d.moved) && !b.data.some(d => d.moved)) return -1;
