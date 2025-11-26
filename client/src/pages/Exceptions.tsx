@@ -107,7 +107,7 @@ export default function Exceptions({ projectId }: { projectId: number }) {
     <Card data-testid="card-exceptions">
       <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0 py-2">
         <div className="space-y-0">
-          <CardTitle className="text-base">Holidays & Non-Working Days</CardTitle>
+          <CardTitle className="text-sm">Holidays & Non-Working Days</CardTitle>
           <CardDescription className="text-xs">Manage calendar exceptions for this programme</CardDescription>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

@@ -265,9 +265,9 @@ export default function ProgrammeExceptions() {
       </Card>
 
       <Card data-testid="card-programme-selection">
-        <CardHeader>
-          <CardTitle>Select Programme</CardTitle>
-          <CardDescription>Choose a programme to manage its exceptions</CardDescription>
+        <CardHeader className="py-2">
+          <CardTitle className="text-sm">Select Programme</CardTitle>
+          <CardDescription className="text-xs">Choose a programme to manage its exceptions</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {selectedId && (
