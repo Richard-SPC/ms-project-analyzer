@@ -13,6 +13,7 @@ import ProjectLibrary from "@/pages/ProjectLibrary";
 import ProjectDetail from "@/pages/ProjectDetail";
 import DcmaAssessment from "@/pages/DcmaAssessment";
 import ProcurementDurations from "@/pages/ProcurementDurations";
+import CompareProgrammes from "@/pages/CompareProgrammes";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -24,6 +25,7 @@ function Router() {
       <Route path="/projects/:id" component={ProjectDetail} />
       <Route path="/dcma" component={DcmaAssessment} />
       <Route path="/procurement" component={ProcurementDurations} />
+      <Route path="/compare" component={CompareProgrammes} />
       <Route component={NotFound} />
     </Switch>
   );

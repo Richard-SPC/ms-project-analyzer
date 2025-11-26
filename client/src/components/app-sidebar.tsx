@@ -1,4 +1,4 @@
-import { Home, FileCheck, Library, Package } from "lucide-react";
+import { Home, FileCheck, Library, Package, GitCompare } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -31,6 +31,11 @@ const menuItems = [
     title: "Procurement Durations",
     url: "/procurement",
     icon: Package,
+  },
+  {
+    title: "Compare Programmes",
+    url: "/compare",
+    icon: GitCompare,
   },
 ];
 
