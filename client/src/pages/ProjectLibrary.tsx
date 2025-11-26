@@ -58,35 +58,35 @@ function ProgrammeTile({ programme, onDelete }: { programme: Project; onDelete: 
 
   return (
     <Card className="hover-elevate" data-testid={`card-programme-${programme.id}`}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <FolderKanban className="h-5 w-5 text-primary flex-shrink-0" />
+      <CardHeader className="py-2 px-4">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <FolderKanban className="h-4 w-4 text-primary flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-base">{programme.name}</CardTitle>
+              <CardTitle className="text-sm">{programme.name}</CardTitle>
             </div>
           </div>
-          <div className="flex items-center gap-6 flex-wrap">
-            <div className="text-sm">
-              <p className="text-muted-foreground">Start Date</p>
+          <div className="flex items-center gap-3 flex-wrap">
+            <div className="text-xs">
+              <p className="text-muted-foreground">Start</p>
               <p className="font-medium text-foreground">
                 {programme.startDate ? formatDateUK(programme.startDate) : "N/A"}
               </p>
             </div>
-            <div className="text-sm">
-              <p className="text-muted-foreground">End Date</p>
+            <div className="text-xs">
+              <p className="text-muted-foreground">End</p>
               <p className="font-medium text-foreground">
                 {programme.endDate ? formatDateUK(programme.endDate) : "N/A"}
               </p>
             </div>
-            <div className="text-sm">
-              <p className="text-muted-foreground">Status Date</p>
+            <div className="text-xs">
+              <p className="text-muted-foreground">Status</p>
               <p className="font-medium text-foreground">
                 {programme.statusDate ? formatDateUK(programme.statusDate) : "N/A"}
               </p>
             </div>
-            <div className="text-sm">
-              <p className="text-muted-foreground">Overall Complete</p>
+            <div className="text-xs">
+              <p className="text-muted-foreground">Complete</p>
               <p className="font-medium text-foreground">
                 {completion?.percentComplete ?? "-"}%
               </p>
@@ -141,35 +141,35 @@ function ProjectSection({
   });
 
   return (
-    <Card className="mb-4" data-testid={`card-project-${project.id}`}>
+    <Card className="mb-3" data-testid={`card-project-${project.id}`}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="pb-2">
+        <CardHeader className="py-2 px-4">
           <div className="flex items-center justify-between gap-2">
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="p-0 hover:bg-transparent">
-                <div className="flex items-center gap-4 flex-1">
+                <div className="flex items-center gap-2 flex-1">
                   {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                   <div 
-                    className="w-3 h-3 rounded-full" 
+                    className="w-2 h-2 rounded-full" 
                     style={{ backgroundColor: project.color || "#3B82F6" }}
                   />
-                  <div className="flex-1 flex items-center justify-between gap-4">
+                  <div className="flex-1 flex items-center justify-between gap-2">
                     <div className="flex-shrink-0">
-                      <CardTitle className="text-lg">{project.name}</CardTitle>
+                      <CardTitle className="text-sm">{project.name}</CardTitle>
                     </div>
                     <div className="flex-1 flex justify-center">
                       {project.client && (
-                        <span className="text-sm text-muted-foreground">Client: {project.client}</span>
+                        <span className="text-xs text-muted-foreground">Client: {project.client}</span>
                       )}
                     </div>
                     <div className="flex-shrink-0">
                       {project.projectManager && (
-                        <p className="text-sm text-muted-foreground">PM: {project.projectManager}</p>
+                        <p className="text-xs text-muted-foreground">PM: {project.projectManager}</p>
                       )}
                     </div>
                   </div>
-                  <Badge variant="secondary" className="ml-2 flex-shrink-0">
-                    {programmes.length} programme{programmes.length !== 1 ? "s" : ""}
+                  <Badge variant="secondary" className="ml-1 flex-shrink-0 text-xs">
+                    {programmes.length}
                   </Badge>
                 </div>
               </Button>
@@ -197,13 +197,13 @@ function ProjectSection({
             </DropdownMenu>
           </div>
           {project.description && (
-            <CardDescription className="ml-9">{project.description}</CardDescription>
+            <CardDescription className="ml-6 text-xs">{project.description}</CardDescription>
           )}
         </CardHeader>
         <CollapsibleContent>
-          <CardContent>
+          <CardContent className="pt-2 pb-2">
             {programmes.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-1">
                 {programmes.map((programme) => (
                   <ProgrammeTile
                     key={programme.id}
@@ -213,9 +213,9 @@ function ProjectSection({
                 ))}
               </div>
             ) : (
-              <div className="text-center py-4 text-muted-foreground">
-                <FolderOpen className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No programmes in this project yet</p>
+              <div className="text-center py-2 text-muted-foreground">
+                <FolderOpen className="h-6 w-6 mx-auto mb-1 opacity-50" />
+                <p className="text-xs">No programmes in this project yet</p>
               </div>
             )}
           </CardContent>
