@@ -116,10 +116,10 @@ export default function ProcurementDurations() {
           <CardTitle className="text-sm">Procurement Tasks</CardTitle>
           <CardDescription className="text-xs">Search and filter procurement-related tasks</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-2 pt-2 pb-2">
+        <CardContent className="space-y-2 pt-3 pb-2">
           <div className="grid gap-2 md:grid-cols-3">
             <div>
-              <label className="text-sm font-medium mb-2 block">Search Task Name</label>
+              <label className="text-sm font-medium mb-1 block">Search Task Name</label>
               <Input
                 placeholder="Search tasks..."
                 value={searchText}
@@ -186,15 +186,15 @@ export default function ProcurementDurations() {
               <Table>
                 <TableHeader>
                   <TableRow className="h-4">
-                    <TableHead className="text-xs" data-testid="header-programme">Programme</TableHead>
-                    <TableHead className="text-xs" data-testid="header-task-name">Task Name</TableHead>
-                    <TableHead className="text-right text-xs" data-testid="header-duration-days">
+                    <TableHead className="text-sm" data-testid="header-programme">Programme</TableHead>
+                    <TableHead className="text-sm" data-testid="header-task-name">Task Name</TableHead>
+                    <TableHead className="text-right text-sm" data-testid="header-duration-days">
                       Duration (days)
                     </TableHead>
-                    <TableHead className="text-right text-xs" data-testid="header-duration-weeks">
+                    <TableHead className="text-right text-sm" data-testid="header-duration-weeks">
                       Duration (weeks)
                     </TableHead>
-                    <TableHead className="text-right text-xs" data-testid="header-complete">
+                    <TableHead className="text-right text-sm" data-testid="header-complete">
                       % Complete
                     </TableHead>
                   </TableRow>
@@ -202,19 +202,19 @@ export default function ProcurementDurations() {
                 <TableBody>
                   {filteredTasks.map((task) => (
                     <TableRow key={task.id} className="h-4" data-testid={`row-procurement-task-${task.id}`}>
-                      <TableCell className="font-medium text-xs" data-testid={`text-programme-${task.id}`}>
+                      <TableCell className="font-medium text-sm" data-testid={`text-programme-${task.id}`}>
                         {task.projectName}
                       </TableCell>
-                      <TableCell className="text-xs" data-testid={`text-task-name-${task.id}`}>
+                      <TableCell className="text-sm" data-testid={`text-task-name-${task.id}`}>
                         {task.name}
                       </TableCell>
-                      <TableCell className="text-right text-xs" data-testid={`text-duration-days-${task.id}`}>
+                      <TableCell className="text-right text-sm" data-testid={`text-duration-days-${task.id}`}>
                         {task.duration ?? "-"}
                       </TableCell>
-                      <TableCell className="text-right text-xs" data-testid={`text-duration-weeks-${task.id}`}>
+                      <TableCell className="text-right text-sm" data-testid={`text-duration-weeks-${task.id}`}>
                         {task.duration ? (task.duration / 5).toFixed(1) : "-"}
                       </TableCell>
-                      <TableCell className="text-right text-xs" data-testid={`text-complete-${task.id}`}>
+                      <TableCell className="text-right text-sm" data-testid={`text-complete-${task.id}`}>
                         {task.percentComplete}%
                       </TableCell>
                     </TableRow>
