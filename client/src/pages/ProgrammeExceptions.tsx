@@ -223,12 +223,12 @@ export default function ProgrammeExceptions() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-1 px-4">
-          <div className="grid grid-cols-5 gap-2">
+        <CardContent className="pt-1 px-4 pb-2">
+          <div className="grid grid-cols-5 gap-1">
             {[2025, 2026, 2027, 2028, 2029].map((year) => (
-              <div key={year} className="space-y-1">
-                <p className="font-semibold text-xs text-foreground mb-2">{year}</p>
-                <div className="space-y-1">
+              <div key={year} className="space-y-0.5">
+                <p className="font-semibold text-xs text-foreground mb-1">{year}</p>
+                <div className="space-y-0.5">
                   {holidays.filter((h) => h.date.getFullYear() === year).map((holiday, idx) => {
                     const status = getHolidayStatus(holiday);
                     const bgColors = {
@@ -247,11 +247,11 @@ export default function ProgrammeExceptions() {
                     return (
                       <div 
                         key={`${holiday.name}-${formatDateUK(holiday.date)}-${idx}`} 
-                        className={`text-xs p-1 rounded transition-colors ${bgColors[status]}`}
+                        className={`text-xs p-0.5 rounded transition-colors ${bgColors[status]}`}
                         data-testid={`row-holiday-${holiday.name}-${formatDateUK(holiday.date)}`}
                       >
-                        <p className="font-medium text-foreground leading-tight">{holiday.name}</p>
-                        <p className={`leading-tight font-medium ${textColors[status]}`}>
+                        <p className="font-medium text-foreground leading-none text-xs">{holiday.name}</p>
+                        <p className={`leading-none font-medium text-xs ${textColors[status]}`}>
                           {formatDateUK(holiday.date)}
                         </p>
                       </div>
