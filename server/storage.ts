@@ -484,7 +484,7 @@ export class DbStorage implements IStorage {
       .select()
       .from(calendarExceptions)
       .where(eq(calendarExceptions.projectId, projectId))
-      .orderBy(calendarExceptions.date);
+      .orderBy(calendarExceptions.startDate);
   }
 
   async deleteCalendarException(id: number): Promise<void> {
