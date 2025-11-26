@@ -89,15 +89,16 @@ export default function CompareProgrammes() {
       if (contractSummary) {
         contractSummaryWbsCodes.set(progWithTasks.programme.id, contractSummary.wbsCode || "");
         
-        // Get all milestones under this summary (including nested ones)
-        const milestones = progWithTasks.tasks.filter(
-          t => t.isMilestone && 
-              t.wbsCode && 
-              t.wbsCode.startsWith(contractSummary.wbsCode || "") &&
-              t.id !== contractSummary.id
+        // Get ALL milestones under this summary - including those in any nested structure
+        // Don't filter by isMilestone - get all tasks that could be milestones (key dates)
+        const allTasksUnderSummary = progWithTasks.tasks.filter(
+          t => t.wbsCode && 
+               t.wbsCode.startsWith(contractSummary!.wbsCode || "") &&
+               t.id !== contractSummary.id &&
+               (t.isMilestone || t.name.toLowerCase().includes("date"))
         );
 
-        milestones.forEach(m => {
+        allTasksUnderSummary.forEach(m => {
           if (!allMilestones.has(m.name)) {
             allMilestones.set(m.name, new Set());
           }
@@ -120,7 +121,7 @@ export default function CompareProgrammes() {
         
         if (wbsCodePrefix) {
           const milestone = progWithTasks.tasks.find(
-            t => t.isMilestone && t.name === milestoneName &&
+            t => t.name === milestoneName &&
                 t.wbsCode && 
                 t.wbsCode.startsWith(wbsCodePrefix)
           );
