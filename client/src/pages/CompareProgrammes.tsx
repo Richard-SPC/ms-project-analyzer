@@ -114,7 +114,12 @@ export default function CompareProgrammes() {
       });
 
       // Check if dates have moved (are different across programmes)
-      const validDates = dates.filter(d => d.date).map(d => d.date?.getTime());
+      const validDates = dates
+        .filter(d => d.date)
+        .map(d => {
+          const date = typeof d.date === 'string' ? new Date(d.date) : d.date;
+          return date?.getTime?.() || 0;
+        });
       const moved = validDates.length > 0 && new Set(validDates).size > 1;
 
       milestones.push({
