@@ -5,21 +5,135 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { X, AlertCircle } from "lucide-react";
 import { formatDateUK } from "@/lib/utils";
-import type { Project } from "@shared/schema";
+import type { Project, Task } from "@shared/schema";
+
+interface ProgrammeWithTasks {
+  programme: Project;
+  tasks: Task[];
+}
 
 export default function CompareProgrammes() {
-  const { data: allProgrammes, isLoading } = useQuery<Project[]>({
+  const { data: allProgrammes, isLoading: programmesLoading } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
   });
 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-  const selectedProgrammes = useMemo(() => {
-    if (!allProgrammes) return [];
-    return allProgrammes.filter(p => selectedIds.includes(p.id));
-  }, [allProgrammes, selectedIds]);
+  // Fetch tasks for selected programmes
+  const taskQueries = selectedIds.map(id => ({
+    queryKey: [`/api/projects/${id}/tasks`],
+  }));
+
+  const taskResults = useQuery<Task[][]>({
+    queryKey: ["selected-programme-tasks", selectedIds.join(",")],
+    queryFn: async () => {
+      if (selectedIds.length === 0) return [];
+      const results = await Promise.all(
+        selectedIds.map(id =>
+          fetch(`/api/projects/${id}/tasks`)
+            .then(r => r.json())
+            .catch(() => [])
+        )
+      );
+      return results;
+    },
+    enabled: selectedIds.length > 0,
+  });
+
+  const selectedProgrammesWithTasks = useMemo(() => {
+    if (!allProgrammes || !taskResults.data) return [];
+    
+    return selectedIds.map((id, idx) => ({
+      programme: allProgrammes.find(p => p.id === id)!,
+      tasks: taskResults.data[idx] || [],
+    })).filter(item => item.programme);
+  }, [allProgrammes, selectedIds, taskResults.data]);
+
+  // Extract Contract & Key Dates milestones
+  const contractKeyDatesMilestones = useMemo(() => {
+    if (selectedProgrammesWithTasks.length === 0) return [];
+
+    // Find all unique milestone names across all programmes
+    const allMilestones = new Map<string, Set<number>>();
+    
+    selectedProgrammesWithTasks.forEach((progWithTasks) => {
+      const contractSummary = progWithTasks.tasks.find(
+        t => t.isSummary && t.name.toLowerCase().includes("contract") && t.name.toLowerCase().includes("key date")
+      );
+
+      if (contractSummary) {
+        // Get milestones under this summary
+        const milestones = progWithTasks.tasks.filter(
+          t => t.isMilestone && 
+              t.wbsCode && 
+              t.wbsCode.startsWith(contractSummary.wbsCode || "") &&
+              t.id !== contractSummary.id
+        );
+
+        milestones.forEach(m => {
+          if (!allMilestones.has(m.name)) {
+            allMilestones.set(m.name, new Set());
+          }
+          allMilestones.get(m.name)!.add(progWithTasks.programme.id);
+        });
+      }
+    });
+
+    // Create comparison data
+    const milestones: Array<{
+      name: string;
+      data: Array<{ progId: number; date: Date | null; moved: boolean }>;
+    }> = [];
+
+    allMilestones.forEach((progIds, milestoneName) => {
+      const dates: Array<{ progId: number; date: Date | null }> = [];
+      
+      selectedProgrammesWithTasks.forEach((progWithTasks) => {
+        const contractSummary = progWithTasks.tasks.find(
+          t => t.isSummary && t.name.toLowerCase().includes("contract") && t.name.toLowerCase().includes("key date")
+        );
+
+        if (contractSummary) {
+          const milestone = progWithTasks.tasks.find(
+            t => t.isMilestone && t.name === milestoneName &&
+                t.wbsCode && 
+                t.wbsCode.startsWith(contractSummary.wbsCode || "")
+          );
+          dates.push({
+            progId: progWithTasks.programme.id,
+            date: milestone?.startDate || milestone?.endDate || null,
+          });
+        } else {
+          dates.push({
+            progId: progWithTasks.programme.id,
+            date: null,
+          });
+        }
+      });
+
+      // Check if dates have moved (are different across programmes)
+      const validDates = dates.filter(d => d.date).map(d => d.date?.getTime());
+      const moved = validDates.length > 0 && new Set(validDates).size > 1;
+
+      milestones.push({
+        name: milestoneName,
+        data: dates.map(d => ({
+          progId: d.progId,
+          date: d.date,
+          moved,
+        })),
+      });
+    });
+
+    return milestones.sort((a, b) => {
+      // Show moved milestones first
+      if (a.data.some(d => d.moved) && !b.data.some(d => d.moved)) return -1;
+      if (!a.data.some(d => d.moved) && b.data.some(d => d.moved)) return 1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [selectedProgrammesWithTasks]);
 
   const toggleSelection = (id: number) => {
     setSelectedIds(prev =>
@@ -31,17 +145,7 @@ export default function CompareProgrammes() {
     setSelectedIds([]);
   };
 
-  if (isLoading) {
-    return (
-      <div className="p-6 space-y-6">
-        <div className="space-y-2">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-10 bg-muted animate-pulse rounded" />
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const isLoading = programmesLoading || (selectedIds.length > 0 && taskResults.isLoading);
 
   return (
     <div className="p-6 space-y-6">
@@ -50,14 +154,14 @@ export default function CompareProgrammes() {
           Compare Programmes
         </h1>
         <p className="text-muted-foreground">
-          Select up to 5 programmes to compare their details side-by-side
+          Compare Contract & Key Dates milestones across programmes to track date movements
         </p>
       </div>
 
       <Card data-testid="card-programme-selection">
         <CardHeader>
           <CardTitle>Select Programmes</CardTitle>
-          <CardDescription>Choose programmes to compare</CardDescription>
+          <CardDescription>Choose programmes to compare their Contract & Key Dates milestones</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {selectedIds.length > 0 && (
@@ -117,100 +221,88 @@ export default function CompareProgrammes() {
         </CardContent>
       </Card>
 
-      {selectedProgrammes.length > 0 && (
+      {isLoading && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="space-y-2">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-8 bg-muted animate-pulse rounded" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {selectedProgrammesWithTasks.length > 0 && !isLoading && (
         <Card data-testid="card-comparison-table">
           <CardHeader>
-            <CardTitle>Comparison</CardTitle>
+            <CardTitle>Contract & Key Dates Milestone Comparison</CardTitle>
             <CardDescription>
-              Comparing {selectedProgrammes.length} programme{selectedProgrammes.length !== 1 ? "s" : ""}
+              Comparing {selectedProgrammesWithTasks.length} programme{selectedProgrammesWithTasks.length !== 1 ? "s" : ""}
+              {contractKeyDatesMilestones.length === 0 && " - No Contract & Key Dates milestones found"}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Property</TableHead>
-                    {selectedProgrammes.map((prog) => (
-                      <TableHead key={prog.id} data-testid={`header-programme-${prog.id}`}>
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="truncate">{prog.name}</span>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-4 w-4"
-                            onClick={() => toggleSelection(prog.id)}
-                            data-testid={`button-remove-${prog.id}`}
+            {contractKeyDatesMilestones.length > 0 ? (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Milestone</TableHead>
+                      {selectedProgrammesWithTasks.map((progWithTasks) => (
+                        <TableHead key={progWithTasks.programme.id} data-testid={`header-programme-${progWithTasks.programme.id}`}>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="truncate max-w-[150px]">{progWithTasks.programme.name}</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-4 w-4"
+                              onClick={() => toggleSelection(progWithTasks.programme.id)}
+                              data-testid={`button-remove-${progWithTasks.programme.id}`}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {contractKeyDatesMilestones.map((milestone, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell className="font-medium max-w-xs">
+                          <div className="flex items-center gap-2">
+                            {milestone.data.some(d => d.moved) && (
+                              <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0" data-testid={`icon-moved-${idx}`} />
+                            )}
+                            <span>{milestone.name}</span>
+                          </div>
+                        </TableCell>
+                        {milestone.data.map((dateData, dateIdx) => (
+                          <TableCell 
+                            key={`${idx}-${dateIdx}`}
+                            className={dateData.moved ? "bg-amber-50 dark:bg-amber-950" : ""}
+                            data-testid={`cell-milestone-${idx}-${dateIdx}`}
                           >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </div>
-                      </TableHead>
+                            {dateData.date ? (
+                              <span className={dateData.moved ? "font-semibold text-amber-900 dark:text-amber-100" : ""}>
+                                {formatDateUK(dateData.date)}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground italic">-</span>
+                            )}
+                          </TableCell>
+                        ))}
+                      </TableRow>
                     ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">Name</TableCell>
-                    {selectedProgrammes.map((prog) => (
-                      <TableCell key={prog.id} data-testid={`cell-name-${prog.id}`}>
-                        {prog.name}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Description</TableCell>
-                    {selectedProgrammes.map((prog) => (
-                      <TableCell key={prog.id} data-testid={`cell-description-${prog.id}`}>
-                        {prog.description || "-"}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Status Date</TableCell>
-                    {selectedProgrammes.map((prog) => (
-                      <TableCell key={prog.id} data-testid={`cell-status-date-${prog.id}`}>
-                        {prog.statusDate ? formatDateUK(prog.statusDate) : "-"}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Status</TableCell>
-                    {selectedProgrammes.map((prog) => (
-                      <TableCell key={prog.id} data-testid={`cell-status-${prog.id}`}>
-                        <Badge variant={prog.status === "active" ? "default" : "secondary"}>
-                          {prog.status}
-                        </Badge>
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Project Manager</TableCell>
-                    {selectedProgrammes.map((prog) => (
-                      <TableCell key={prog.id} data-testid={`cell-project-manager-${prog.id}`}>
-                        {prog.projectManager || "-"}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Start Date</TableCell>
-                    {selectedProgrammes.map((prog) => (
-                      <TableCell key={prog.id} data-testid={`cell-start-date-${prog.id}`}>
-                        {prog.startDate ? formatDateUK(prog.startDate) : "-"}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">End Date</TableCell>
-                    {selectedProgrammes.map((prog) => (
-                      <TableCell key={prog.id} data-testid={`cell-end-date-${prog.id}`}>
-                        {prog.endDate ? formatDateUK(prog.endDate) : "-"}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </div>
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No Contract & Key Dates milestones found in selected programmes</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
