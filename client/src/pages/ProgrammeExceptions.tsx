@@ -133,9 +133,17 @@ export default function ProgrammeExceptions() {
 
   const getHolidayStatus = (holiday: { date: Date }): "red" | "green" | "none" => {
     if (!selectedProgramme) return "none";
+    if (!selectedProgramme.startDate || !selectedProgramme.endDate) return "none";
 
+    const start = new Date(selectedProgramme.startDate);
+    const end = new Date(selectedProgramme.endDate);
     const holidayDate = new Date(holiday.date);
     
+    // Check if holiday falls within range
+    const isInRange = holidayDate >= start && holidayDate <= end;
+    
+    if (!isInRange) return "none";
+
     // Check if it's listed in the programme's calendar exceptions
     const isListed = exceptions.some((exc) => {
       const excStart = new Date(exc.startDate);
