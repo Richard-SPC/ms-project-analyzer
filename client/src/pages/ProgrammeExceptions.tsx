@@ -68,12 +68,61 @@ const SCOTLAND_HOLIDAYS = [
   { name: "Boxing Day", date: new Date(2029, 11, 26) },
 ];
 
+const ENGLAND_HOLIDAYS = [
+  // 2025
+  { name: "New Year's Day", date: new Date(2025, 0, 1) },
+  { name: "Good Friday", date: new Date(2025, 3, 18) },
+  { name: "Easter Monday", date: new Date(2025, 3, 21) },
+  { name: "Early May Bank Holiday", date: new Date(2025, 4, 5) },
+  { name: "Spring Bank Holiday", date: new Date(2025, 4, 26) },
+  { name: "Summer Bank Holiday", date: new Date(2025, 7, 25) },
+  { name: "Christmas Day", date: new Date(2025, 11, 25) },
+  { name: "Boxing Day", date: new Date(2025, 11, 26) },
+  // 2026
+  { name: "New Year's Day", date: new Date(2026, 0, 1) },
+  { name: "Good Friday", date: new Date(2026, 3, 3) },
+  { name: "Easter Monday", date: new Date(2026, 3, 6) },
+  { name: "Early May Bank Holiday", date: new Date(2026, 4, 4) },
+  { name: "Spring Bank Holiday", date: new Date(2026, 4, 25) },
+  { name: "Summer Bank Holiday", date: new Date(2026, 7, 31) },
+  { name: "Christmas Day", date: new Date(2026, 11, 25) },
+  { name: "Boxing Day", date: new Date(2026, 11, 28) },
+  // 2027
+  { name: "New Year's Day", date: new Date(2027, 0, 1) },
+  { name: "Good Friday", date: new Date(2027, 3, 26) },
+  { name: "Easter Monday", date: new Date(2027, 3, 29) },
+  { name: "Early May Bank Holiday", date: new Date(2027, 4, 3) },
+  { name: "Spring Bank Holiday", date: new Date(2027, 5, 31) },
+  { name: "Summer Bank Holiday", date: new Date(2027, 7, 30) },
+  { name: "Christmas Day", date: new Date(2027, 11, 25) },
+  { name: "Boxing Day", date: new Date(2027, 11, 28) },
+  // 2028
+  { name: "New Year's Day", date: new Date(2028, 0, 1) },
+  { name: "Good Friday", date: new Date(2028, 3, 14) },
+  { name: "Easter Monday", date: new Date(2028, 3, 17) },
+  { name: "Early May Bank Holiday", date: new Date(2028, 4, 1) },
+  { name: "Spring Bank Holiday", date: new Date(2028, 5, 29) },
+  { name: "Summer Bank Holiday", date: new Date(2028, 7, 28) },
+  { name: "Christmas Day", date: new Date(2028, 11, 25) },
+  { name: "Boxing Day", date: new Date(2028, 11, 26) },
+  // 2029
+  { name: "New Year's Day", date: new Date(2029, 0, 1) },
+  { name: "Good Friday", date: new Date(2029, 3, 30) },
+  { name: "Easter Monday", date: new Date(2029, 4, 2) },
+  { name: "Early May Bank Holiday", date: new Date(2029, 4, 7) },
+  { name: "Spring Bank Holiday", date: new Date(2029, 5, 27) },
+  { name: "Summer Bank Holiday", date: new Date(2029, 7, 27) },
+  { name: "Christmas Day", date: new Date(2029, 11, 25) },
+  { name: "Boxing Day", date: new Date(2029, 11, 26) },
+];
+
 export default function ProgrammeExceptions() {
   const { data: allProgrammes, isLoading: programmesLoading } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
   });
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [holidayCountry, setHolidayCountry] = useState<"scotland" | "england">("scotland");
 
   const selectedProgramme = selectedId ? allProgrammes?.find((p) => p.id === selectedId) : null;
 
@@ -106,8 +155,10 @@ export default function ProgrammeExceptions() {
     return isListed ? "green" : "yellow";
   };
 
+  const holidays = holidayCountry === "scotland" ? SCOTLAND_HOLIDAYS : ENGLAND_HOLIDAYS;
+
   const hasMissingDates = selectedProgramme && (!selectedProgramme.startDate || !selectedProgramme.endDate);
-  const holidayStatuses = selectedProgramme ? SCOTLAND_HOLIDAYS.map(getHolidayStatus) : [];
+  const holidayStatuses = selectedProgramme ? holidays.map(getHolidayStatus) : [];
   const redCount = holidayStatuses.filter(s => s === "red").length;
   const yellowCount = holidayStatuses.filter(s => s === "yellow").length;
   const greenCount = holidayStatuses.filter(s => s === "green").length;
@@ -128,7 +179,29 @@ export default function ProgrammeExceptions() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              <CardTitle className="text-sm">Scotland Public Holidays</CardTitle>
+              <CardTitle className="text-sm">
+                {holidayCountry === "scotland" ? "Scotland" : "England"} Public Holidays
+              </CardTitle>
+              <div className="flex gap-1 ml-4">
+                <Button
+                  size="sm"
+                  variant={holidayCountry === "scotland" ? "default" : "outline"}
+                  className="text-xs"
+                  onClick={() => setHolidayCountry("scotland")}
+                  data-testid="button-scotland-holidays"
+                >
+                  Scotland
+                </Button>
+                <Button
+                  size="sm"
+                  variant={holidayCountry === "england" ? "default" : "outline"}
+                  className="text-xs"
+                  onClick={() => setHolidayCountry("england")}
+                  data-testid="button-england-holidays"
+                >
+                  England
+                </Button>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               {redCount > 0 && (
@@ -156,7 +229,7 @@ export default function ProgrammeExceptions() {
               <div key={year} className="space-y-1">
                 <p className="font-semibold text-xs text-foreground mb-2">{year}</p>
                 <div className="space-y-1">
-                  {SCOTLAND_HOLIDAYS.filter((h) => h.date.getFullYear() === year).map((holiday, idx) => {
+                  {holidays.filter((h) => h.date.getFullYear() === year).map((holiday, idx) => {
                     const status = getHolidayStatus(holiday);
                     const bgColors = {
                       red: "bg-red-100 dark:bg-red-950 border border-red-300 dark:border-red-700",
