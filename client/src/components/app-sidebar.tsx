@@ -1,4 +1,4 @@
-import { Home, FileCheck, Library, Package, GitCompare } from "lucide-react";
+import { Home, FileCheck, Library, Package, GitCompare, Calendar } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -36,6 +36,11 @@ const menuItems = [
     title: "Compare Programmes",
     url: "/compare",
     icon: GitCompare,
+  },
+  {
+    title: "Holidays & Exemptions",
+    url: "/exemptions",
+    icon: Calendar,
   },
 ];
 
