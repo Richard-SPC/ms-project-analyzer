@@ -35,17 +35,17 @@ export function DamagesTable({ data }: DamagesTableProps) {
             <Table>
               <TableHeader>
                 <TableRow className="h-4">
-                  <TableHead className="font-semibold">Type</TableHead>
-                  <TableHead className="font-semibold">Amount</TableHead>
+                  <TableHead className="font-semibold py-0">Type</TableHead>
+                  <TableHead className="font-semibold py-0">Amount</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {data.map((item, index) => (
                   <TableRow key={index} className="h-4" data-testid={`row-damage-${index}`}>
-                    <TableCell className="text-sm">
+                    <TableCell className="text-sm py-0">
                       {item.type}
                     </TableCell>
-                    <TableCell className="text-sm">
+                    <TableCell className="text-sm py-0">
                       {item.amount}
                     </TableCell>
                   </TableRow>

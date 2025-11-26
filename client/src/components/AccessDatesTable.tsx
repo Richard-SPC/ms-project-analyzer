@@ -35,17 +35,17 @@ export function AccessDatesTable({ data }: AccessDatesTableProps) {
             <Table>
               <TableHeader>
                 <TableRow className="h-4">
-                  <TableHead className="font-semibold">Part of the Site</TableHead>
-                  <TableHead className="font-semibold">Date</TableHead>
+                  <TableHead className="font-semibold py-0">Part of the Site</TableHead>
+                  <TableHead className="font-semibold py-0">Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {data.map((item, index) => (
                   <TableRow key={index} className="h-4" data-testid={`row-access-date-${index}`}>
-                    <TableCell className="text-sm">
+                    <TableCell className="text-sm py-0">
                       {item.partOfSite}
                     </TableCell>
-                    <TableCell className="text-sm">
+                    <TableCell className="text-sm py-0">
                       {item.date}
                     </TableCell>
                   </TableRow>

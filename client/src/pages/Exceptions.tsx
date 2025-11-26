@@ -57,12 +57,12 @@ export default function Exceptions({ projectId }: { projectId: number }) {
             <Table>
               <TableHeader>
                 <TableRow className="h-4 hover:bg-transparent">
-                  <TableHead className="text-xs font-semibold">Name</TableHead>
-                  <TableHead className="text-xs font-semibold">Calendar</TableHead>
-                  <TableHead className="text-xs font-semibold">Duration (Days)</TableHead>
-                  <TableHead className="text-xs font-semibold">Start Date</TableHead>
-                  <TableHead className="text-xs font-semibold">Finish Date</TableHead>
-                  <TableHead className="w-12 text-xs font-semibold">Action</TableHead>
+                  <TableHead className="text-xs font-semibold py-0">Name</TableHead>
+                  <TableHead className="text-xs font-semibold py-0">Calendar</TableHead>
+                  <TableHead className="text-xs font-semibold py-0">Duration (Days)</TableHead>
+                  <TableHead className="text-xs font-semibold py-0">Start Date</TableHead>
+                  <TableHead className="text-xs font-semibold py-0">Finish Date</TableHead>
+                  <TableHead className="w-12 text-xs font-semibold py-0">Action</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -72,12 +72,12 @@ export default function Exceptions({ projectId }: { projectId: number }) {
                   const duration = calculateWorkingDays(startDate, endDate);
                   return (
                     <TableRow key={exception.id} data-testid={`row-exception-${exception.id}`} className="h-4">
-                      <TableCell className="text-xs py-1">{exception.name}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground py-1">{exception.calendarName || 'Standard Calendar'}</TableCell>
-                      <TableCell className="text-xs py-1">{duration}</TableCell>
-                      <TableCell className="text-xs font-medium py-1">{formatDateUK(startDate)}</TableCell>
-                      <TableCell className="text-xs font-medium py-1">{formatDateUK(endDate)}</TableCell>
-                      <TableCell className="py-1">
+                      <TableCell className="text-xs py-0">{exception.name}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground py-0">{exception.calendarName || 'Standard Calendar'}</TableCell>
+                      <TableCell className="text-xs py-0">{duration}</TableCell>
+                      <TableCell className="text-xs font-medium py-0">{formatDateUK(startDate)}</TableCell>
+                      <TableCell className="text-xs font-medium py-0">{formatDateUK(endDate)}</TableCell>
+                      <TableCell className="py-0">
                         <Button
                           variant="ghost"
                           size="icon"

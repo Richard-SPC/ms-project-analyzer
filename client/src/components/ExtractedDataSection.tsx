@@ -45,25 +45,25 @@ export function ExtractedDataSection({
             <Table>
               <TableHeader>
                 <TableRow className="h-4">
-                  <TableHead className="w-[30%]">Field</TableHead>
-                  <TableHead>Value</TableHead>
-                  <TableHead className="w-[120px] text-right">Confidence</TableHead>
+                  <TableHead className="w-[30%] py-0">Field</TableHead>
+                  <TableHead className="py-0">Value</TableHead>
+                  <TableHead className="w-[120px] text-right py-0">Confidence</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {data.map((item, index) => (
                   <TableRow key={index} className="h-4" data-testid={`row-${title.toLowerCase().replace(/\s+/g, '-')}-${index}`}>
-                    <TableCell className="font-medium text-sm">
+                    <TableCell className="font-medium text-sm py-0">
                       {item.label}
                     </TableCell>
-                    <TableCell className="text-sm">
+                    <TableCell className="text-sm py-0">
                       {item.value ? (
                         <span className="text-foreground">{item.value}</span>
                       ) : (
                         <span className="text-muted-foreground italic">Not found</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right py-0">
                       {item.confidence && item.confidence > 0 ? (
                         <Badge variant="secondary" className="text-xs">
                           {item.confidence}%

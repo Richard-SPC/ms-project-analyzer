@@ -331,10 +331,10 @@ export default function CompareProgrammes() {
                 <Table>
                   <TableHeader>
                     <TableRow className="h-4">
-                      <TableHead>Milestone</TableHead>
+                      <TableHead className="py-0">Milestone</TableHead>
                       {selectedProgrammesWithTasks.flatMap((progWithTasks, progIdx) => {
                         const cells = [
-                          <TableHead key={`prog-${progWithTasks.programme.id}`} data-testid={`header-programme-${progWithTasks.programme.id}`}>
+                          <TableHead key={`prog-${progWithTasks.programme.id}`} className="py-0" data-testid={`header-programme-${progWithTasks.programme.id}`}>
                             <div className="flex items-center justify-between gap-2">
                               <span className="truncate max-w-[120px] text-xs">{progWithTasks.programme.name}</span>
                               <Button
@@ -351,7 +351,7 @@ export default function CompareProgrammes() {
                         ];
                         if (progIdx < selectedProgrammesWithTasks.length - 1) {
                           cells.push(
-                            <TableHead key={`move-${progWithTasks.programme.id}`} className="text-xs text-muted-foreground">Movement</TableHead>
+                            <TableHead key={`move-${progWithTasks.programme.id}`} className="text-xs text-muted-foreground py-0">Movement</TableHead>
                           );
                         }
                         return cells;
@@ -361,7 +361,7 @@ export default function CompareProgrammes() {
                   <TableBody>
                     {contractKeyDatesMilestones.map((milestone, idx) => (
                       <TableRow key={idx} className={`h-4 ${milestone.isHeader ? "bg-muted hover:bg-muted" : ""}`}>
-                        <TableCell className={milestone.isHeader ? "font-bold text-foreground py-3" : "font-medium max-w-xs"}>
+                        <TableCell className={milestone.isHeader ? "font-bold text-foreground py-0" : "font-medium max-w-xs py-0"}>
                           <div className="flex items-center gap-2">
                             {!milestone.isHeader && milestone.data.some(d => d.moved) && (
                               <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0" data-testid={`icon-moved-${idx}`} />
@@ -373,7 +373,7 @@ export default function CompareProgrammes() {
                           const cells = [
                             <TableCell 
                               key={`date-${idx}-${dateIdx}`}
-                              className={milestone.isHeader ? "bg-muted text-muted-foreground" : dateData.moved ? "bg-amber-50 dark:bg-amber-950" : ""}
+                              className={`py-0 ${milestone.isHeader ? "bg-muted text-muted-foreground" : dateData.moved ? "bg-amber-50 dark:bg-amber-950" : ""}`}
                               data-testid={`cell-milestone-${idx}-${dateIdx}`}
                             >
                               {!milestone.isHeader && dateData.date ? (
@@ -390,7 +390,7 @@ export default function CompareProgrammes() {
                             cells.push(
                               <TableCell 
                                 key={`move-${idx}-${dateIdx}`}
-                                className={milestone.isHeader ? "bg-muted text-muted-foreground" : ""}
+                                className={`py-0 ${milestone.isHeader ? "bg-muted text-muted-foreground" : ""}`}
                                 data-testid={`cell-movement-${idx}-${dateIdx}`}
                               >
                                 {!milestone.isHeader && nextDateData.movementDays !== undefined && nextDateData.movementDays !== 0 ? (

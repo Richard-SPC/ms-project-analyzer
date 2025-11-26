@@ -35,17 +35,17 @@ export function CompletionDatesTable({ data }: CompletionDatesTableProps) {
             <Table>
               <TableHeader>
                 <TableRow className="h-4">
-                  <TableHead className="font-semibold">Section</TableHead>
-                  <TableHead className="font-semibold">Completion Date</TableHead>
+                  <TableHead className="font-semibold py-0">Section</TableHead>
+                  <TableHead className="font-semibold py-0">Completion Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {data.map((item, index) => (
                   <TableRow key={index} className="h-4" data-testid={`row-completion-date-${index}`}>
-                    <TableCell className="text-sm">
+                    <TableCell className="text-sm py-0">
                       {item.section}
                     </TableCell>
-                    <TableCell className="text-sm">
+                    <TableCell className="text-sm py-0">
                       {item.completionDate}
                     </TableCell>
                   </TableRow>
