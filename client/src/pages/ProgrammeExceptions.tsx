@@ -10,6 +10,7 @@ import Exceptions from "@/pages/Exceptions";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const SCOTLAND_HOLIDAYS = [
+  // 2025
   { name: "New Year's Day", date: new Date(2025, 0, 1) },
   { name: "2 January", date: new Date(2025, 0, 2) },
   { name: "Good Friday", date: new Date(2025, 3, 18) },
@@ -20,6 +21,28 @@ const SCOTLAND_HOLIDAYS = [
   { name: "St Andrew's Day", date: new Date(2025, 10, 30) },
   { name: "Christmas Day", date: new Date(2025, 11, 25) },
   { name: "Boxing Day", date: new Date(2025, 11, 26) },
+  // 2026
+  { name: "New Year's Day", date: new Date(2026, 0, 1) },
+  { name: "2 January", date: new Date(2026, 0, 2) },
+  { name: "Good Friday", date: new Date(2026, 3, 3) },
+  { name: "Easter Monday", date: new Date(2026, 3, 6) },
+  { name: "Early May Bank Holiday", date: new Date(2026, 4, 4) },
+  { name: "Spring Bank Holiday", date: new Date(2026, 4, 25) },
+  { name: "Summer Bank Holiday", date: new Date(2026, 7, 3) },
+  { name: "St Andrew's Day", date: new Date(2026, 10, 30) },
+  { name: "Christmas Day", date: new Date(2026, 11, 25) },
+  { name: "Boxing Day", date: new Date(2026, 11, 28) },
+  // 2027
+  { name: "New Year's Day", date: new Date(2027, 0, 1) },
+  { name: "2 January", date: new Date(2027, 0, 4) },
+  { name: "Good Friday", date: new Date(2027, 3, 26) },
+  { name: "Easter Monday", date: new Date(2027, 3, 29) },
+  { name: "Early May Bank Holiday", date: new Date(2027, 4, 3) },
+  { name: "Spring Bank Holiday", date: new Date(2027, 4, 31) },
+  { name: "Summer Bank Holiday", date: new Date(2027, 7, 2) },
+  { name: "St Andrew's Day", date: new Date(2027, 10, 30) },
+  { name: "Christmas Day", date: new Date(2027, 11, 25) },
+  { name: "Boxing Day", date: new Date(2027, 11, 28) },
 ];
 
 export default function ProgrammeExceptions() {
@@ -48,9 +71,9 @@ export default function ProgrammeExceptions() {
           </div>
         </CardHeader>
         <CardContent className="pt-0">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             {SCOTLAND_HOLIDAYS.map((holiday) => (
-              <div key={holiday.name} className="text-sm" data-testid={`row-holiday-${holiday.name}`}>
+              <div key={`${holiday.name}-${formatDateUK(holiday.date)}`} className="text-sm" data-testid={`row-holiday-${holiday.name}-${formatDateUK(holiday.date)}`}>
                 <p className="font-medium text-foreground">{holiday.name}</p>
                 <p className="text-xs text-muted-foreground">{formatDateUK(holiday.date)}</p>
               </div>
