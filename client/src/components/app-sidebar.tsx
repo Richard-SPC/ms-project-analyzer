@@ -23,7 +23,7 @@ const menuItems = [
     icon: Library,
   },
   {
-    title: "Projects",
+    title: "Programme List",
     url: "/projects",
     icon: Folder,
   },

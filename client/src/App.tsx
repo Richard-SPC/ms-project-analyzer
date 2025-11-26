@@ -8,7 +8,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import Dashboard from "@/pages/Dashboard";
-import Projects from "@/pages/Projects";
+import ProgrammeList from "@/pages/ProgrammeList";
 import ProjectLibrary from "@/pages/ProjectLibrary";
 import ProjectDetail from "@/pages/ProjectDetail";
 import DcmaAssessment from "@/pages/DcmaAssessment";
@@ -22,7 +22,7 @@ function Router() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/library" component={ProjectLibrary} />
-      <Route path="/projects" component={Projects} />
+      <Route path="/projects" component={ProgrammeList} />
       <Route path="/projects/:id" component={ProjectDetail} />
       <Route path="/dcma" component={DcmaAssessment} />
       <Route path="/procurement" component={ProcurementDurations} />
