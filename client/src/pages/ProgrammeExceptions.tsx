@@ -164,8 +164,8 @@ export default function ProgrammeExceptions() {
   const greenCount = holidayStatuses.filter(s => s === "green").length;
 
   return (
-    <div className="p-4 space-y-3">
-      <div>
+    <div className="p-6 space-y-4">
+      <div className="space-y-1">
         <h1 className="text-2xl font-bold text-foreground" data-testid="text-exceptions-title">
           Holidays & Non-Working Days
         </h1>
@@ -175,7 +175,7 @@ export default function ProgrammeExceptions() {
       </div>
 
       <Card data-testid="card-scotland-holidays">
-        <CardHeader className="pb-1 pt-3">
+        <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
