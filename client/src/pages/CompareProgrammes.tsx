@@ -253,9 +253,19 @@ export default function CompareProgrammes() {
             </div>
           )}
 
-          <div className="space-y-2 max-h-64 overflow-y-auto">
+          <div className="space-y-0 max-h-64 overflow-y-auto border rounded-md">
             {allProgrammes && allProgrammes.length > 0 ? (
-              allProgrammes.map((programme) => (
+              <>
+                <div className="flex items-center gap-2 p-2 bg-muted font-semibold text-xs border-b sticky top-0">
+                  <div className="w-5" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-muted-foreground">Programme</p>
+                  </div>
+                  <div className="w-20 flex-shrink-0">
+                    <p className="text-muted-foreground">Status Date</p>
+                  </div>
+                </div>
+                {allProgrammes.map((programme) => (
                 <div
                   key={programme.id}
                   className="flex items-center gap-2 p-2 rounded hover:bg-muted cursor-pointer"
@@ -283,7 +293,8 @@ export default function CompareProgrammes() {
                     </span>
                   )}
                 </div>
-              ))
+                ))}
+              </>
             ) : (
               <p className="text-sm text-muted-foreground text-center py-4">
                 No programmes available
