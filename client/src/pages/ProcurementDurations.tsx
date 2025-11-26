@@ -169,8 +169,11 @@ export default function ProcurementDurations() {
                   <TableRow>
                     <TableHead data-testid="header-programme">Programme</TableHead>
                     <TableHead data-testid="header-task-name">Task Name</TableHead>
-                    <TableHead className="text-right" data-testid="header-duration">
+                    <TableHead className="text-right" data-testid="header-duration-days">
                       Duration (days)
+                    </TableHead>
+                    <TableHead className="text-right" data-testid="header-duration-weeks">
+                      Duration (weeks)
                     </TableHead>
                     <TableHead className="text-right" data-testid="header-complete">
                       % Complete
@@ -186,8 +189,11 @@ export default function ProcurementDurations() {
                       <TableCell data-testid={`text-task-name-${task.id}`}>
                         {task.name}
                       </TableCell>
-                      <TableCell className="text-right" data-testid={`text-duration-${task.id}`}>
+                      <TableCell className="text-right" data-testid={`text-duration-days-${task.id}`}>
                         {task.duration ?? "-"}
+                      </TableCell>
+                      <TableCell className="text-right" data-testid={`text-duration-weeks-${task.id}`}>
+                        {task.duration ? (task.duration / 7).toFixed(1) : "-"}
                       </TableCell>
                       <TableCell className="text-right" data-testid={`text-complete-${task.id}`}>
                         {task.percentComplete}%
