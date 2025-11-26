@@ -85,7 +85,7 @@ export default function ProgrammeExceptions() {
         </p>
       </div>
 
-      <Card data-testid="card-scotland-holidays" className="max-w-2xl">
+      <Card data-testid="card-scotland-holidays">
         <CardHeader className="pb-2">
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
