@@ -204,13 +204,15 @@ export default function Exceptions({ projectId }: { projectId: number }) {
               </TableHeader>
               <TableBody>
                 {exceptions.map((exception) => {
-                  const duration = Math.ceil((new Date(exception.endDate).getTime() - new Date(exception.startDate).getTime()) / (1000 * 60 * 60 * 24));
+                  const startDate = new Date(exception.startDate);
+                  const endDate = new Date(exception.endDate);
+                  const duration = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
                   return (
                     <TableRow key={exception.id} data-testid={`row-exception-${exception.id}`}>
                       <TableCell>{exception.name}</TableCell>
-                      <TableCell className="font-medium">{formatDateUK(exception.startDate)}</TableCell>
-                      <TableCell>{duration}</TableCell>
-                      <TableCell className="font-medium">{formatDateUK(exception.endDate)}</TableCell>
+                      <TableCell className="font-medium">{formatDateUK(startDate)}</TableCell>
+                      <TableCell>{isNaN(duration) ? '-' : duration}</TableCell>
+                      <TableCell className="font-medium">{formatDateUK(endDate)}</TableCell>
                       <TableCell>
                         <Button
                           variant="ghost"
