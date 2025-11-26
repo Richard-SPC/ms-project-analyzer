@@ -51,28 +51,26 @@ export default function CompareProgrammes() {
     })).filter(item => item.programme);
   }, [allProgrammes, selectedIds, taskResults.data]);
 
-  // Extract Contract & Key Dates milestones
+  // Extract Contract & Key Dates milestones grouped by subsection
   const contractKeyDatesMilestones = useMemo(() => {
     if (selectedProgrammesWithTasks.length === 0) return [];
 
-    // Find all unique milestone names across all programmes
-    const allMilestones = new Map<string, Set<number>>();
-    const contractSummaryWbsCodes = new Map<number, string>(); // programme id -> wbs code of summary
+    // Store both milestones and their subsection info
+    const allMilestonesWithSection = new Map<string, { section: string; wbsCode: string; set: Set<number> }>();
+    const contractSummaryWbsCodes = new Map<number, string>();
     
     selectedProgrammesWithTasks.forEach((progWithTasks) => {
-      // Look for Contract & Key Dates summary - try multiple patterns
+      // Look for Contract & Key Dates summary
       let contractSummary = progWithTasks.tasks.find(
         t => t.isSummary && t.name.toLowerCase().includes("contract") && t.name.toLowerCase().includes("key")
       );
       
-      // If not found, try to find the top-level summary (wbs code like "1")
       if (!contractSummary) {
         contractSummary = progWithTasks.tasks.find(
           t => t.isSummary && t.wbsCode === "1"
         );
       }
       
-      // If still not found, find any summary with milestones under it
       if (!contractSummary) {
         const summariesWithMilestones = progWithTasks.tasks.filter(t => t.isSummary);
         for (const summary of summariesWithMilestones) {
@@ -89,8 +87,15 @@ export default function CompareProgrammes() {
       if (contractSummary) {
         contractSummaryWbsCodes.set(progWithTasks.programme.id, contractSummary.wbsCode || "");
         
-        // Get ALL milestones under this summary - including those in any nested structure
-        // Don't filter by isMilestone - get all tasks that could be milestones (key dates)
+        // Find subsection summaries under main summary
+        const subsections = progWithTasks.tasks.filter(
+          t => t.isSummary && 
+               t.wbsCode && 
+               t.wbsCode.startsWith(contractSummary.wbsCode || "") &&
+               t.id !== contractSummary.id
+        );
+
+        // Get all milestones under this summary
         const allTasksUnderSummary = progWithTasks.tasks.filter(
           t => t.wbsCode && 
                t.wbsCode.startsWith(contractSummary!.wbsCode || "") &&
@@ -99,21 +104,51 @@ export default function CompareProgrammes() {
         );
 
         allTasksUnderSummary.forEach(m => {
-          if (!allMilestones.has(m.name)) {
-            allMilestones.set(m.name, new Set());
+          // Find which subsection this milestone belongs to
+          let subsectionName = "Contract & Key Dates";
+          let subsectionWbs = "";
+          
+          for (const subsection of subsections) {
+            if (m.wbsCode && m.wbsCode.startsWith(subsection.wbsCode || "") && m.id !== subsection.id) {
+              subsectionName = subsection.name;
+              subsectionWbs = subsection.wbsCode || "";
+              break;
+            }
           }
-          allMilestones.get(m.name)!.add(progWithTasks.programme.id);
+
+          const key = `${subsectionName}:::${m.name}`;
+          if (!allMilestonesWithSection.has(key)) {
+            allMilestonesWithSection.set(key, { section: subsectionName, wbsCode: subsectionWbs, set: new Set() });
+          }
+          allMilestonesWithSection.get(key)!.set.add(progWithTasks.programme.id);
         });
       }
     });
 
-    // Create comparison data
-    const milestones: Array<{
+    // Create comparison data grouped by section
+    const groupedMilestones: Array<{
+      section: string;
+      isHeader: boolean;
       name: string;
       data: Array<{ progId: number; date: Date | null; moved: boolean }>;
     }> = [];
 
-    allMilestones.forEach((progIds, milestoneName) => {
+    const processedSections = new Set<string>();
+
+    allMilestonesWithSection.forEach((sectionInfo, key) => {
+      const [sectionName, milestoneName] = key.split(":::") as [string, string];
+      
+      // Add section header if not already added
+      if (!processedSections.has(sectionName)) {
+        groupedMilestones.push({
+          section: sectionName,
+          isHeader: true,
+          name: sectionName,
+          data: [],
+        });
+        processedSections.add(sectionName);
+      }
+
       const dates: Array<{ progId: number; date: Date | null }> = [];
       
       selectedProgrammesWithTasks.forEach((progWithTasks) => {
@@ -137,7 +172,7 @@ export default function CompareProgrammes() {
         }
       });
 
-      // Check if dates have moved (are different across programmes)
+      // Check if dates have moved
       const validDates = dates
         .filter(d => d.date)
         .map(d => {
@@ -146,7 +181,9 @@ export default function CompareProgrammes() {
         });
       const moved = validDates.length > 0 && new Set(validDates).size > 1;
 
-      milestones.push({
+      groupedMilestones.push({
+        section: sectionName,
+        isHeader: false,
         name: milestoneName,
         data: dates.map(d => ({
           progId: d.progId,
@@ -156,8 +193,11 @@ export default function CompareProgrammes() {
       });
     });
 
-    return milestones.sort((a, b) => {
-      // Show moved milestones first
+    return groupedMilestones.sort((a, b) => {
+      // Sort by section first, then show moved items first, then by name
+      if (a.section !== b.section) return a.section.localeCompare(b.section);
+      if (a.isHeader) return -1;
+      if (b.isHeader) return 1;
       if (a.data.some(d => d.moved) && !b.data.some(d => d.moved)) return -1;
       if (!a.data.some(d => d.moved) && b.data.some(d => d.moved)) return 1;
       return a.name.localeCompare(b.name);
@@ -298,28 +338,28 @@ export default function CompareProgrammes() {
                   </TableHeader>
                   <TableBody>
                     {contractKeyDatesMilestones.map((milestone, idx) => (
-                      <TableRow key={idx}>
-                        <TableCell className="font-medium max-w-xs">
+                      <TableRow key={idx} className={milestone.isHeader ? "bg-muted hover:bg-muted" : ""}>
+                        <TableCell className={milestone.isHeader ? "font-bold text-foreground py-3" : "font-medium max-w-xs"}>
                           <div className="flex items-center gap-2">
-                            {milestone.data.some(d => d.moved) && (
+                            {!milestone.isHeader && milestone.data.some(d => d.moved) && (
                               <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0" data-testid={`icon-moved-${idx}`} />
                             )}
-                            <span>{milestone.name}</span>
+                            <span className={milestone.isHeader ? "" : "pl-4"}>{milestone.name}</span>
                           </div>
                         </TableCell>
                         {milestone.data.map((dateData, dateIdx) => (
                           <TableCell 
                             key={`${idx}-${dateIdx}`}
-                            className={dateData.moved ? "bg-amber-50 dark:bg-amber-950" : ""}
+                            className={milestone.isHeader ? "bg-muted text-muted-foreground" : dateData.moved ? "bg-amber-50 dark:bg-amber-950" : ""}
                             data-testid={`cell-milestone-${idx}-${dateIdx}`}
                           >
-                            {dateData.date ? (
+                            {!milestone.isHeader && dateData.date ? (
                               <span className={dateData.moved ? "font-semibold text-amber-900 dark:text-amber-100" : ""}>
                                 {formatDateUK(dateData.date)}
                               </span>
-                            ) : (
+                            ) : !milestone.isHeader ? (
                               <span className="text-muted-foreground italic">-</span>
-                            )}
+                            ) : null}
                           </TableCell>
                         ))}
                       </TableRow>
