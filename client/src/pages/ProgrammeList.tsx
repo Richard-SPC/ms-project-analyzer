@@ -100,10 +100,6 @@ function ProgrammeTile({ project, onDelete }: { project: Project; onDelete: () =
 }
 
 export default function Projects() {
-  const [open, setOpen] = useState(false);
-  const [uploadOpen, setUploadOpen] = useState(false);
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [searchText, setSearchText] = useState("");
   const { toast } = useToast();
 
@@ -274,12 +270,8 @@ export default function Projects() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <FolderKanban className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No programmes yet</h3>
-            <p className="text-sm text-muted-foreground mb-4">Create your first programme to get started</p>
-            <Button onClick={() => setOpen(true)} data-testid="button-create-first">
-              <Plus className="mr-2 h-4 w-4" />
-              Create Programme
-            </Button>
+            <h3 className="text-lg font-semibold mb-2">No programmes found</h3>
+            <p className="text-sm text-muted-foreground mb-4">Upload a Microsoft Project file to get started</p>
           </CardContent>
         </Card>
       )}
