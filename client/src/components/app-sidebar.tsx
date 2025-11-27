@@ -56,7 +56,7 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Programme Analyser</SidebarGroupLabel>
+          <SidebarGroupLabel>Synergy Project Controls</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
