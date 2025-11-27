@@ -507,7 +507,12 @@ export default function ProjectDetail() {
                     let current = new Date(timelineStart);
                     current.setDate(1);
                     
-                    while (current <= timelineEnd) {
+                    // Calculate the last month to show (1 month after projectEnd)
+                    const lastMonthToShow = new Date(projectEnd);
+                    lastMonthToShow.setDate(1);
+                    lastMonthToShow.setMonth(lastMonthToShow.getMonth() + 1);
+                    
+                    while (current <= lastMonthToShow) {
                       markers.push(new Date(current));
                       current.setMonth(current.getMonth() + 1);
                     }
