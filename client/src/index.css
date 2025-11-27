@@ -354,7 +354,7 @@ main {
   background-attachment: fixed;
   background-position: center;
   background-repeat: no-repeat;
-  background-size: 20%;
+  background-size: 50%;
   background-color: var(--background);
 }
 
@@ -369,8 +369,8 @@ main::before {
   background-attachment: fixed;
   background-position: center;
   background-repeat: no-repeat;
-  background-size: 20%;
-  opacity: 0.08;
+  background-size: 50%;
+  opacity: 0.03;
   pointer-events: none;
   z-index: 0;
 }
