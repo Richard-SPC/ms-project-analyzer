@@ -131,7 +131,7 @@ export default function Dashboard() {
                       className="hover:no-underline"
                     >
                       <div className="flex items-center justify-between w-full gap-2 pr-2">
-                        <span className="text-sm font-medium">{status}</span>
+                        <span className="text-lg font-bold">{status}</span>
                         <span 
                           className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-semibold"
                           data-testid={`text-count-${status.toLowerCase().replace(/\s+/g, '-')}`}
