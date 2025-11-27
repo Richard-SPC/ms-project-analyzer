@@ -134,33 +134,38 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
     return "bg-primary";
   };
 
-  // Get child tasks for a summary task - all summaries until next major phase
+  // Get child tasks for a summary task - only direct children (one level down)
   const getChildTasks = (phaseId: number) => {
     if (!tasks) return [];
-    const phaseIndex = tasks.findIndex(t => t.id === phaseId);
-    if (phaseIndex === -1) return [];
+    const phase = tasks.find(t => t.id === phaseId);
+    if (!phase || !phase.wbsCode) return [];
     
-    const isMajorPhase = (name: string | null) => {
-      if (!name) return false;
-      const lower = name.toLowerCase();
-      return lower.includes("procurement") || 
-             lower.includes("on site") || lower.includes("on-site") || lower.includes("onsite") ||
-             lower.includes("off site") || lower.includes("off-site") || lower.includes("offsite") ||
-             lower.includes("commissioning") || lower.includes("demobilisation") && lower.includes("site");
-    };
+    // Get the parent WBS code - if parent is "1.1" then children are "1.1.1", "1.1.2", etc.
+    const parentWbs = phase.wbsCode;
+    const parentLevel = parentWbs.split('.').length;
+    const expectedChildLevel = parentLevel + 1;
     
     const children: Task[] = [];
-    for (let i = phaseIndex + 1; i < tasks.length; i++) {
-      const task = tasks[i];
-      // Stop if we hit another major phase
-      if (task.isSummary && isMajorPhase(task.name)) {
-        break;
-      }
-      // Add all summary tasks that aren't major phases
-      if (task.isSummary) {
+    for (const task of tasks) {
+      if (!task.wbsCode || task.id === phaseId) continue;
+      
+      // Check if this task's WBS is a direct child
+      const taskWbsParts = task.wbsCode.split('.');
+      const taskLevel = taskWbsParts.length;
+      
+      // Task must be exactly one level deeper and start with parent WBS
+      if (taskLevel === expectedChildLevel && task.wbsCode.startsWith(parentWbs + '.')) {
         children.push(task);
       }
     }
+    
+    // Sort by task order in the original list
+    children.sort((a, b) => {
+      const aIdx = tasks.findIndex(t => t.id === a.id);
+      const bIdx = tasks.findIndex(t => t.id === b.id);
+      return aIdx - bIdx;
+    });
+    
     return children;
   };
 
