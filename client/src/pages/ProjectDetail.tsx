@@ -686,38 +686,33 @@ export default function ProjectDetail() {
                             </div>
                           );
                         })}
-                        {/* Month headers and gridlines overlay - positioned absolutely within space-y-2 */}
-                        <div className="absolute left-0 right-0 top-0 h-full pointer-events-none z-10">
-                          {markers.map((marker, idx) => {
-                            const currentPosition = ((marker.getTime() - timelineStart.getTime()) / totalMs) * 100;
-                            const nextMarkerDate = idx + 1 < markers.length ? new Date(markers[idx + 1]) : new Date(timelineEnd);
-                            const nextPosition = ((nextMarkerDate.getTime() - timelineStart.getTime()) / totalMs) * 100;
-                            const midPosition = (currentPosition + nextPosition) / 2;
-                            const monthName = marker.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
-                            
-                            return (
-                              <div key={`month-${idx}`}>
-                                <div
-                                  className="absolute top-0 bottom-0 w-px bg-gray-300/30 dark:bg-gray-600/30"
-                                  style={{ 
-                                    left: `calc((100% - (1rem + 0.25rem + 8rem + 0.25rem + 4rem + 0.25rem)) * ${currentPosition / 100})`,
-                                    width: '1px'
-                                  }}
-                                />
-                                <span 
-                                  className="absolute text-xs text-muted-foreground whitespace-nowrap"
-                                  style={{ 
-                                    left: `calc((100% - (1rem + 0.25rem + 8rem + 0.25rem + 4rem + 0.25rem)) * ${midPosition / 100})`,
-                                    transform: 'translateX(-50%)',
-                                    top: '0',
-                                    lineHeight: '1.5rem'
-                                  }}
-                                >
-                                  {monthName}
-                                </span>
-                              </div>
-                            );
-                          })}
+                        </div>
+                        {/* Month headers and gridlines overlay */}
+                        <div className="relative mt-2 h-6">
+                          <div className="absolute inset-0 pointer-events-none" style={{ marginLeft: 'calc(1rem + 0.25rem + 8rem + 0.25rem + 4rem + 0.25rem)' }}>
+                            {markers.map((marker, idx) => {
+                              const currentPosition = ((marker.getTime() - timelineStart.getTime()) / totalMs) * 100;
+                              const nextMarkerDate = idx + 1 < markers.length ? new Date(markers[idx + 1]) : new Date(timelineEnd);
+                              const nextPosition = ((nextMarkerDate.getTime() - timelineStart.getTime()) / totalMs) * 100;
+                              const midPosition = (currentPosition + nextPosition) / 2;
+                              const monthName = marker.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
+                              
+                              return (
+                                <div key={`month-${idx}`}>
+                                  <div
+                                    className="absolute top-0 bottom-0 w-px bg-gray-300/30 dark:bg-gray-600/30"
+                                    style={{ left: `${currentPosition}%` }}
+                                  />
+                                  <span 
+                                    className="absolute text-xs text-muted-foreground pointer-events-none whitespace-nowrap"
+                                    style={{ left: `${midPosition}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
+                                  >
+                                    {monthName}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
                     </>
