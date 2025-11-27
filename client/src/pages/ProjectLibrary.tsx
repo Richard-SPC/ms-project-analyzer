@@ -360,9 +360,10 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
                 );
               })}
             </div>
-          </CardContent>
-        );
-      })()}
+            );
+          })()}
+        </CardContent>
+      )}
     </Card>
   );
 }
