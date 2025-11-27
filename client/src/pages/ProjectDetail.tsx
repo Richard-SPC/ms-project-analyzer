@@ -3,9 +3,10 @@ import { useRoute, Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileCheck, Calendar } from "lucide-react";
+import { ArrowLeft, FileCheck, Calendar, ChevronDown, ChevronRight } from "lucide-react";
+import { useState } from "react";
 import { formatDateUK } from "@/lib/utils";
-import type { Project, Task, DcmaAssessment, Workspace } from "@shared/schema";
+import type { Project, Task, DcmaAssessment, Workspace, CalendarException } from "@shared/schema";
 
 interface GanttData {
   tasks: Array<{
@@ -96,6 +97,8 @@ function generateMonthHeaders(startDate: Date, endDate: Date): Array<{ month: st
 export default function ProjectDetail() {
   const [, params] = useRoute("/projects/:id");
   const projectId = params?.id ? parseInt(params.id) : 0;
+  const [expandedPhase, setExpandedPhase] = useState<number | null>(null);
+  const [ignoreDelayTasks, setIgnoreDelayTasks] = useState(false);
 
   const { data: project, isLoading: projectLoading } = useQuery<Project>({
     queryKey: ["/api/projects", projectId],
@@ -117,6 +120,297 @@ export default function ProjectDetail() {
     enabled: !!projectId,
   });
 
+  const { data: calendarExceptions = [] } = useQuery<CalendarException[]>({
+    queryKey: ["/api/projects", projectId, "exceptions"],
+    enabled: !!projectId,
+  });
+
+  // Format date as ISO string for comparison
+  const formatDateISO = (date: Date): string => {
+    return date.toISOString().split('T')[0];
+  };
+
+  // Calculate working days (Monday-Friday only, excluding calendar exceptions)
+  const calculateWorkingDays = (startDate: Date, endDate: Date, exceptions: CalendarException[] | undefined): number => {
+    let count = 0;
+    const current = new Date(startDate);
+    const end = new Date(endDate);
+    
+    // Create a set of exception dates for quick lookup
+    const exceptionDates = new Set<string>();
+    const exceptionArray = exceptions || [];
+    for (const exc of exceptionArray) {
+      const excStart = new Date(exc.startDate);
+      const excEnd = new Date(exc.endDate);
+      let excCurrent = new Date(excStart);
+      
+      while (excCurrent <= excEnd) {
+        exceptionDates.add(formatDateISO(excCurrent));
+        excCurrent.setDate(excCurrent.getDate() + 1);
+      }
+    }
+    
+    while (current <= end) {
+      const dayOfWeek = current.getDay();
+      const dateISO = formatDateISO(current);
+      
+      // 1 = Monday, 5 = Friday (0 = Sunday, 6 = Saturday)
+      if (dayOfWeek >= 1 && dayOfWeek <= 5 && !exceptionDates.has(dateISO)) {
+        count++;
+      }
+      current.setDate(current.getDate() + 1);
+    }
+    
+    return count;
+  };
+
+  // Check if a summary task has any non-delay descendants
+  const hasNonDelayDescendants = (taskId: number): boolean => {
+    if (!tasks) return false;
+    const task = tasks.find(t => t.id === taskId);
+    if (!task || !task.wbsCode) return false;
+    
+    const taskWbs = task.wbsCode;
+    for (const t of tasks) {
+      if (!t.wbsCode || t.id === taskId) continue;
+      if (t.wbsCode.startsWith(taskWbs + '.')) {
+        if (!t.name || !t.name.startsWith("Delay -")) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  // Get all descendants of a task
+  const getAllDescendants = (parentId: number, filterDelays: boolean = false): Task[] => {
+    if (!tasks) return [];
+    const parent = tasks.find(t => t.id === parentId);
+    if (!parent || !parent.wbsCode) return [];
+    
+    const parentWbs = parent.wbsCode;
+    const descendants: Task[] = [];
+    
+    for (const task of tasks) {
+      if (!task.wbsCode || task.id === parentId) continue;
+      
+      if (filterDelays && task.name && task.name.startsWith("Delay -")) {
+        continue;
+      }
+      
+      if (task.wbsCode.startsWith(parentWbs + '.')) {
+        if (filterDelays && task.isSummary && !hasNonDelayDescendants(task.id)) {
+          continue;
+        }
+        descendants.push(task);
+      }
+    }
+    return descendants;
+  };
+
+  // Get child tasks for a summary task
+  const getChildTasks = (phaseId: number) => {
+    if (!tasks) return [];
+    const phase = tasks.find(t => t.id === phaseId);
+    if (!phase || !phase.wbsCode) return [];
+    
+    const parentWbs = phase.wbsCode;
+    const parentLevel = parentWbs.split('.').length;
+    const expectedChildLevel = parentLevel + 1;
+    
+    const children: Task[] = [];
+    for (const task of tasks) {
+      if (!task.wbsCode || task.id === phaseId) continue;
+      
+      if (ignoreDelayTasks && task.name && task.name.startsWith("Delay -")) {
+        continue;
+      }
+      
+      const taskWbsParts = task.wbsCode.split('.');
+      const taskLevel = taskWbsParts.length;
+      
+      if (taskLevel === expectedChildLevel && task.wbsCode.startsWith(parentWbs + '.') && task.isSummary) {
+        children.push(task);
+      }
+    }
+    
+    children.sort((a, b) => a.id - b.id);
+    return children;
+  };
+
+  // Calculate phase style
+  const calculatePhaseStyle = (task: Task) => {
+    if (!project?.startDate || !project?.endDate) {
+      return { left: "0%", width: "0%" };
+    }
+
+    const childSummaries = getChildTasks(task.id);
+    
+    let minStart: number | null = null;
+    let maxEnd: number | null = null;
+    
+    if (childSummaries.length > 0) {
+      for (const child of childSummaries) {
+        const childDescendants = getAllDescendants(child.id, ignoreDelayTasks);
+        
+        let childMinStart: number | null = null;
+        let childMaxEnd: number | null = null;
+        
+        for (const desc of childDescendants) {
+          if (desc.startDate) {
+            const startMs = new Date(desc.startDate).getTime();
+            childMinStart = childMinStart === null ? startMs : Math.min(childMinStart, startMs);
+          }
+          if (desc.endDate) {
+            const endMs = new Date(desc.endDate).getTime();
+            childMaxEnd = childMaxEnd === null ? endMs : Math.max(childMaxEnd, endMs);
+          }
+        }
+        
+        if (childMinStart === null && child.startDate) {
+          childMinStart = new Date(child.startDate).getTime();
+        }
+        if (childMaxEnd === null && child.endDate) {
+          childMaxEnd = new Date(child.endDate).getTime();
+        }
+        
+        if (childMinStart !== null) {
+          minStart = minStart === null ? childMinStart : Math.min(minStart, childMinStart);
+        }
+        if (childMaxEnd !== null) {
+          maxEnd = maxEnd === null ? childMaxEnd : Math.max(maxEnd, childMaxEnd);
+        }
+      }
+    } else {
+      const descendants = getAllDescendants(task.id, ignoreDelayTasks);
+      for (const desc of descendants) {
+        if (desc.startDate) {
+          const startMs = new Date(desc.startDate).getTime();
+          minStart = minStart === null ? startMs : Math.min(minStart, startMs);
+        }
+        if (desc.endDate) {
+          const endMs = new Date(desc.endDate).getTime();
+          maxEnd = maxEnd === null ? endMs : Math.max(maxEnd, endMs);
+        }
+      }
+    }
+    
+    if (minStart === null && task.startDate) {
+      minStart = new Date(task.startDate).getTime();
+    }
+    if (maxEnd === null && task.endDate) {
+      maxEnd = new Date(task.endDate).getTime();
+    }
+    
+    if (minStart === null || maxEnd === null) {
+      return { left: "0%", width: "0%" };
+    }
+
+    const totalMs = new Date(project.endDate).getTime() - new Date(project.startDate).getTime();
+    const taskStartMs = minStart - new Date(project.startDate).getTime();
+    const taskDurationMs = maxEnd - minStart;
+
+    const left = (taskStartMs / totalMs) * 100;
+    const width = (taskDurationMs / totalMs) * 100;
+
+    return {
+      left: `${Math.max(0, left)}%`,
+      width: `${Math.max(0, Math.min(width, 100 - left))}%`,
+    };
+  };
+
+  // Get phase start and end dates
+  const getPhaseStartEndDates = (task: Task): { startDate: Date | null; endDate: Date | null } => {
+    const childSummaries = getChildTasks(task.id);
+    
+    let minStart: number | null = null;
+    let maxEnd: number | null = null;
+    
+    if (childSummaries.length > 0) {
+      for (const child of childSummaries) {
+        const childDescendants = getAllDescendants(child.id, ignoreDelayTasks);
+        
+        let childMinStart: number | null = null;
+        let childMaxEnd: number | null = null;
+        
+        for (const desc of childDescendants) {
+          if (desc.startDate) {
+            const startMs = new Date(desc.startDate).getTime();
+            childMinStart = childMinStart === null ? startMs : Math.min(childMinStart, startMs);
+          }
+          if (desc.endDate) {
+            const endMs = new Date(desc.endDate).getTime();
+            childMaxEnd = childMaxEnd === null ? endMs : Math.max(childMaxEnd, endMs);
+          }
+        }
+        
+        if (childMinStart === null && child.startDate) {
+          childMinStart = new Date(child.startDate).getTime();
+        }
+        if (childMaxEnd === null && child.endDate) {
+          childMaxEnd = new Date(child.endDate).getTime();
+        }
+        
+        if (childMinStart !== null) {
+          minStart = minStart === null ? childMinStart : Math.min(minStart, childMinStart);
+        }
+        if (childMaxEnd !== null) {
+          maxEnd = maxEnd === null ? childMaxEnd : Math.max(maxEnd, childMaxEnd);
+        }
+      }
+    } else {
+      const descendants = getAllDescendants(task.id, ignoreDelayTasks);
+      for (const desc of descendants) {
+        if (desc.startDate) {
+          const startMs = new Date(desc.startDate).getTime();
+          minStart = minStart === null ? startMs : Math.min(minStart, startMs);
+        }
+        if (desc.endDate) {
+          const endMs = new Date(desc.endDate).getTime();
+          maxEnd = maxEnd === null ? endMs : Math.max(maxEnd, endMs);
+        }
+      }
+    }
+    
+    if (minStart === null && task.startDate) {
+      minStart = new Date(task.startDate).getTime();
+    }
+    if (maxEnd === null && task.endDate) {
+      maxEnd = new Date(task.endDate).getTime();
+    }
+    
+    return {
+      startDate: minStart !== null ? new Date(minStart) : null,
+      endDate: maxEnd !== null ? new Date(maxEnd) : null,
+    };
+  };
+
+  // Determine phase color
+  const getPhaseColor = (name: string | null) => {
+    if (!name) return "bg-primary";
+    const nameLower = name.toLowerCase();
+    if (nameLower.includes("procurement")) return "bg-[#159775]";
+    if (nameLower.includes("on site") || nameLower.includes("on-site") || nameLower.includes("onsite")) return "bg-[#006093]";
+    return "bg-primary";
+  };
+
+  // Extract phases
+  const phases = tasks
+    ? tasks
+        .filter(t => {
+          if (!t.isSummary || !t.name) return false;
+          const nameLower = t.name.toLowerCase();
+          return nameLower.includes("procurement") || 
+                 nameLower.includes("on site") || 
+                 nameLower.includes("on-site") ||
+                 nameLower.includes("onsite");
+        })
+        .sort((a, b) => {
+          const aStart = a.startDate ? new Date(a.startDate).getTime() : 0;
+          const bStart = b.startDate ? new Date(b.startDate).getTime() : 0;
+          return aStart - bStart;
+        })
+    : [];
 
   const ganttData = project && tasks && project.startDate ? formatGanttData(tasks, project.startDate) : { tasks: [], startDate: new Date(), endDate: new Date(), totalDays: 0 };
   const monthHeaders = ganttData.tasks.length > 0 ? generateMonthHeaders(ganttData.startDate, ganttData.endDate) : [];
@@ -302,6 +596,181 @@ export default function ProjectDetail() {
         </Card>
 
       </div>
+
+      {project?.startDate && project?.endDate && phases.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Project Timeline</CardTitle>
+            <CardDescription>Phase-level schedule visualization</CardDescription>
+          </CardHeader>
+          <CardContent className="px-4 py-2">
+            <div className="flex items-center gap-2 mb-3">
+              <input
+                type="checkbox"
+                id="ignore-delay-tasks"
+                checked={ignoreDelayTasks}
+                onChange={(e) => setIgnoreDelayTasks(e.target.checked)}
+                className="cursor-pointer"
+                data-testid="checkbox-ignore-delay"
+              />
+              <label htmlFor="ignore-delay-tasks" className="text-xs text-muted-foreground cursor-pointer">
+                Hide Delay tasks
+              </label>
+            </div>
+            <div className="space-y-2">
+              <div className="text-xs">
+                <p className="text-muted-foreground truncate mb-1">Project Timeline</p>
+                
+                {(() => {
+                  const getMonthlyMarkers = () => {
+                    const start = new Date(project.startDate as any);
+                    const end = new Date(project.endDate as any);
+                    const markers = [];
+                    
+                    let current = new Date(start);
+                    current.setDate(1);
+                    
+                    while (current < end) {
+                      markers.push(new Date(current));
+                      current.setMonth(current.getMonth() + 1);
+                    }
+                    
+                    return markers;
+                  };
+
+                  const markers = getMonthlyMarkers();
+                  const totalMs = new Date(project.endDate as any).getTime() - new Date(project.startDate as any).getTime();
+
+                  return (
+                    <>
+                      <div className="relative w-full mb-1 h-4 flex items-end">
+                        {markers.map((marker, idx) => {
+                          const markerMs = marker.getTime() - new Date(project.startDate as any).getTime();
+                          const position = (markerMs / totalMs) * 100;
+                          const monthYear = marker.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
+                          
+                          return (
+                            <div
+                              key={idx}
+                              className="absolute flex flex-col items-center"
+                              style={{ left: `${Math.max(0, Math.min(position, 100))}%` }}
+                            >
+                              <div className="w-0.5 h-2 bg-muted-foreground/30" />
+                              <div className="text-muted-foreground text-xs mt-0.5 whitespace-nowrap -translate-x-1/2">
+                                {monthYear}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className="w-full h-5 bg-muted rounded overflow-hidden relative border border-border mt-6">
+                        <div
+                          className="h-full bg-muted-foreground/20 transition-all"
+                          style={{
+                            left: "0%",
+                            width: "100%",
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-between mt-0.5 text-xs text-muted-foreground">
+                        <span>{formatDateUK(project.startDate)}</span>
+                        <span>{formatDateUK(project.endDate)}</span>
+                      </div>
+
+                      {phases.map((phase) => {
+                        const isOnSite = phase.name?.toLowerCase().includes("on site") || phase.name?.toLowerCase().includes("on-site") || phase.name?.toLowerCase().includes("onsite");
+                        const childTasks = isOnSite ? getChildTasks(phase.id) : [];
+                        const isExpanded = expandedPhase === phase.id;
+                        const phaseDates = getPhaseStartEndDates(phase);
+                        
+                        const durationDays = phaseDates.startDate && phaseDates.endDate 
+                          ? calculateWorkingDays(phaseDates.startDate, phaseDates.endDate, calendarExceptions)
+                          : 0;
+
+                        return (
+                          <div key={phase.id} className="text-xs mt-2">
+                            <div className="flex items-center gap-1">
+                              {childTasks.length > 0 && (
+                                <button
+                                  onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
+                                  className="p-0 hover:bg-muted rounded transition-colors"
+                                  data-testid={`button-toggle-phase-${phase.id}`}
+                                >
+                                  {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                                </button>
+                              )}
+                              {childTasks.length === 0 && <div className="w-3" />}
+                              <p className="text-muted-foreground truncate flex-1">{phase.name}</p>
+                            </div>
+                            <div className="flex items-center gap-2 ml-4 mt-0.5">
+                              <span className="text-muted-foreground/70 w-16 text-right">
+                                {phaseDates.startDate ? formatDateUK(phaseDates.startDate) : "N/A"}
+                              </span>
+                              <div className="flex-1 h-5 bg-muted rounded overflow-hidden relative border border-border">
+                                <div
+                                  className={`h-full absolute ${getPhaseColor(phase.name)} rounded transition-all`}
+                                  style={calculatePhaseStyle(phase)}
+                                  data-testid={`gantt-phase-${phase.id}`}
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <span className="text-xs font-medium text-foreground/70 pointer-events-none">
+                                    {durationDays}d
+                                  </span>
+                                </div>
+                              </div>
+                              <span className="text-muted-foreground/70 w-16">
+                                {phaseDates.endDate ? formatDateUK(phaseDates.endDate) : "N/A"}
+                              </span>
+                            </div>
+
+                            {isExpanded && childTasks.length > 0 && (
+                              <div className="mt-1 ml-4 space-y-1 pl-3 border-l border-muted-foreground/20">
+                                {childTasks.map((child) => {
+                                  const childDates = getPhaseStartEndDates(child);
+                                  const childDurationDays = childDates.startDate && childDates.endDate 
+                                    ? calculateWorkingDays(childDates.startDate, childDates.endDate, calendarExceptions)
+                                    : 0;
+                                  
+                                  return (
+                                    <div key={child.id} className="text-xs">
+                                      <p className="text-muted-foreground truncate mb-0.5">{child.name}</p>
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-muted-foreground/70 w-16 text-right text-xs">
+                                          {childDates.startDate ? formatDateUK(childDates.startDate) : "N/A"}
+                                        </span>
+                                        <div className="flex-1 h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
+                                          <div
+                                            className="h-full absolute bg-muted-foreground/30 transition-all"
+                                            style={calculatePhaseStyle(child)}
+                                            data-testid={`gantt-child-${child.id}`}
+                                          />
+                                          <div className="absolute inset-0 flex items-center justify-center">
+                                            <span className="text-xs font-medium text-foreground/70 pointer-events-none">
+                                              {childDurationDays}d
+                                            </span>
+                                          </div>
+                                        </div>
+                                        <span className="text-muted-foreground/70 w-16 text-xs">
+                                          {childDates.endDate ? formatDateUK(childDates.endDate) : "N/A"}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </>
+                  );
+                })()}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {ganttData.tasks.length > 0 && (
         <Card>
