@@ -140,9 +140,23 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
               console.log(`[XML Parser]   Single day from FromDate: ${startDate}`);
             }
             
-            if (startDate && !isNaN(startDate.getTime()) && endDate && !isNaN(endDate.getTime())) {
+            // For single-day exceptions, ensure start and end dates are the same
+            if (startDate && endDate && !isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+              // Normalize both dates to midnight for comparison
+              const startNorm = new Date(startDate);
+              const endNorm = new Date(endDate);
+              startNorm.setHours(0, 0, 0, 0);
+              endNorm.setHours(0, 0, 0, 0);
+              
+              // For calendar exceptions (holidays), we expect them to be single-day
+              // If they span multiple days, log a warning and only use the start date
+              if (startNorm.getTime() !== endNorm.getTime()) {
+                const daysDiff = Math.ceil((endNorm.getTime() - startNorm.getTime()) / (1000 * 60 * 60 * 24));
+                console.log(`[XML Parser]   ⚠ Multi-day exception (${daysDiff} days): ${exc.Name || 'Non-working day'}, using start date only`);
+              }
+              
               const excName = exc.Name || exc.Type || `Non-working day`;
-              console.log(`[XML Parser]   ✓ Adding: ${excName} from ${startDate} to ${endDate}`);
+              console.log(`[XML Parser]   ✓ Adding: ${excName} on ${startDate}`);
               exceptions.push({
                 date: startDate,
                 name: excName,
