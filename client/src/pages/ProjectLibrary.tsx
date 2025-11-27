@@ -58,7 +58,7 @@ const PROJECT_STATUSES = [
   "Complete",
 ];
 
-function ProgrammeTile({ programme, onDelete }: { programme: Project; onDelete: () => void }) {
+function ProgrammeTile({ programme }: { programme: Project }) {
   const { data: completion } = useQuery<{ percentComplete?: number }>({
     queryKey: [`/api/projects/${programme.id}/completion`],
   });
@@ -105,14 +105,6 @@ function ProgrammeTile({ programme, onDelete }: { programme: Project; onDelete: 
                 View Details
               </Button>
             </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onDelete}
-              data-testid={`button-delete-programme-${programme.id}`}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
           </div>
         </div>
       </CardHeader>
@@ -797,7 +789,6 @@ export default function ProjectLibrary() {
                   <ProgrammeTile
                     key={programme.id}
                     programme={programme}
-                    onDelete={() => deleteProgrammeMutation.mutate(programme.id)}
                   />
                 ))}
               </div>
