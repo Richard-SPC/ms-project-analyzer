@@ -350,12 +350,8 @@
 
 /* Logo background for all pages */
 main {
-  background-image: url('/logo-bg.ico');
-  background-attachment: fixed;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 50%;
   background-color: var(--background);
+  position: relative;
 }
 
 main::before {
@@ -369,8 +365,8 @@ main::before {
   background-attachment: fixed;
   background-position: center;
   background-repeat: no-repeat;
-  background-size: 50%;
-  opacity: 0.03;
+  background-size: 60%;
+  opacity: 0.15;
   pointer-events: none;
   z-index: 0;
 }
