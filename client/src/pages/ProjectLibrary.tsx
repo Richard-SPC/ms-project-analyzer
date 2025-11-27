@@ -76,7 +76,6 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
     ? tasks
         .filter(t => {
           if (!t.isSummary || !t.name) return false;
-          if (ignoreDelayTasks && t.name.startsWith("Delay")) return false;
           const nameLower = t.name.toLowerCase();
           return nameLower.includes("procurement") || 
                  nameLower.includes("on site") || 
