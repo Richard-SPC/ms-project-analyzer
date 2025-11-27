@@ -19,12 +19,12 @@ const menuItems = [
   },
   {
     title: "Project Library",
-    url: "/library",
+    url: "/projects",
     icon: Library,
   },
   {
-    title: "Programme List",
-    url: "/projects",
+    title: "Programmes",
+    url: "/programmes",
     icon: Folder,
   },
   {
