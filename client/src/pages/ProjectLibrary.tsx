@@ -185,7 +185,7 @@ function ProjectSection({
                   />
                   <div className="flex-1 flex items-center justify-between gap-2">
                     <div className="flex-shrink-0">
-                      <CardTitle className="text-sm">{project.name}</CardTitle>
+                      <CardTitle className="text-lg font-bold">{project.name}</CardTitle>
                     </div>
                     <div className="flex-1 flex justify-center">
                       {project.client && (
