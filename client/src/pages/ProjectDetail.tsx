@@ -558,6 +558,22 @@ export default function ProjectDetail() {
                         </div>
 
                         <div className="space-y-2 relative">
+                        {/* Vertical gridlines overlay extending across all rows */}
+                        <div className="absolute left-0 right-0 top-0 bottom-0 pointer-events-none z-10">
+                          {markers.map((marker, idx) => {
+                            const currentPosition = ((marker.getTime() - timelineStart.getTime()) / totalMs) * 100;
+                            return (
+                              <div
+                                key={`gridline-${idx}`}
+                                className="absolute top-0 bottom-0 w-px bg-gray-300/30 dark:bg-gray-600/30"
+                                style={{
+                                  left: `calc((100% - (1rem + 0.25rem + 8rem + 0.25rem + 4rem + 0.25rem)) * ${currentPosition / 100})`,
+                                  height: '100%'
+                                }}
+                              />
+                            );
+                          })}
+                        </div>
                         <div className="text-xs">
                           <div className="flex items-center gap-1">
                             <div className="w-4 flex-shrink-0" />
