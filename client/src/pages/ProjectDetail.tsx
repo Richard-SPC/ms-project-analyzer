@@ -539,7 +539,7 @@ export default function ProjectDetail() {
                                       style={{ left: `${position}%` }}
                                     />
                                     <span 
-                                      className="absolute text-xs text-foreground/60 font-medium pointer-events-none"
+                                      className="absolute text-xs text-white font-bold pointer-events-none whitespace-nowrap"
                                       style={{ left: `${midPosition}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
                                     >
                                       {monthName}
