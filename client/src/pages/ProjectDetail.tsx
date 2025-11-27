@@ -528,26 +528,24 @@ export default function ProjectDetail() {
                                 data-testid="gantt-project-overall"
                               />
                               {markers.map((marker, idx) => {
-                                const position = ((marker.getTime() - projectStart.getTime()) / totalMs) * 100;
-                                const nextMarker = idx + 1 < markers.length ? markers[idx + 1] : projectEnd;
-                                const nextPosition = ((nextMarker.getTime() - projectStart.getTime()) / totalMs) * 100;
-                                const midPosition = (position + nextPosition) / 2;
+                                const currentPosition = ((marker.getTime() - projectStart.getTime()) / totalMs) * 100;
+                                const nextMarkerDate = idx + 1 < markers.length ? markers[idx + 1] : projectEnd;
+                                const nextPosition = ((nextMarkerDate.getTime() - projectStart.getTime()) / totalMs) * 100;
+                                const midPosition = (currentPosition + nextPosition) / 2;
                                 const monthName = marker.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
                                 
                                 return (
                                   <div key={`month-${idx}`}>
                                     <div
                                       className="absolute top-0 bottom-0 w-0.5 bg-muted-foreground/10"
-                                      style={{ left: `${position}%` }}
+                                      style={{ left: `${currentPosition}%` }}
                                     />
-                                    {idx < markers.length - 1 && (
-                                      <span 
-                                        className="absolute text-xs text-white pointer-events-none whitespace-nowrap"
-                                        style={{ left: `${midPosition}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
-                                      >
-                                        {monthName}
-                                      </span>
-                                    )}
+                                    <span 
+                                      className="absolute text-xs text-white pointer-events-none whitespace-nowrap"
+                                      style={{ left: `${midPosition}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
+                                    >
+                                      {monthName}
+                                    </span>
                                   </div>
                                 );
                               })}
