@@ -139,17 +139,25 @@ export default function ProgrammeExceptions() {
     const end = new Date(selectedProgramme.endDate);
     const holidayDate = new Date(holiday.date);
     
-    // Check if holiday falls within range
-    const isInRange = holidayDate >= start && holidayDate <= end;
+    // Normalize dates to midnight for comparison
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+    holidayDate.setHours(0, 0, 0, 0);
     
-    if (!isInRange) return "none";
+    // Check if holiday falls within programme range
+    const isInProgrammeRange = holidayDate >= start && holidayDate <= end;
+    
+    if (!isInProgrammeRange) return "none";
 
-    // Check if it's listed in the programme's calendar exceptions
+    // Check if it's listed in the programme's calendar exceptions AND falls within the exception date range
     const isListed = exceptions.some((exc) => {
       const excStart = new Date(exc.startDate);
       const excEnd = new Date(exc.endDate);
-      return excStart.toDateString() === holidayDate.toDateString() ||
-             excEnd.toDateString() === holidayDate.toDateString();
+      excStart.setHours(0, 0, 0, 0);
+      excEnd.setHours(23, 59, 59, 999);
+      
+      // Holiday must fall within the exception's date range
+      return holidayDate >= excStart && holidayDate <= excEnd;
     });
 
     return isListed ? "green" : "red";
