@@ -184,37 +184,38 @@ function ProjectSection({
                     style={{ backgroundColor: project.color || "#3B82F6" }}
                   />
                   <CardTitle className="text-lg font-bold">{project.name}</CardTitle>
-                  <div className="flex-1" />
-                  {project.client && (
-                    <span className="text-sm font-bold text-foreground">{project.client}</span>
-                  )}
                   <Badge variant="secondary" className="ml-2 flex-shrink-0 text-xs">
                     {programmes.length}
                   </Badge>
                 </div>
               </Button>
             </CollapsibleTrigger>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" data-testid={`button-project-menu-${project.id}`}>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={onEdit} data-testid={`button-edit-project-${project.id}`}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit Project
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={onDelete} 
-                  className="text-destructive"
-                  data-testid={`button-delete-project-${project.id}`}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Project
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-3">
+              {project.client && (
+                <span className="text-sm font-bold text-foreground">{project.client}</span>
+              )}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" data-testid={`button-project-menu-${project.id}`}>
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={onEdit} data-testid={`button-edit-project-${project.id}`}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit Project
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={onDelete} 
+                    className="text-destructive"
+                    data-testid={`button-delete-project-${project.id}`}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Project
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
           {project.description && (
             <CardDescription className="ml-6 text-xs">{project.description}</CardDescription>
