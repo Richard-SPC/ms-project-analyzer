@@ -38,16 +38,20 @@ export default function Dashboard() {
         </h1>
       </div>
 
-      <Card data-testid="card-total-projects">
-        <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
-          <FolderKanban className="h-4 w-4 text-muted-foreground" />
+      <Card data-testid="card-total-projects" className="w-fit">
+        <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-1 px-3 py-2">
+          <CardTitle className="text-xs font-medium">Projects & Programmes</CardTitle>
+          <FolderKanban className="h-3 w-3 text-muted-foreground" />
         </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold" data-testid="text-total-projects">
+        <CardContent className="px-3 py-1">
+          <div className="text-lg font-bold" data-testid="text-total-projects">
             {totalProjects}
           </div>
-          <p className="text-xs text-muted-foreground">All programmes</p>
+          <p className="text-xs text-muted-foreground">Projects</p>
+          <div className="text-lg font-bold mt-2" data-testid="text-total-programmes">
+            {allProjects?.length || 0}
+          </div>
+          <p className="text-xs text-muted-foreground">Programmes</p>
         </CardContent>
       </Card>
 
