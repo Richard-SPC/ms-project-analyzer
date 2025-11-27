@@ -67,7 +67,7 @@ function ProgrammeTile({ programme }: { programme: Project }) {
     <Card className="hover-elevate" data-testid={`card-programme-${programme.id}`}>
       <CardHeader className="py-1 px-4">
         <div className="flex items-center justify-between gap-2">
-          <div className="text-xs truncate text-foreground">{programme.name}</div>
+          <div className="text-sm font-medium truncate text-foreground">{programme.name}</div>
           <div className="flex-1 flex justify-center gap-4 items-center">
             <div className="text-xs">
               <p className="text-muted-foreground">Status Date</p>
