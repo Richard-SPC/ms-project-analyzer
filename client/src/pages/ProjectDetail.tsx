@@ -518,7 +518,7 @@ export default function ProjectDetail() {
                         <div className="text-xs">
                           <div className="flex items-center gap-2">
                             <div className="w-20 flex-shrink-0" />
-                            <p className="text-muted-foreground w-32 truncate flex-shrink-0">Project</p>
+                            <p className="text-muted-foreground w-32 truncate flex-shrink-0">Overall Project</p>
                             <span className="text-muted-foreground/70 w-16 text-right flex-shrink-0">
                               {formatDateUK(project.startDate)}
                             </span>
@@ -530,12 +530,23 @@ export default function ProjectDetail() {
                               />
                               {markers.map((marker, idx) => {
                                 const position = ((marker.getTime() - projectStart.getTime()) / totalMs) * 100;
+                                const nextMarker = markers[idx + 1] ? new Date(markers[idx + 1]) : projectEnd;
+                                const midPosition = (position + ((nextMarker.getTime() - projectStart.getTime()) / totalMs) * 100) / 2;
+                                const monthName = marker.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
+                                
                                 return (
-                                  <div
-                                    key={`line-${idx}`}
-                                    className="absolute top-0 bottom-0 w-0.5 bg-muted-foreground/10"
-                                    style={{ left: `${position}%` }}
-                                  />
+                                  <div key={`month-${idx}`}>
+                                    <div
+                                      className="absolute top-0 bottom-0 w-0.5 bg-muted-foreground/10"
+                                      style={{ left: `${position}%` }}
+                                    />
+                                    <span 
+                                      className="absolute text-xs text-foreground/60 font-medium pointer-events-none"
+                                      style={{ left: `${midPosition}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
+                                    >
+                                      {monthName}
+                                    </span>
+                                  </div>
                                 );
                               })}
                             </div>
