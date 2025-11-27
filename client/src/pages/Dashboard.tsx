@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
 import { FolderKanban, FileCheck } from "lucide-react";
 import { Link } from "wouter";
+import { useState } from "react";
 import type { Workspace, Project } from "@shared/schema";
 
 const PROJECT_STATUSES = [
@@ -15,6 +17,8 @@ const PROJECT_STATUSES = [
 ];
 
 export default function Dashboard() {
+  const [showAllProgrammes, setShowAllProgrammes] = useState(false);
+
   const { data: workspaces, isLoading: workspacesLoading } = useQuery<Workspace[]>({
     queryKey: ["/api/workspaces"],
   });
@@ -58,8 +62,16 @@ export default function Dashboard() {
       </div>
 
       <Card data-testid="card-project-statuses">
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between gap-2">
           <CardTitle>Projects by Status</CardTitle>
+          <Button
+            size="sm"
+            variant={showAllProgrammes ? "default" : "outline"}
+            onClick={() => setShowAllProgrammes(!showAllProgrammes)}
+            data-testid="button-toggle-programmes"
+          >
+            {showAllProgrammes ? "All Programmes" : "Latest Programme"}
+          </Button>
         </CardHeader>
         <CardContent>
           {workspacesLoading ? (
@@ -99,26 +111,30 @@ export default function Dashboard() {
                               return currentDate > latestDate ? current : latest;
                             }, workspaceProjects[0]);
                             
+                            const projectsToDisplay = showAllProgrammes ? workspaceProjects : (mostRecentProject ? [mostRecentProject] : []);
+                            
                             return (
-                              <div key={workspace.id}>
-                                {mostRecentProject ? (
-                                  <Link href={`/programmes/${mostRecentProject.id}`}>
-                                    <div 
-                                      className="flex items-center justify-between gap-2 p-2 hover-elevate rounded-md border bg-muted/50 text-xs"
-                                      data-testid={`card-programme-${mostRecentProject.id}-in-${workspace.id}`}
-                                    >
-                                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                                        <FolderKanban className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                                        <div className="min-w-0">
-                                          <p className="text-sm font-bold truncate">{workspace.name}</p>
-                                          <p className="text-xs text-muted-foreground truncate">Latest Programme: {mostRecentProject.name}</p>
+                              <div key={workspace.id} className="space-y-2">
+                                {projectsToDisplay.length > 0 ? (
+                                  projectsToDisplay.map(project => (
+                                    <Link key={project.id} href={`/programmes/${project.id}`}>
+                                      <div 
+                                        className="flex items-center justify-between gap-2 p-2 hover-elevate rounded-md border bg-muted/50 text-xs"
+                                        data-testid={`card-programme-${project.id}-in-${workspace.id}`}
+                                      >
+                                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                                          <FolderKanban className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                          <div className="min-w-0">
+                                            <p className="text-sm font-bold truncate">{workspace.name}</p>
+                                            <p className="text-xs text-muted-foreground truncate">{showAllProgrammes ? "Programme: " : "Latest Programme: "}{project.name}</p>
+                                          </div>
                                         </div>
+                                        {workspace.client && (
+                                          <p className="text-sm font-bold text-foreground truncate whitespace-nowrap ml-2">{workspace.client}</p>
+                                        )}
                                       </div>
-                                      {workspace.client && (
-                                        <p className="text-sm font-bold text-foreground truncate whitespace-nowrap ml-2">{workspace.client}</p>
-                                      )}
-                                    </div>
-                                  </Link>
+                                    </Link>
+                                  ))
                                 ) : (
                                   <div className="flex items-center justify-between gap-2 p-2 rounded-md border bg-muted/50 text-xs">
                                     <div className="flex items-center gap-2 min-w-0 flex-1">
