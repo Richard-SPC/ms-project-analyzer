@@ -2,9 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FolderKanban, FileCheck } from "lucide-react";
 import { Link } from "wouter";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import type { Workspace, Project } from "@shared/schema";
 
 const PROJECT_STATUSES = [
@@ -18,6 +19,7 @@ const PROJECT_STATUSES = [
 
 export default function Dashboard() {
   const [viewMode, setViewMode] = useState("latest");
+  const [selectedClient, setSelectedClient] = useState<string>("all");
 
   const { data: workspaces, isLoading: workspacesLoading } = useQuery<Workspace[]>({
     queryKey: ["/api/workspaces"],
@@ -29,9 +31,26 @@ export default function Dashboard() {
 
   const totalProjects = workspaces?.length || 0;
 
-  // Group workspaces by status
+  // Get unique clients
+  const uniqueClients = useMemo(() => {
+    const clients = new Set<string>();
+    workspaces?.forEach(workspace => {
+      if (workspace.client) {
+        clients.add(workspace.client);
+      }
+    });
+    return Array.from(clients).sort();
+  }, [workspaces]);
+
+  // Filter workspaces by client
+  const filteredWorkspaces = useMemo(() => {
+    if (selectedClient === "all") return workspaces || [];
+    return workspaces?.filter(w => w.client === selectedClient) || [];
+  }, [workspaces, selectedClient]);
+
+  // Group filtered workspaces by status
   const projectsByStatus = PROJECT_STATUSES.reduce((acc, status) => {
-    acc[status] = workspaces?.filter(p => p.status === status) || [];
+    acc[status] = filteredWorkspaces.filter(p => p.status === status) || [];
     return acc;
   }, {} as Record<string, Workspace[]>);
 
@@ -63,7 +82,22 @@ export default function Dashboard() {
 
       <Card data-testid="card-project-statuses">
         <CardHeader className="flex flex-row items-center justify-between gap-2">
-          <CardTitle>Projects by Status</CardTitle>
+          <div className="flex items-center gap-4">
+            <CardTitle>Projects by Status</CardTitle>
+            <Select value={selectedClient} onValueChange={setSelectedClient}>
+              <SelectTrigger className="w-48" data-testid="select-client">
+                <SelectValue placeholder="Filter by client" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Clients</SelectItem>
+                {uniqueClients.map((client) => (
+                  <SelectItem key={client} value={client}>
+                    {client}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <ToggleGroup
             type="single"
             value={viewMode}
