@@ -142,30 +142,20 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
               console.log(`[XML Parser]   Single day from FromDate: ${startDate}`);
             }
             
-            // For single-day exceptions, ensure start and end dates are the same
+            // Normalize both dates to midnight (date only, no time component)
             if (startDate && endDate && !isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
-              // Normalize both dates to midnight for comparison
               const startNorm = new Date(startDate);
               const endNorm = new Date(endDate);
               startNorm.setHours(0, 0, 0, 0);
               endNorm.setHours(0, 0, 0, 0);
               
-              // For calendar exceptions (holidays), we expect them to be single-day
-              // If they span multiple days, log a warning and only use the start date
-              if (startNorm.getTime() !== endNorm.getTime()) {
-                const daysDiff = Math.ceil((endNorm.getTime() - startNorm.getTime()) / (1000 * 60 * 60 * 24));
-                console.log(`[XML Parser]   ⚠ Multi-day exception (${daysDiff} days): ${exc.Name || 'Non-working day'}, using start date only`);
-              }
-              
-              // Normalize single-day exceptions: use the start date at midnight for both
-              // This ensures startDate === endDate for single-day exceptions
-              const normalizedDate = new Date(startNorm);
-              
               const excName = exc.Name || exc.Type || `Non-working day`;
-              console.log(`[XML Parser]   ✓ Adding: ${excName} on ${normalizedDate.toISOString()}`);
+              const daysDiff = Math.ceil((endNorm.getTime() - startNorm.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+              console.log(`[XML Parser]   ✓ Adding: ${excName} from ${startNorm.toISOString()} to ${endNorm.toISOString()} (${daysDiff} day(s))`);
+              
               exceptions.push({
-                startDate: normalizedDate,
-                endDate: normalizedDate,
+                startDate: startNorm,
+                endDate: endNorm,
                 name: excName,
                 calendarName: calendarName,
               } as CalendarException);
