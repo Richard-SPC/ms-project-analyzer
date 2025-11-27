@@ -14,7 +14,7 @@
   --elevate-1: rgba(0,0,0, .03);
   --elevate-2: rgba(0,0,0, .08);
 
-  --background: 180deg 36.84% 88.82%;
+  --background: 120deg 14.29% 93.14%;
 
   --foreground: 197 100% 16%; /* #006093 dark blue */
 
@@ -366,7 +366,7 @@ main::before {
   background-position: center;
   background-repeat: no-repeat;
   background-size: 60%;
-  opacity: 0.15;
+  opacity: 0.05;
   pointer-events: none;
   z-index: 0;
 }
