@@ -102,7 +102,7 @@ export default function Dashboard() {
                             return (
                               <div key={workspace.id}>
                                 {mostRecentProject ? (
-                                  <Link href={`/projects/${mostRecentProject.id}`}>
+                                  <Link href={`/programmes/${mostRecentProject.id}`}>
                                     <div 
                                       className="flex items-center justify-between gap-2 p-2 hover-elevate rounded-md border bg-muted/50 text-xs"
                                       data-testid={`card-programme-${mostRecentProject.id}-in-${workspace.id}`}
