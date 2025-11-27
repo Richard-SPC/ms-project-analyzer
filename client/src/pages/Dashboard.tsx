@@ -111,7 +111,7 @@ export default function Dashboard() {
                                         <FolderKanban className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                                         <div className="min-w-0">
                                           <p className="font-medium truncate">{workspace.name}</p>
-                                          <p className="text-xs text-muted-foreground truncate">{mostRecentProject.name}</p>
+                                          <p className="text-xs text-muted-foreground truncate">Latest Programme: {mostRecentProject.name}</p>
                                         </div>
                                       </div>
                                       {workspace.client && (
