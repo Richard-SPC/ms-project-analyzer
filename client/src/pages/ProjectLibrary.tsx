@@ -123,9 +123,9 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
     // Get all descendants to calculate true span, filtering delays if checkbox is checked
     const descendants = getAllDescendants(task.id, ignoreDelayTasks);
     
-    // Find earliest start and latest end from all related tasks
-    let minStart = task.startDate ? new Date(task.startDate).getTime() : null;
-    let maxEnd = task.endDate ? new Date(task.endDate).getTime() : null;
+    // Find earliest start and latest end from descendants ONLY (not the parent task itself)
+    let minStart: number | null = null;
+    let maxEnd: number | null = null;
     
     for (const desc of descendants) {
       if (desc.startDate) {
@@ -136,6 +136,14 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
         const endMs = new Date(desc.endDate).getTime();
         maxEnd = maxEnd === null ? endMs : Math.max(maxEnd, endMs);
       }
+    }
+    
+    // If no descendants found, use parent task's dates as fallback
+    if (minStart === null && task.startDate) {
+      minStart = new Date(task.startDate).getTime();
+    }
+    if (maxEnd === null && task.endDate) {
+      maxEnd = new Date(task.endDate).getTime();
     }
     
     if (minStart === null || maxEnd === null) {
