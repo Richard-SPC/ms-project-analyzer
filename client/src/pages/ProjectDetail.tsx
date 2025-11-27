@@ -511,15 +511,6 @@ export default function ProjectDetail() {
                   };
 
                   const markers = getMonthlyMarkers();
-                  
-                  const getTaskPosition = (task: Task) => {
-                    if (!task.startDate || !task.endDate) return { left: 0, width: 0 };
-                    const taskStart = new Date(task.startDate).getTime();
-                    const taskEnd = new Date(task.endDate).getTime();
-                    const left = ((taskStart - projectStart.getTime()) / totalMs) * 100;
-                    const width = ((taskEnd - taskStart) / totalMs) * 100;
-                    return { left, width };
-                  };
 
                   return (
                     <>
@@ -571,7 +562,7 @@ export default function ProjectDetail() {
                             ? calculateWorkingDays(phaseDates.startDate, phaseDates.endDate, calendarExceptions)
                             : 0;
 
-                          const phasePos = getTaskPosition(phase);
+                          const phaseStyle = calculatePhaseStyle(phase);
 
                           return (
                             <div key={phase.id} className="text-xs">
@@ -595,7 +586,7 @@ export default function ProjectDetail() {
                                 <div className="flex-1 h-5 bg-muted rounded overflow-hidden relative border border-border">
                                   <div
                                     className={`h-full absolute ${getPhaseColor(phase.name)} rounded transition-all`}
-                                    style={{ left: `${phasePos.left}%`, width: `${phasePos.width}%` }}
+                                    style={{ left: phaseStyle.left, width: phaseStyle.width }}
                                     data-testid={`gantt-phase-${phase.id}`}
                                   />
                                   <div className="absolute inset-0 flex items-center justify-center">
@@ -617,7 +608,7 @@ export default function ProjectDetail() {
                                       ? calculateWorkingDays(childDates.startDate, childDates.endDate, calendarExceptions)
                                       : 0;
                                     
-                                    const childPos = getTaskPosition(child);
+                                    const childStyle = calculatePhaseStyle(child);
                                     
                                     return (
                                       <div key={child.id} className="text-xs">
@@ -630,7 +621,7 @@ export default function ProjectDetail() {
                                           <div className="flex-1 h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
                                             <div
                                               className="h-full absolute bg-muted-foreground/30 transition-all"
-                                              style={{ left: `${childPos.left}%`, width: `${childPos.width}%` }}
+                                              style={{ left: childStyle.left, width: childStyle.width }}
                                               data-testid={`gantt-child-${child.id}`}
                                             />
                                             <div className="absolute inset-0 flex items-center justify-center">
