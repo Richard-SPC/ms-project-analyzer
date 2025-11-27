@@ -499,6 +499,15 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
                 const isOnSite = phase.name?.toLowerCase().includes("on site") || phase.name?.toLowerCase().includes("on-site") || phase.name?.toLowerCase().includes("onsite");
                 const childTasks = isOnSite ? getChildTasks(phase.id) : [];
                 const isExpanded = expandedPhase === phase.id;
+                const phaseDates = getPhaseStartEndDates(phase);
+                
+                // Calculate duration in days
+                const getDurationDays = () => {
+                  if (!phaseDates.startDate || !phaseDates.endDate) return 0;
+                  const ms = phaseDates.endDate.getTime() - phaseDates.startDate.getTime();
+                  return Math.ceil(ms / (1000 * 60 * 60 * 24));
+                };
+                const durationDays = getDurationDays();
 
                 return (
                   <div key={phase.id} className="text-xs">
@@ -515,37 +524,69 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
                       {childTasks.length === 0 && <div className="w-3" />}
                       <p className="text-muted-foreground truncate flex-1">{phase.name}</p>
                     </div>
-                    <div className="w-full h-5 bg-muted rounded overflow-hidden relative border border-border mt-0.5 ml-4">
-                      <div
-                        className={`h-full absolute ${getPhaseColor(phase.name)} rounded transition-all`}
-                        style={calculatePhaseStyle(phase)}
-                        data-testid={`gantt-phase-${phase.id}`}
-                      />
+                    <div className="flex items-center gap-2 ml-4 mt-0.5">
+                      <span className="text-muted-foreground/70 w-16 text-right">
+                        {phaseDates.startDate ? formatDateUK(phaseDates.startDate) : "N/A"}
+                      </span>
+                      <div className="flex-1 h-5 bg-muted rounded overflow-hidden relative border border-border">
+                        <div
+                          className={`h-full absolute ${getPhaseColor(phase.name)} rounded transition-all`}
+                          style={calculatePhaseStyle(phase)}
+                          data-testid={`gantt-phase-${phase.id}`}
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-xs font-medium text-foreground/70 pointer-events-none">
+                            {durationDays}d
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-muted-foreground/70 w-16">
+                        {phaseDates.endDate ? formatDateUK(phaseDates.endDate) : "N/A"}
+                      </span>
                     </div>
 
                     {isExpanded && childTasks.length > 0 && (
                       <div className="mt-1 ml-4 space-y-1 pl-3 border-l border-muted-foreground/20">
-                        {childTasks.map((child) => (
-                          <div key={child.id} className="text-xs">
-                            <div className="flex items-center justify-between gap-1 mb-0.5">
-                              <p className="text-muted-foreground truncate flex-1">{child.name}</p>
-                              <span className="text-muted-foreground/70 whitespace-nowrap flex-shrink-0">
-                                {child.startDate && child.endDate ? (
-                                  <>{formatDateUK(child.startDate)} - {formatDateUK(child.endDate)}</>
-                                ) : (
-                                  "No dates"
-                                )}
-                              </span>
+                        {childTasks.map((child) => {
+                          const childDates = getPhaseStartEndDates(child);
+                          const childDurationDays = childDates.startDate && childDates.endDate ? 
+                            Math.ceil((childDates.endDate.getTime() - childDates.startDate.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+                          
+                          return (
+                            <div key={child.id} className="text-xs">
+                              <div className="flex items-center justify-between gap-1 mb-0.5">
+                                <p className="text-muted-foreground truncate flex-1">{child.name}</p>
+                                <span className="text-muted-foreground/70 whitespace-nowrap flex-shrink-0">
+                                  {childDates.startDate && childDates.endDate ? (
+                                    <>{formatDateUK(childDates.startDate)} - {formatDateUK(childDates.endDate)}</>
+                                  ) : (
+                                    "No dates"
+                                  )}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground/70 w-16 text-right text-xs">
+                                  {childDates.startDate ? formatDateUK(childDates.startDate) : "N/A"}
+                                </span>
+                                <div className="flex-1 h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
+                                  <div
+                                    className="h-full absolute bg-muted-foreground/30 transition-all"
+                                    style={calculatePhaseStyle(child)}
+                                    data-testid={`gantt-child-${child.id}`}
+                                  />
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-xs font-medium text-foreground/70 pointer-events-none">
+                                      {childDurationDays}d
+                                    </span>
+                                  </div>
+                                </div>
+                                <span className="text-muted-foreground/70 w-16 text-xs">
+                                  {childDates.endDate ? formatDateUK(childDates.endDate) : "N/A"}
+                                </span>
+                              </div>
                             </div>
-                            <div className="w-full h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
-                              <div
-                                className="h-full absolute bg-muted-foreground/30 transition-all"
-                                style={calculatePhaseStyle(child)}
-                                data-testid={`gantt-child-${child.id}`}
-                              />
-                            </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </div>
