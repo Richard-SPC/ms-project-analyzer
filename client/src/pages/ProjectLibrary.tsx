@@ -57,23 +57,26 @@ const PROJECT_STATUSES = [
   "Complete",
 ];
 
-function ProgrammeTile({ programme, onDelete }: { programme: Project; onDelete: () => void }) {
+function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: Project; onDelete: () => void; showGantt?: boolean }) {
   const { data: completion } = useQuery<{ percentComplete?: number }>({
     queryKey: [`/api/projects/${programme.id}/completion`],
   });
 
   const { data: tasks } = useQuery<Task[]>({
     queryKey: [`/api/projects/${programme.id}/tasks`],
+    enabled: showGantt,
   });
 
   // Extract Procurement and On Site Works summary phases
-  const phases = tasks
-    ?.filter(t => t.isSummary && (t.name?.includes("Procurement") || t.name?.includes("On Site")))
-    .sort((a, b) => {
-      const aStart = a.startDate ? new Date(a.startDate).getTime() : 0;
-      const bStart = b.startDate ? new Date(b.startDate).getTime() : 0;
-      return aStart - bStart;
-    }) || [];
+  const phases = showGantt && tasks
+    ? tasks
+        .filter(t => t.isSummary && (t.name?.includes("Procurement") || t.name?.includes("On Site")))
+        .sort((a, b) => {
+          const aStart = a.startDate ? new Date(a.startDate).getTime() : 0;
+          const bStart = b.startDate ? new Date(b.startDate).getTime() : 0;
+          return aStart - bStart;
+        })
+    : [];
 
   // Calculate timeline position and width
   const calculatePhaseStyle = (task: Task) => {
@@ -319,13 +322,22 @@ function ProjectSection({
 
             {programmes.length > 0 ? (
               <div className="space-y-1">
-                {programmes.map((programme) => (
-                  <ProgrammeTile
-                    key={programme.id}
-                    programme={programme}
-                    onDelete={() => deleteMutation.mutate(programme.id)}
-                  />
-                ))}
+                {(() => {
+                  const mostRecentProgramme = programmes.reduce((latest, current) => {
+                    const latestDate = latest.statusDate ? new Date(latest.statusDate).getTime() : 0;
+                    const currentDate = current.statusDate ? new Date(current.statusDate).getTime() : 0;
+                    return currentDate > latestDate ? current : latest;
+                  }, programmes[0]);
+
+                  return programmes.map((programme) => (
+                    <ProgrammeTile
+                      key={programme.id}
+                      programme={programme}
+                      onDelete={() => deleteMutation.mutate(programme.id)}
+                      showGantt={programme.id === mostRecentProgramme?.id}
+                    />
+                  ));
+                })()}
               </div>
             ) : (
               <div className="text-center py-2 text-muted-foreground">
