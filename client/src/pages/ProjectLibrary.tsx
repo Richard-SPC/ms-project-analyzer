@@ -159,8 +159,8 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
       const taskWbsParts = task.wbsCode.split('.');
       const taskLevel = taskWbsParts.length;
       
-      // Task must be deeper and start with parent WBS
-      if (taskLevel >= expectedChildLevel && task.wbsCode.startsWith(parentWbs + '.') && task.isSummary) {
+      // Task must be deeper and start with parent WBS - include both summary and regular tasks
+      if (taskLevel >= expectedChildLevel && task.wbsCode.startsWith(parentWbs + '.')) {
         children.push(task);
       }
     }
