@@ -41,7 +41,7 @@ function ProgrammeTile({ project, onDelete }: { project: Project; onDelete: () =
             <div className="flex items-center flex-1 min-w-0">
               <FolderKanban className="h-3 w-3 text-primary flex-shrink-0 mr-1" />
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-xs font-normal">{project.name}</CardTitle>
+                <CardTitle className="text-sm font-normal">{project.name}</CardTitle>
               </div>
             </div>
             <div className="flex items-center gap-1 flex-wrap">
