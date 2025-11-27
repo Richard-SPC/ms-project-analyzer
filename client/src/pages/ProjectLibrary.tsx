@@ -184,9 +184,6 @@ function ProjectSection({
                     style={{ backgroundColor: project.color || "#3B82F6" }}
                   />
                   <CardTitle className="text-lg font-bold">{project.name}</CardTitle>
-                  <Badge variant="secondary" className="ml-2 flex-shrink-0 text-xs">
-                    {programmes.length}
-                  </Badge>
                 </div>
               </Button>
             </CollapsibleTrigger>
@@ -194,6 +191,9 @@ function ProjectSection({
               {project.client && (
                 <span className="text-sm font-bold text-foreground">{project.client}</span>
               )}
+              <Badge variant="secondary" className="flex-shrink-0 text-xs">
+                {programmes.length}
+              </Badge>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" data-testid={`button-project-menu-${project.id}`}>
