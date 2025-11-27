@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,47 +31,74 @@ function ProgrammeTile({ project, onDelete }: { project: Project; onDelete: () =
   const { data: completion } = useQuery({
     queryKey: [`/api/projects/${project.id}/completion`],
   });
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   return (
-    <Card className="hover-elevate" data-testid={`card-programme-${project.id}`}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <FolderKanban className="h-5 w-5 text-primary flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-base">{project.name}</CardTitle>
+    <>
+      <Card className="hover-elevate" data-testid={`card-programme-${project.id}`}>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              <FolderKanban className="h-5 w-5 text-primary flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-base">{project.name}</CardTitle>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center gap-6 flex-wrap">
-            <div className="text-sm">
-              <p className="text-muted-foreground">Status Date</p>
-              <p className="font-medium text-foreground">
-                {project.statusDate ? formatDateUK(project.statusDate) : "N/A"}
-              </p>
-            </div>
-            <div className="text-sm">
-              <p className="text-muted-foreground">Overall Complete</p>
-              <p className="font-medium text-foreground">
-                {completion?.percentComplete ?? "-"}%
-              </p>
-            </div>
-            <Link href={`/programmes/${project.id}`}>
-              <Button variant="outline" size="sm" data-testid={`button-view-programme-${project.id}`}>
-                View Details
+            <div className="flex items-center gap-6 flex-wrap">
+              <div className="text-sm">
+                <p className="text-muted-foreground">Status Date</p>
+                <p className="font-medium text-foreground">
+                  {project.statusDate ? formatDateUK(project.statusDate) : "N/A"}
+                </p>
+              </div>
+              <div className="text-sm">
+                <p className="text-muted-foreground">Overall Complete</p>
+                <p className="font-medium text-foreground">
+                  {completion?.percentComplete ?? "-"}%
+                </p>
+              </div>
+              <Link href={`/programmes/${project.id}`}>
+                <Button variant="outline" size="sm" data-testid={`button-view-programme-${project.id}`}>
+                  View Details
+                </Button>
+              </Link>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowDeleteConfirm(true)}
+                data-testid={`button-delete-programme-${project.id}`}
+              >
+                <Trash2 className="h-4 w-4" />
               </Button>
-            </Link>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onDelete}
-              data-testid={`button-delete-programme-${project.id}`}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            </div>
           </div>
-        </div>
-      </CardHeader>
-    </Card>
+        </CardHeader>
+      </Card>
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the programme "{project.name}" and all associated data. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-end gap-3">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                onDelete();
+                setShowDeleteConfirm(false);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid={`button-confirm-delete-${project.id}`}
+            >
+              Delete
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
 
@@ -78,6 +106,7 @@ export default function Projects() {
   const [open, setOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const { toast } = useToast();
 
   const { data: projects, isLoading } = useQuery<Project[]>({
