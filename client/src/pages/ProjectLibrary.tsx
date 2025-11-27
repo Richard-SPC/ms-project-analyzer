@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertWorkspaceSchema, insertProjectSchema, type Workspace, type Project } from "@shared/schema";
+import { insertWorkspaceSchema, insertProjectSchema, type Workspace, type Project, type Task } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatDateUK } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -61,6 +61,45 @@ function ProgrammeTile({ programme, onDelete }: { programme: Project; onDelete: 
   const { data: completion } = useQuery<{ percentComplete?: number }>({
     queryKey: [`/api/projects/${programme.id}/completion`],
   });
+
+  const { data: tasks } = useQuery<Task[]>({
+    queryKey: [`/api/projects/${programme.id}/tasks`],
+  });
+
+  // Extract Procurement and On Site Works summary phases
+  const phases = tasks
+    ?.filter(t => t.isSummary && (t.name?.includes("Procurement") || t.name?.includes("On Site")))
+    .sort((a, b) => {
+      const aStart = a.startDate ? new Date(a.startDate).getTime() : 0;
+      const bStart = b.startDate ? new Date(b.startDate).getTime() : 0;
+      return aStart - bStart;
+    }) || [];
+
+  // Calculate timeline position and width
+  const calculatePhaseStyle = (task: Task) => {
+    if (!programme.startDate || !programme.endDate || !task.startDate || !task.endDate) {
+      return { left: "0%", width: "0%" };
+    }
+
+    const totalMs = new Date(programme.endDate).getTime() - new Date(programme.startDate).getTime();
+    const taskStartMs = new Date(task.startDate).getTime() - new Date(programme.startDate).getTime();
+    const taskDurationMs = new Date(task.endDate).getTime() - new Date(task.startDate).getTime();
+
+    const left = (taskStartMs / totalMs) * 100;
+    const width = (taskDurationMs / totalMs) * 100;
+
+    return {
+      left: `${Math.max(0, left)}%`,
+      width: `${Math.max(0, Math.min(width, 100 - left))}%`,
+    };
+  };
+
+  // Determine phase color
+  const getPhaseColor = (name: string | null) => {
+    if (name?.includes("Procurement")) return "bg-[#159775]";
+    if (name?.includes("On Site")) return "bg-[#006093]";
+    return "bg-primary";
+  };
 
   return (
     <Card className="hover-elevate" data-testid={`card-programme-${programme.id}`}>
@@ -113,6 +152,24 @@ function ProgrammeTile({ programme, onDelete }: { programme: Project; onDelete: 
           </div>
         </div>
       </CardHeader>
+      {phases.length > 0 && (
+        <CardContent className="px-4 py-2">
+          <div className="space-y-1">
+            {phases.map((phase) => (
+              <div key={phase.id} className="text-xs">
+                <p className="text-muted-foreground truncate mb-1">{phase.name}</p>
+                <div className="w-full h-5 bg-muted rounded overflow-hidden relative">
+                  <div
+                    className={`h-full ${getPhaseColor(phase.name)} rounded transition-all`}
+                    style={calculatePhaseStyle(phase)}
+                    data-testid={`gantt-phase-${phase.id}`}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      )}
     </Card>
   );
 }
