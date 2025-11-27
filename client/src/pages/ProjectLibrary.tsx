@@ -293,7 +293,16 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
                       <div className="mt-1 ml-4 space-y-1 pl-3 border-l border-muted-foreground/20">
                         {childTasks.map((child) => (
                           <div key={child.id} className="text-xs">
-                            <p className="text-muted-foreground truncate mb-0.5">{child.name}</p>
+                            <div className="flex items-center justify-between gap-1 mb-0.5">
+                              <p className="text-muted-foreground truncate flex-1">{child.name}</p>
+                              <span className="text-muted-foreground/70 whitespace-nowrap flex-shrink-0">
+                                {child.startDate && child.endDate ? (
+                                  <>{formatDateUK(child.startDate)} - {formatDateUK(child.endDate)}</>
+                                ) : (
+                                  "No dates"
+                                )}
+                              </span>
+                            </div>
                             <div className="w-full h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
                               <div
                                 className="h-full bg-muted-foreground/10 transition-all"
