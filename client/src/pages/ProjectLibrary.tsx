@@ -371,7 +371,7 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
   };
 
   // Get child tasks for a summary task - includes all nested descendants that should be displayed
-  // Maintains file order by iterating through tasks in sequence
+  // Maintains file order by sorting by ID (which reflects insertion order from file parsing)
   const getChildTasks = (phaseId: number) => {
     if (!tasks) return [];
     const phase = tasks.find(t => t.id === phaseId);
@@ -399,6 +399,9 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
         children.push(task);
       }
     }
+    
+    // Sort by ID to maintain file order (ID reflects insertion order during parsing)
+    children.sort((a, b) => a.id - b.id);
     
     return children;
   };
