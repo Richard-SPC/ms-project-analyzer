@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { FolderKanban, FileCheck } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import type { Project } from "@shared/schema";
+import type { Workspace, Project } from "@shared/schema";
 
 const PROJECT_STATUSES = [
   "Tender",
@@ -15,17 +15,21 @@ const PROJECT_STATUSES = [
 ];
 
 export default function Dashboard() {
-  const { data: projects, isLoading } = useQuery<Project[]>({
+  const { data: workspaces, isLoading: workspacesLoading } = useQuery<Workspace[]>({
+    queryKey: ["/api/workspaces"],
+  });
+
+  const { data: allProjects } = useQuery<Project[]>({
     queryKey: ["/api/projects"],
   });
 
-  const totalProjects = projects?.length || 0;
+  const totalProjects = workspaces?.length || 0;
 
-  // Group projects by status
+  // Group workspaces by status
   const projectsByStatus = PROJECT_STATUSES.reduce((acc, status) => {
-    acc[status] = projects?.filter(p => p.status === status) || [];
+    acc[status] = workspaces?.filter(p => p.status === status) || [];
     return acc;
-  }, {} as Record<string, Project[]>);
+  }, {} as Record<string, Workspace[]>);
 
   return (
     <div className="p-6 space-y-6">
@@ -58,7 +62,7 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {isLoading ? (
+      {workspacesLoading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
             <Card key={i}>
@@ -95,21 +99,34 @@ export default function Dashboard() {
                 <CardContent className="pt-2 pb-2">
                   {projectsForStatus.length > 0 ? (
                     <div className="space-y-1">
-                      {projectsForStatus.map((project) => (
-                        <Link key={project.id} href={`/projects/${project.id}`}>
-                          <div 
-                            className="flex items-center justify-between p-2 hover-elevate rounded-md border text-xs" 
-                            data-testid={`card-project-${project.id}-status-${status.toLowerCase().replace(/\s+/g, '-')}`}
-                          >
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                      {projectsForStatus.map((workspace) => (
+                        <div key={workspace.id} className="space-y-1">
+                          <div className="p-2 rounded-md border bg-muted/50 text-xs">
+                            <div className="flex items-center gap-2">
                               <FolderKanban className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                              <div className="min-w-0">
-                                <p className="font-medium text-xs truncate">{project.name}</p>
-                                <p className="text-xs text-muted-foreground truncate">{project.projectManager || "No manager"}</p>
+                              <div className="min-w-0 flex-1">
+                                <p className="font-medium truncate">{workspace.name}</p>
+                                {workspace.client && (
+                                  <p className="text-xs text-muted-foreground truncate">Client: {workspace.client}</p>
+                                )}
                               </div>
                             </div>
                           </div>
-                        </Link>
+                          <div className="ml-2 space-y-1">
+                            {allProjects?.filter(p => p.workspaceId === workspace.id).map((project) => (
+                              <Link key={project.id} href={`/projects/${project.id}`}>
+                                <div 
+                                  className="flex items-center gap-2 p-1 hover-elevate rounded-md border text-xs" 
+                                  data-testid={`card-programme-${project.id}-in-${workspace.id}`}
+                                >
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-medium text-xs truncate">{project.name}</p>
+                                  </div>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
                       ))}
                     </div>
                   ) : (
