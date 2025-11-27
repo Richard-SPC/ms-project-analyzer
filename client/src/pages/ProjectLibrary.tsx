@@ -137,31 +137,47 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
     return descendants;
   };
 
-  // Calculate timeline position and width using direct child summary tasks' dates
+  // Calculate timeline position and width
   const calculatePhaseStyle = (task: Task) => {
     if (!programme.startDate || !programme.endDate) {
       return { left: "0%", width: "0%" };
     }
 
-    // Get direct child summary tasks only
+    // Check if task has direct child summary tasks (for "On Site Works" level)
     const childSummaries = getChildTasks(task.id);
     
-    // Find earliest start and latest end from child summary tasks
     let minStart: number | null = null;
     let maxEnd: number | null = null;
     
-    for (const child of childSummaries) {
-      if (child.startDate) {
-        const startMs = new Date(child.startDate).getTime();
-        minStart = minStart === null ? startMs : Math.min(minStart, startMs);
+    // Use child summaries if they exist, otherwise use all descendants
+    if (childSummaries.length > 0) {
+      // Calculate from child summary tasks
+      for (const child of childSummaries) {
+        if (child.startDate) {
+          const startMs = new Date(child.startDate).getTime();
+          minStart = minStart === null ? startMs : Math.min(minStart, startMs);
+        }
+        if (child.endDate) {
+          const endMs = new Date(child.endDate).getTime();
+          maxEnd = maxEnd === null ? endMs : Math.max(maxEnd, endMs);
+        }
       }
-      if (child.endDate) {
-        const endMs = new Date(child.endDate).getTime();
-        maxEnd = maxEnd === null ? endMs : Math.max(maxEnd, endMs);
+    } else {
+      // No child summaries, calculate from all descendants
+      const descendants = getAllDescendants(task.id, ignoreDelayTasks);
+      for (const desc of descendants) {
+        if (desc.startDate) {
+          const startMs = new Date(desc.startDate).getTime();
+          minStart = minStart === null ? startMs : Math.min(minStart, startMs);
+        }
+        if (desc.endDate) {
+          const endMs = new Date(desc.endDate).getTime();
+          maxEnd = maxEnd === null ? endMs : Math.max(maxEnd, endMs);
+        }
       }
     }
     
-    // If no child summaries found, use parent task's dates as fallback
+    // If no descendants found, use parent task's dates as fallback
     if (minStart === null && task.startDate) {
       minStart = new Date(task.startDate).getTime();
     }
