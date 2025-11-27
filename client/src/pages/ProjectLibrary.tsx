@@ -224,41 +224,44 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
           </div>
         </div>
       </CardHeader>
-      {phases.length > 0 && programme.startDate && programme.endDate && (() => {
-        // Generate monthly increments
-        const getMonthlyMarkers = () => {
-          const start = new Date(programme.startDate as any);
-          const end = new Date(programme.endDate as any);
-          const markers = [];
-          
-          let current = new Date(start);
-          current.setDate(1);
-          
-          while (current < end) {
-            markers.push(new Date(current));
-            current.setMonth(current.getMonth() + 1);
-          }
-          
-          return markers;
-        };
+      {programme.startDate && programme.endDate && (
+        <CardContent className="px-4 py-2">
+          <div className="flex items-center gap-2 mb-3">
+            <input
+              type="checkbox"
+              id={`ignore-delay-${programme.id}`}
+              checked={ignoreDelayTasks}
+              onChange={(e) => setIgnoreDelayTasks(e.target.checked)}
+              className="cursor-pointer"
+              data-testid={`checkbox-ignore-delay-${programme.id}`}
+            />
+            <label htmlFor={`ignore-delay-${programme.id}`} className="text-xs text-muted-foreground cursor-pointer">
+              Hide Delay tasks
+            </label>
+          </div>
+          {phases.length > 0 && (() => {
+            // Generate monthly increments
+            const getMonthlyMarkers = () => {
+              const start = new Date(programme.startDate as any);
+              const end = new Date(programme.endDate as any);
+              const markers = [];
+              
+              let current = new Date(start);
+              current.setDate(1);
+              
+              while (current < end) {
+                markers.push(new Date(current));
+                current.setMonth(current.getMonth() + 1);
+              }
+              
+              return markers;
+            };
 
-        const markers = getMonthlyMarkers();
-        const totalMs = new Date(programme.endDate as any).getTime() - new Date(programme.startDate as any).getTime();
+            const markers = getMonthlyMarkers();
+            const totalMs = new Date(programme.endDate as any).getTime() - new Date(programme.startDate as any).getTime();
 
-        return (
-          <CardContent className="px-4 py-2">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 mb-2">
-                <Checkbox
-                  id={`ignore-delay-${programme.id}`}
-                  checked={ignoreDelayTasks}
-                  onCheckedChange={(checked) => setIgnoreDelayTasks(checked === true)}
-                  data-testid={`checkbox-ignore-delay-${programme.id}`}
-                />
-                <label htmlFor={`ignore-delay-${programme.id}`} className="text-xs text-muted-foreground cursor-pointer">
-                  Hide Delay tasks
-                </label>
-              </div>
+            return (
+              <div className="space-y-2">
               <div className="text-xs">
                 <p className="text-muted-foreground truncate mb-1">Project Timeline</p>
                 
