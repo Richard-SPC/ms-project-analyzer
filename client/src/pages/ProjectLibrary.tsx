@@ -115,20 +115,31 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
     return "bg-primary";
   };
 
-  // Get child tasks for a summary task (direct children that are not summaries)
+  // Get child tasks for a summary task - all summaries until next major phase
   const getChildTasks = (phaseId: number) => {
     if (!tasks) return [];
     const phaseIndex = tasks.findIndex(t => t.id === phaseId);
     if (phaseIndex === -1) return [];
     
+    const isMajorPhase = (name: string | null) => {
+      if (!name) return false;
+      const lower = name.toLowerCase();
+      return lower.includes("procurement") || 
+             lower.includes("on site") || lower.includes("on-site") || lower.includes("onsite") ||
+             lower.includes("off site") || lower.includes("off-site") || lower.includes("offsite") ||
+             lower.includes("commissioning") || lower.includes("demobilisation") && lower.includes("site");
+    };
+    
     const children: Task[] = [];
     for (let i = phaseIndex + 1; i < tasks.length; i++) {
       const task = tasks[i];
-      if (task.isSummary && !task.name?.toLowerCase().includes("procurement") && 
-          !(task.name?.toLowerCase().includes("on site") || task.name?.toLowerCase().includes("on-site") || task.name?.toLowerCase().includes("onsite"))) {
-        children.push(task);
-      } else if (task.isSummary) {
+      // Stop if we hit another major phase
+      if (task.isSummary && isMajorPhase(task.name)) {
         break;
+      }
+      // Add all summary tasks that aren't major phases
+      if (task.isSummary) {
+        children.push(task);
       }
     }
     return children;
