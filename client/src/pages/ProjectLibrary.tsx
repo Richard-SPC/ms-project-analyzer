@@ -225,6 +225,79 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
     };
   };
 
+  // Get start and end dates for a phase (used for display)
+  const getPhaseStartEndDates = (task: Task): { startDate: Date | null; endDate: Date | null } => {
+    // Check if task has direct child summary tasks (for "On Site Works" level)
+    const childSummaries = getChildTasks(task.id);
+    
+    let minStart: number | null = null;
+    let maxEnd: number | null = null;
+    
+    // Use child summaries if they exist, otherwise use all descendants
+    if (childSummaries.length > 0) {
+      // For parent phases, calculate from descendants of all child summaries (with delay filtering)
+      for (const child of childSummaries) {
+        const childDescendants = getAllDescendants(child.id, ignoreDelayTasks);
+        
+        // If child has no filtered descendants, use child's own dates
+        let childMinStart: number | null = null;
+        let childMaxEnd: number | null = null;
+        
+        for (const desc of childDescendants) {
+          if (desc.startDate) {
+            const startMs = new Date(desc.startDate).getTime();
+            childMinStart = childMinStart === null ? startMs : Math.min(childMinStart, startMs);
+          }
+          if (desc.endDate) {
+            const endMs = new Date(desc.endDate).getTime();
+            childMaxEnd = childMaxEnd === null ? endMs : Math.max(childMaxEnd, endMs);
+          }
+        }
+        
+        // Use child's own dates as fallback
+        if (childMinStart === null && child.startDate) {
+          childMinStart = new Date(child.startDate).getTime();
+        }
+        if (childMaxEnd === null && child.endDate) {
+          childMaxEnd = new Date(child.endDate).getTime();
+        }
+        
+        if (childMinStart !== null) {
+          minStart = minStart === null ? childMinStart : Math.min(minStart, childMinStart);
+        }
+        if (childMaxEnd !== null) {
+          maxEnd = maxEnd === null ? childMaxEnd : Math.max(maxEnd, childMaxEnd);
+        }
+      }
+    } else {
+      // No child summaries, calculate from all descendants
+      const descendants = getAllDescendants(task.id, ignoreDelayTasks);
+      for (const desc of descendants) {
+        if (desc.startDate) {
+          const startMs = new Date(desc.startDate).getTime();
+          minStart = minStart === null ? startMs : Math.min(minStart, startMs);
+        }
+        if (desc.endDate) {
+          const endMs = new Date(desc.endDate).getTime();
+          maxEnd = maxEnd === null ? endMs : Math.max(maxEnd, endMs);
+        }
+      }
+    }
+    
+    // If no descendants found, use parent task's dates as fallback
+    if (minStart === null && task.startDate) {
+      minStart = new Date(task.startDate).getTime();
+    }
+    if (maxEnd === null && task.endDate) {
+      maxEnd = new Date(task.endDate).getTime();
+    }
+    
+    return {
+      startDate: minStart !== null ? new Date(minStart) : null,
+      endDate: maxEnd !== null ? new Date(maxEnd) : null,
+    };
+  };
+
   // Calculate timeline position and width for child tasks relative to parent phase
   const calculateChildTaskStyle = (task: Task, parentPhase: Task) => {
     if (!parentPhase.startDate || !parentPhase.endDate || !task.startDate || !task.endDate) {
