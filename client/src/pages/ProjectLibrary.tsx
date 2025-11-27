@@ -183,18 +183,18 @@ function ProjectSection({
                     className="w-2 h-2 rounded-full" 
                     style={{ backgroundColor: project.color || "#3B82F6" }}
                   />
-                  <CardTitle className="text-lg font-bold leading-none">{project.name}</CardTitle>
+                  <CardTitle className="text-lg font-bold leading-tight">{project.name}</CardTitle>
                 </div>
               </Button>
             </CollapsibleTrigger>
-            <div className="flex-1 flex justify-center min-w-0">
-              <p className="text-sm font-semibold text-foreground truncate leading-none">
+            <div className="flex-1 flex justify-center min-w-0 items-center">
+              <p className="text-sm font-semibold text-foreground truncate leading-tight">
                 {project.projectManager ? `PM: ${project.projectManager}` : ""}
               </p>
             </div>
             <div className="flex items-center gap-3">
               {project.client && (
-                <span className="text-sm font-bold text-foreground leading-none">{project.client}</span>
+                <span className="text-sm font-bold text-foreground leading-tight">{project.client}</span>
               )}
               <Badge variant="secondary" className="flex-shrink-0 text-xs h-fit">
                 {programmes.length}
