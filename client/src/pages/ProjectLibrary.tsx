@@ -89,15 +89,57 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
         })
     : [];
 
-  // Calculate timeline position and width relative to programme
+  // Get all descendants of a task (for calculating true span)
+  const getAllDescendants = (parentId: number): Task[] => {
+    if (!tasks) return [];
+    const parent = tasks.find(t => t.id === parentId);
+    if (!parent || !parent.wbsCode) return [];
+    
+    const parentWbs = parent.wbsCode;
+    const descendants: Task[] = [];
+    
+    for (const task of tasks) {
+      if (!task.wbsCode || task.id === parentId) continue;
+      // Include all tasks that have this parent WBS in their code (any nesting level)
+      if (task.wbsCode.startsWith(parentWbs + '.')) {
+        descendants.push(task);
+      }
+    }
+    return descendants;
+  };
+
+  // Calculate timeline position and width using all descendants' dates
   const calculatePhaseStyle = (task: Task) => {
-    if (!programme.startDate || !programme.endDate || !task.startDate || !task.endDate) {
+    if (!programme.startDate || !programme.endDate) {
+      return { left: "0%", width: "0%" };
+    }
+
+    // Get all descendants to calculate true span
+    const descendants = getAllDescendants(task.id);
+    const allRelatedTasks = [...descendants, task];
+    
+    // Find earliest start and latest end from all related tasks
+    let minStart = task.startDate ? new Date(task.startDate).getTime() : null;
+    let maxEnd = task.endDate ? new Date(task.endDate).getTime() : null;
+    
+    for (const desc of descendants) {
+      if (desc.startDate) {
+        const startMs = new Date(desc.startDate).getTime();
+        minStart = minStart === null ? startMs : Math.min(minStart, startMs);
+      }
+      if (desc.endDate) {
+        const endMs = new Date(desc.endDate).getTime();
+        maxEnd = maxEnd === null ? endMs : Math.max(maxEnd, endMs);
+      }
+    }
+    
+    if (minStart === null || maxEnd === null) {
       return { left: "0%", width: "0%" };
     }
 
     const totalMs = new Date(programme.endDate).getTime() - new Date(programme.startDate).getTime();
-    const taskStartMs = new Date(task.startDate).getTime() - new Date(programme.startDate).getTime();
-    const taskDurationMs = new Date(task.endDate).getTime() - new Date(task.startDate).getTime();
+    const taskStartMs = minStart - new Date(programme.startDate).getTime();
+    const taskDurationMs = maxEnd - minStart;
 
     const left = (taskStartMs / totalMs) * 100;
     const width = (taskDurationMs / totalMs) * 100;
