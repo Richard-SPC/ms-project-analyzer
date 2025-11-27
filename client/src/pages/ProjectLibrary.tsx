@@ -554,16 +554,7 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
                           
                           return (
                             <div key={child.id} className="text-xs">
-                              <div className="flex items-center justify-between gap-1 mb-0.5">
-                                <p className="text-muted-foreground truncate flex-1">{child.name}</p>
-                                <span className="text-muted-foreground/70 whitespace-nowrap flex-shrink-0">
-                                  {childDates.startDate && childDates.endDate ? (
-                                    <>{formatDateUK(childDates.startDate)} - {formatDateUK(childDates.endDate)}</>
-                                  ) : (
-                                    "No dates"
-                                  )}
-                                </span>
-                              </div>
+                              <p className="text-muted-foreground truncate mb-0.5">{child.name}</p>
                               <div className="flex items-center gap-2">
                                 <span className="text-muted-foreground/70 w-16 text-right text-xs">
                                   {childDates.startDate ? formatDateUK(childDates.startDate) : "N/A"}
