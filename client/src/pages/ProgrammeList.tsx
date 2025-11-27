@@ -41,19 +41,21 @@ function ProgrammeTile({ project, onDelete }: { project: Project; onDelete: () =
             <div className="flex-1 min-w-0">
               <CardTitle className="text-sm font-normal">{project.name}</CardTitle>
             </div>
-            <div className="flex items-center gap-1 flex-wrap">
-              <div className="text-xs">
+            <div className="flex-1 flex justify-center gap-3">
+              <div className="text-xs text-center">
                 <p className="text-muted-foreground leading-tight">Status Date</p>
                 <p className="font-medium text-foreground leading-tight">
                   {project.statusDate ? formatDateUK(project.statusDate) : "N/A"}
                 </p>
               </div>
-              <div className="text-xs">
+              <div className="text-xs text-center">
                 <p className="text-muted-foreground leading-tight">Overall Complete</p>
                 <p className="font-medium text-foreground leading-tight">
                   {completion?.percentComplete ?? "-"}%
                 </p>
               </div>
+            </div>
+            <div className="flex items-center gap-1 flex-wrap">
               <Link href={`/programmes/${project.id}`}>
                 <Button variant="outline" size="sm" data-testid={`button-view-programme-${project.id}`}>
                   View Details
