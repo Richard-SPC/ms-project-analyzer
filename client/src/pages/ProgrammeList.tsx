@@ -104,6 +104,7 @@ export default function Projects() {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [searchText, setSearchText] = useState("");
   const { toast } = useToast();
 
   const { data: projects, isLoading } = useQuery<Project[]>({
@@ -229,168 +230,25 @@ export default function Projects() {
     createMutation.mutate(data);
   };
 
+  const filteredProjects = projects?.filter((project) =>
+    project.name.toLowerCase().includes(searchText.toLowerCase())
+  ) || [];
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground" data-testid="text-programmes-title">Programmes</h1>
         </div>
-        <div className="flex gap-2">
-          <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" data-testid="button-upload-programme">
-                <Upload className="mr-2 h-4 w-4" />
-                Upload File
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Upload Programme File</DialogTitle>
-                <DialogDescription>Upload a Microsoft Project file (.mpp, .xml) or Excel export (.xlsx, .csv)</DialogDescription>
-              </DialogHeader>
-              <div className="py-4">
-                <Input 
-                  type="file" 
-                  accept=".xml,.mpp,.xlsx,.csv" 
-                  onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                  data-testid="input-file-upload" 
-                />
-                {uploadFile && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Selected: {uploadFile.name}
-                  </p>
-                )}
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => {
-                  setUploadOpen(false);
-                  setUploadFile(null);
-                }} data-testid="button-cancel-upload">
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={handleUpload} 
-                  disabled={!uploadFile || uploadMutation.isPending}
-                  data-testid="button-upload"
-                >
-                  {uploadMutation.isPending ? "Uploading..." : "Upload"}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button data-testid="button-create-programme">
-                <Plus className="mr-2 h-4 w-4" />
-                Create Programme
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Programme</DialogTitle>
-                <DialogDescription>Add a new programme to track and analyze</DialogDescription>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Programme Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter programme name" {...field} data-testid="input-programme-name" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="Programme description" {...field} value={field.value || ""} data-testid="input-programme-description" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="projectManager"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Programme Manager</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Manager name" {...field} value={field.value || ""} data-testid="input-programme-manager" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="status"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger data-testid="select-programme-status">
-                              <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="completed">Completed</SelectItem>
-                            <SelectItem value="on-hold">On Hold</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="statusDate"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Status Date (Reference date for DCMA check 11)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="date" 
-                            {...field} 
-                            value={field.value instanceof Date ? field.value.toISOString().split('T')[0] : field.value || ""}
-                            data-testid="input-programme-status-date" 
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <DialogFooter>
-                    <Button type="button" variant="outline" onClick={() => setOpen(false)} data-testid="button-cancel-create">
-                      Cancel
-                    </Button>
-                    <Button type="submit" disabled={createMutation.isPending} data-testid="button-submit-create">
-                      {createMutation.isPending ? "Creating..." : "Create"}
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        </div>
+        <Input
+          placeholder="Search programmes..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          className="max-w-xs"
+          data-testid="input-search-programmes"
+        />
       </div>
+
 
       {isLoading ? (
         <div className="space-y-3">
@@ -402,9 +260,9 @@ export default function Projects() {
             </Card>
           ))}
         </div>
-      ) : projects && projects.length > 0 ? (
+      ) : filteredProjects && filteredProjects.length > 0 ? (
         <div className="space-y-3">
-          {projects.map((project) => (
+          {filteredProjects.map((project) => (
             <ProgrammeTile
               key={project.id}
               project={project}
