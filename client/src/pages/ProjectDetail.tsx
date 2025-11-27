@@ -534,6 +534,11 @@ export default function ProjectDetail() {
                                 style={{ left: "0%", width: "100%" }}
                                 data-testid="gantt-project-overall"
                               />
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-xs font-bold text-gray-400 pointer-events-none whitespace-nowrap truncate px-1">
+                                  {calculateWorkingDays(new Date(project.startDate as any), new Date(project.endDate as any), calendarExceptions)}d
+                                </span>
+                              </div>
                             </div>
                             <span className="text-muted-foreground/70 w-16 flex-shrink-0">
                               {formatDateUK(project.endDate)}
