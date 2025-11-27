@@ -514,31 +514,6 @@ export default function ProjectDetail() {
 
                   return (
                     <>
-                      <div className="relative w-full mb-1 h-4 flex items-end">
-                        {markers.map((marker, idx) => {
-                          const position = ((marker.getTime() - projectStart.getTime()) / totalMs) * 100;
-                          const monthYear = marker.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
-                          
-                          return (
-                            <div
-                              key={idx}
-                              className="absolute flex flex-col items-center"
-                              style={{ left: `${position}%` }}
-                            >
-                              <div className="w-0.5 h-2 bg-muted-foreground/30" />
-                              <div className="text-muted-foreground text-xs mt-0.5 whitespace-nowrap -translate-x-1/2">
-                                {monthYear}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      <div className="flex justify-between mt-0.5 text-xs text-muted-foreground mb-2">
-                        <span>{formatDateUK(project.startDate)}</span>
-                        <span>{formatDateUK(project.endDate)}</span>
-                      </div>
-
                       <div className="space-y-2">
                         <div className="text-xs">
                           <div className="flex items-center gap-2">
