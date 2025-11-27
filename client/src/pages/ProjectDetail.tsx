@@ -561,21 +561,21 @@ export default function ProjectDetail() {
 
                         return (
                           <div key={phase.id} className="text-xs mt-2">
-                            <div className="flex items-center gap-1">
-                              {childTasks.length > 0 && (
-                                <button
-                                  onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
-                                  className="p-0 hover:bg-muted rounded transition-colors"
-                                  data-testid={`button-toggle-phase-${phase.id}`}
-                                >
-                                  {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                                </button>
-                              )}
-                              {childTasks.length === 0 && <div className="w-3" />}
-                              <p className="text-muted-foreground truncate flex-1">{phase.name}</p>
-                            </div>
-                            <div className="flex items-center gap-2 ml-4 mt-0.5">
-                              <span className="text-muted-foreground/70 w-16 text-right">
+                            <div className="flex items-center gap-2">
+                              <div className="w-20 flex-shrink-0 flex items-center gap-1">
+                                {childTasks.length > 0 && (
+                                  <button
+                                    onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
+                                    className="p-0 hover:bg-muted rounded transition-colors"
+                                    data-testid={`button-toggle-phase-${phase.id}`}
+                                  >
+                                    {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                                  </button>
+                                )}
+                                {childTasks.length === 0 && <div className="w-3" />}
+                              </div>
+                              <p className="text-muted-foreground w-32 truncate flex-shrink-0">{phase.name}</p>
+                              <span className="text-muted-foreground/70 w-16 text-right flex-shrink-0">
                                 {phaseDates.startDate ? formatDateUK(phaseDates.startDate) : "N/A"}
                               </span>
                               <div className="flex-1 h-5 bg-muted rounded overflow-hidden relative border border-border">
@@ -590,7 +590,7 @@ export default function ProjectDetail() {
                                   </span>
                                 </div>
                               </div>
-                              <span className="text-muted-foreground/70 w-16">
+                              <span className="text-muted-foreground/70 w-16 flex-shrink-0">
                                 {phaseDates.endDate ? formatDateUK(phaseDates.endDate) : "N/A"}
                               </span>
                             </div>
@@ -605,9 +605,10 @@ export default function ProjectDetail() {
                                   
                                   return (
                                     <div key={child.id} className="text-xs">
-                                      <p className="text-muted-foreground truncate mb-0.5">{child.name}</p>
                                       <div className="flex items-center gap-2">
-                                        <span className="text-muted-foreground/70 w-16 text-right text-xs">
+                                        <div className="w-20 flex-shrink-0" />
+                                        <p className="text-muted-foreground w-32 truncate flex-shrink-0">{child.name}</p>
+                                        <span className="text-muted-foreground/70 w-16 text-right text-xs flex-shrink-0">
                                           {childDates.startDate ? formatDateUK(childDates.startDate) : "N/A"}
                                         </span>
                                         <div className="flex-1 h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
@@ -622,7 +623,7 @@ export default function ProjectDetail() {
                                             </span>
                                           </div>
                                         </div>
-                                        <span className="text-muted-foreground/70 w-16 text-xs">
+                                        <span className="text-muted-foreground/70 w-16 text-xs flex-shrink-0">
                                           {childDates.endDate ? formatDateUK(childDates.endDate) : "N/A"}
                                         </span>
                                       </div>
