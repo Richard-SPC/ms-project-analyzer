@@ -66,26 +66,14 @@ function ProgrammeTile({ programme, onDelete }: { programme: Project; onDelete: 
   return (
     <Card className="hover-elevate" data-testid={`card-programme-${programme.id}`}>
       <CardHeader className="py-1 px-4">
-        <div className="flex items-center justify-between gap-1 flex-wrap">
-          <div className="flex items-center gap-1 flex-1 min-w-0">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1 flex-shrink-0 min-w-0">
             <FolderKanban className="h-4 w-4 text-primary flex-shrink-0" />
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-xs">{programme.name}</CardTitle>
+            <div className="min-w-0">
+              <CardTitle className="text-xs truncate">{programme.name}</CardTitle>
             </div>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="text-xs">
-              <p className="text-muted-foreground">Start</p>
-              <p className="font-medium text-foreground">
-                {programme.startDate ? formatDateUK(programme.startDate) : "N/A"}
-              </p>
-            </div>
-            <div className="text-xs">
-              <p className="text-muted-foreground">End</p>
-              <p className="font-medium text-foreground">
-                {programme.endDate ? formatDateUK(programme.endDate) : "N/A"}
-              </p>
-            </div>
+          <div className="flex-1 flex justify-center gap-4 items-center">
             <div className="text-xs">
               <p className="text-muted-foreground">Status</p>
               <p className="font-medium text-foreground">
@@ -96,6 +84,20 @@ function ProgrammeTile({ programme, onDelete }: { programme: Project; onDelete: 
               <p className="text-muted-foreground">Complete</p>
               <p className="font-medium text-foreground">
                 {completion?.percentComplete ?? "-"}%
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
+            <div className="text-xs">
+              <p className="text-muted-foreground">Start</p>
+              <p className="font-medium text-foreground">
+                {programme.startDate ? formatDateUK(programme.startDate) : "N/A"}
+              </p>
+            </div>
+            <div className="text-xs">
+              <p className="text-muted-foreground">End</p>
+              <p className="font-medium text-foreground">
+                {programme.endDate ? formatDateUK(programme.endDate) : "N/A"}
               </p>
             </div>
             <Link href={`/projects/${programme.id}`}>
