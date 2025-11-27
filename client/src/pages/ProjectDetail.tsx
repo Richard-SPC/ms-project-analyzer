@@ -755,6 +755,70 @@ export default function ProjectDetail() {
                             </div>
                           );
                         })}
+                        {ignoreDelayTasks && delayTasks.length > 0 && (
+                          <div className="mt-2 space-y-1 border-t border-dashed border-destructive/30 pt-2">
+                            {delayTasks.map((delayTask) => {
+                              const delayDates = getPhaseStartEndDates(delayTask);
+                              const delayDurationDays = delayDates.startDate && delayDates.endDate 
+                                ? calculateWorkingDays(delayDates.startDate, delayDates.endDate, calendarExceptions)
+                                : 0;
+                              
+                              let delayMinStart: number | null = null;
+                              let delayMaxEnd: number | null = null;
+                              
+                              const delayDescendants = getAllDescendants(delayTask.id, false);
+                              for (const desc of delayDescendants) {
+                                if (desc.startDate) {
+                                  const startMs = new Date(desc.startDate).getTime();
+                                  delayMinStart = delayMinStart === null ? startMs : Math.min(delayMinStart, startMs);
+                                }
+                                if (desc.endDate) {
+                                  const endMs = new Date(desc.endDate).getTime();
+                                  delayMaxEnd = delayMaxEnd === null ? endMs : Math.max(delayMaxEnd, endMs);
+                                }
+                              }
+                              
+                              let delayStyle = { left: "0%", width: "0%" };
+                              if (delayMinStart !== null && delayMaxEnd !== null) {
+                                const taskStartMs = delayMinStart - timelineStart.getTime();
+                                const taskDurationMs = delayMaxEnd - delayMinStart;
+                                const left = (taskStartMs / totalMs) * 100;
+                                const width = (taskDurationMs / totalMs) * 100;
+                                delayStyle = {
+                                  left: `${Math.max(0, left)}%`,
+                                  width: `${Math.max(0, Math.min(width, 100 - left))}%`,
+                                };
+                              }
+                              
+                              return (
+                                <div key={delayTask.id} className="text-xs">
+                                  <div className="flex items-center gap-1">
+                                    <div className="w-4 flex-shrink-0" />
+                                    <p className="text-destructive w-32 truncate flex-shrink-0">{delayTask.name}</p>
+                                    <span className="text-destructive/70 w-16 text-right flex-shrink-0">
+                                      {delayDates.startDate ? formatDateUK(delayDates.startDate) : "N/A"}
+                                    </span>
+                                    <div className="flex-1 h-5 bg-muted rounded overflow-hidden relative border border-destructive/30">
+                                      <div
+                                        className="h-full absolute bg-destructive transition-all"
+                                        style={{ left: delayStyle.left, width: delayStyle.width }}
+                                        data-testid={`gantt-delay-${delayTask.id}`}
+                                      />
+                                      <div className="absolute inset-0 flex items-center justify-center">
+                                        <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-2 py-1 rounded bg-black/40" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                                          {delayDurationDays}d
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <span className="text-destructive/70 w-16 flex-shrink-0">
+                                      {delayDates.endDate ? formatDateUK(delayDates.endDate) : "N/A"}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
                         </div>
                       </div>
                     </>
@@ -766,9 +830,9 @@ export default function ProjectDetail() {
                   <h3 className="text-xs font-semibold text-muted-foreground mb-2">Delays</h3>
                   <div className="space-y-1">
                     {delayTasks.map((task) => (
-                      <div key={task.id} className="flex items-center justify-between p-2 bg-muted/30 rounded text-xs">
-                        <span className="text-muted-foreground truncate">{task.name}</span>
-                        <span className="text-muted-foreground/70 ml-2 flex-shrink-0">
+                      <div key={task.id} className="flex items-center justify-between p-2 bg-destructive/10 rounded text-xs">
+                        <span className="text-destructive truncate">{task.name}</span>
+                        <span className="text-destructive/70 ml-2 flex-shrink-0">
                           {task.startDate && task.endDate 
                             ? `${formatDateUK(new Date(task.startDate))} - ${formatDateUK(new Date(task.endDate))}`
                             : "N/A"
