@@ -187,7 +187,25 @@ function ProjectSection({
                 </div>
               </Button>
             </CollapsibleTrigger>
-            <div className="flex-1 flex justify-center min-w-0 items-center">
+            <div className="flex-1 flex justify-center min-w-0 items-center gap-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="text-xs" data-testid={`button-status-dropdown-${project.id}`}>
+                    {project.status || "Not set"}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center">
+                  {PROJECT_STATUSES.map((status) => (
+                    <DropdownMenuItem 
+                      key={status}
+                      onClick={() => updateProjectStatusMutation.mutate(status)}
+                      className={project.status === status ? "bg-primary text-primary-foreground" : ""}
+                    >
+                      {status}
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
               <p className="text-sm font-semibold text-foreground truncate leading-tight">
                 {project.projectManager ? `PM: ${project.projectManager}` : ""}
               </p>
