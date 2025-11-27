@@ -591,7 +591,7 @@ export default function ProjectDetail() {
                                     data-testid={`gantt-phase-${phase.id}`}
                                   />
                                   <div className="absolute inset-0 flex items-center justify-center">
-                                    <span className="text-xs font-medium text-foreground/70 pointer-events-none">
+                                    <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-1">
                                       {durationDays}d
                                     </span>
                                   </div>
@@ -626,7 +626,7 @@ export default function ProjectDetail() {
                                               data-testid={`gantt-child-${child.id}`}
                                             />
                                             <div className="absolute inset-0 flex items-center justify-center">
-                                              <span className="text-xs font-medium text-foreground/70 pointer-events-none">
+                                              <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-1">
                                                 {childDurationDays}d
                                               </span>
                                             </div>
