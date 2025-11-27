@@ -164,42 +164,87 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
           </div>
         </div>
       </CardHeader>
-      {phases.length > 0 && programme.startDate && programme.endDate && (
-        <CardContent className="px-4 py-2">
-          <div className="space-y-2">
-            <div className="text-xs">
-              <p className="text-muted-foreground truncate mb-1">Project Timeline</p>
-              <div className="w-full h-5 bg-muted rounded overflow-hidden relative border border-border">
-                <div
-                  className="h-full bg-muted-foreground/20 transition-all"
-                  style={{
-                    left: "0%",
-                    width: "100%",
-                  }}
-                  data-testid={`gantt-timeline-${programme.id}`}
-                />
-              </div>
-              <div className="flex justify-between mt-0.5 text-xs text-muted-foreground">
-                <span>{formatDateUK(programme.startDate)}</span>
-                <span>{formatDateUK(programme.endDate)}</span>
-              </div>
-            </div>
+      {phases.length > 0 && programme.startDate && programme.endDate && (() => {
+        // Generate monthly increments
+        const getMonthlyMarkers = () => {
+          const start = new Date(programme.startDate as any);
+          const end = new Date(programme.endDate as any);
+          const markers = [];
+          
+          let current = new Date(start);
+          current.setDate(1);
+          
+          while (current < end) {
+            markers.push(new Date(current));
+            current.setMonth(current.getMonth() + 1);
+          }
+          
+          return markers;
+        };
 
-            {phases.map((phase) => (
-              <div key={phase.id} className="text-xs">
-                <p className="text-muted-foreground truncate mb-1">{phase.name}</p>
-                <div className="w-full h-5 bg-muted rounded overflow-hidden relative border border-border">
+        const markers = getMonthlyMarkers();
+        const totalMs = new Date(programme.endDate as any).getTime() - new Date(programme.startDate as any).getTime();
+
+        return (
+          <CardContent className="px-4 py-2">
+            <div className="space-y-2">
+              <div className="text-xs">
+                <p className="text-muted-foreground truncate mb-1">Project Timeline</p>
+                
+                {/* Monthly markers */}
+                <div className="relative w-full mb-1 h-4 flex items-end">
+                  {markers.map((marker, idx) => {
+                    const markerMs = marker.getTime() - new Date(programme.startDate as any).getTime();
+                    const position = (markerMs / totalMs) * 100;
+                    const monthYear = marker.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
+                    
+                    return (
+                      <div
+                        key={idx}
+                        className="absolute flex flex-col items-center"
+                        style={{ left: `${Math.max(0, Math.min(position, 100))}%` }}
+                      >
+                        <div className="w-0.5 h-2 bg-muted-foreground/30" />
+                        <div className="text-muted-foreground text-xs mt-0.5 whitespace-nowrap -translate-x-1/2">
+                          {monthYear}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="w-full h-5 bg-muted rounded overflow-hidden relative border border-border mt-6">
                   <div
-                    className={`h-full ${getPhaseColor(phase.name)} rounded transition-all`}
-                    style={calculatePhaseStyle(phase)}
-                    data-testid={`gantt-phase-${phase.id}`}
+                    className="h-full bg-muted-foreground/20 transition-all"
+                    style={{
+                      left: "0%",
+                      width: "100%",
+                    }}
+                    data-testid={`gantt-timeline-${programme.id}`}
                   />
                 </div>
+                <div className="flex justify-between mt-0.5 text-xs text-muted-foreground">
+                  <span>{formatDateUK(programme.startDate)}</span>
+                  <span>{formatDateUK(programme.endDate)}</span>
+                </div>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      )}
+
+              {phases.map((phase) => (
+                <div key={phase.id} className="text-xs">
+                  <p className="text-muted-foreground truncate mb-1">{phase.name}</p>
+                  <div className="w-full h-5 bg-muted rounded overflow-hidden relative border border-border">
+                    <div
+                      className={`h-full ${getPhaseColor(phase.name)} rounded transition-all`}
+                      style={calculatePhaseStyle(phase)}
+                      data-testid={`gantt-phase-${phase.id}`}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        );
+      })()}
     </Card>
   );
 }
