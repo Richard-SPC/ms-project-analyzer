@@ -38,7 +38,7 @@ export default function Dashboard() {
         </h1>
       </div>
 
-      <Card data-testid="card-total-projects" className="w-fit">
+      <Card data-testid="card-total-projects" className="w-full">
         <CardContent className="px-3 py-2">
           <div className="text-lg font-bold" data-testid="text-total-projects">
             {totalProjects}
