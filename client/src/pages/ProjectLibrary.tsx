@@ -90,7 +90,7 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
     : [];
 
   // Get all descendants of a task (for calculating true span)
-  const getAllDescendants = (parentId: number): Task[] => {
+  const getAllDescendants = (parentId: number, filterDelays: boolean = false): Task[] => {
     if (!tasks) return [];
     const parent = tasks.find(t => t.id === parentId);
     if (!parent || !parent.wbsCode) return [];
@@ -100,6 +100,12 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
     
     for (const task of tasks) {
       if (!task.wbsCode || task.id === parentId) continue;
+      
+      // Filter out delay tasks if requested
+      if (filterDelays && task.name && task.name.startsWith("Delay -")) {
+        continue;
+      }
+      
       // Include all tasks that have this parent WBS in their code (any nesting level)
       if (task.wbsCode.startsWith(parentWbs + '.')) {
         descendants.push(task);
@@ -114,9 +120,8 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
       return { left: "0%", width: "0%" };
     }
 
-    // Get all descendants to calculate true span
-    const descendants = getAllDescendants(task.id);
-    const allRelatedTasks = [...descendants, task];
+    // Get all descendants to calculate true span, filtering delays if checkbox is checked
+    const descendants = getAllDescendants(task.id, ignoreDelayTasks);
     
     // Find earliest start and latest end from all related tasks
     let minStart = task.startDate ? new Date(task.startDate).getTime() : null;
