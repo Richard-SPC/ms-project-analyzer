@@ -507,7 +507,7 @@ export default function ProjectDetail() {
                     let current = new Date(timelineStart);
                     current.setDate(1);
                     
-                    while (current <= timelineEnd) {
+                    while (current <= projectEnd) {
                       markers.push(new Date(current));
                       current.setMonth(current.getMonth() + 1);
                     }
