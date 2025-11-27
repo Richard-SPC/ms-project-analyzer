@@ -187,9 +187,9 @@ function ProjectSection({
                 </div>
               </Button>
             </CollapsibleTrigger>
-            <div className="flex-1 flex justify-center">
+            <div className="flex-1 flex justify-center min-w-0">
               {project.projectManager && (
-                <p className="text-sm font-semibold text-foreground">PM: {project.projectManager}</p>
+                <p className="text-sm font-semibold text-foreground truncate">PM: {project.projectManager}</p>
               )}
             </div>
             <div className="flex items-center gap-3">
