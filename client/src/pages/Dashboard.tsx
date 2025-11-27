@@ -39,15 +39,19 @@ export default function Dashboard() {
       </div>
 
       <Card data-testid="card-total-projects" className="w-full">
-        <CardContent className="px-3 py-2">
-          <div className="text-lg font-bold" data-testid="text-total-projects">
-            {totalProjects}
+        <CardContent className="px-3 py-1 flex gap-6">
+          <div>
+            <div className="text-lg font-bold" data-testid="text-total-projects">
+              {totalProjects}
+            </div>
+            <p className="text-xs text-muted-foreground">Projects</p>
           </div>
-          <p className="text-xs text-muted-foreground">Projects</p>
-          <div className="text-lg font-bold mt-2" data-testid="text-total-programmes">
-            {allProjects?.length || 0}
+          <div>
+            <div className="text-lg font-bold" data-testid="text-total-programmes">
+              {allProjects?.length || 0}
+            </div>
+            <p className="text-xs text-muted-foreground">Programmes</p>
           </div>
-          <p className="text-xs text-muted-foreground">Programmes</p>
         </CardContent>
       </Card>
 
