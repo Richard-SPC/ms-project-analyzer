@@ -11,7 +11,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { insertWorkspaceSchema, insertProjectSchema, type Workspace, type Project, type Task } from "@shared/schema";
+import { insertWorkspaceSchema, insertProjectSchema, type Workspace, type Project, type Task, type CalendarException } from "@shared/schema";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatDateUK } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -62,92 +62,37 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
   const [expandedPhase, setExpandedPhase] = useState<number | null>(null);
   const [ignoreDelayTasks, setIgnoreDelayTasks] = useState(false);
 
-  // Get UK bank holidays for a given year range
-  const getUKBankHolidays = (startYear: number, endYear: number): Set<string> => {
-    const holidays = new Set<string>();
-    
-    for (let year = startYear; year <= endYear; year++) {
-      // Fixed holidays
-      holidays.add(`${year}-01-01`); // New Year's Day
-      holidays.add(`${year}-12-25`); // Christmas Day
-      holidays.add(`${year}-12-26`); // Boxing Day
-      
-      // Easter (complex calculation)
-      const easterDate = getEasterDate(year);
-      const goodFriday = new Date(easterDate);
-      goodFriday.setDate(goodFriday.getDate() - 2);
-      const easterMonday = new Date(easterDate);
-      easterMonday.setDate(easterMonday.getDate() + 1);
-      
-      holidays.add(formatDateISO(goodFriday)); // Good Friday
-      holidays.add(formatDateISO(easterMonday)); // Easter Monday
-      
-      // Early May Bank Holiday (first Monday in May)
-      const mayFirst = new Date(year, 4, 1);
-      const daysUntilMonday = (1 - mayFirst.getDay() + 7) % 7;
-      const earlyMay = new Date(mayFirst);
-      earlyMay.setDate(earlyMay.getDate() + (daysUntilMonday === 0 ? 0 : daysUntilMonday));
-      holidays.add(formatDateISO(earlyMay));
-      
-      // Spring Bank Holiday (last Monday in May)
-      const mayEnd = new Date(year, 4, 31);
-      const daysFromMonday = (mayEnd.getDay() - 1 + 7) % 7;
-      const springHoliday = new Date(mayEnd);
-      springHoliday.setDate(springHoliday.getDate() - daysFromMonday);
-      holidays.add(formatDateISO(springHoliday));
-      
-      // Summer Bank Holiday (last Monday in August)
-      const augEnd = new Date(year, 7, 31);
-      const daysFromMondayAug = (augEnd.getDay() - 1 + 7) % 7;
-      const summerHoliday = new Date(augEnd);
-      summerHoliday.setDate(summerHoliday.getDate() - daysFromMondayAug);
-      holidays.add(formatDateISO(summerHoliday));
-    }
-    
-    return holidays;
-  };
-
-  // Computus algorithm for Easter Sunday
-  const getEasterDate = (year: number): Date => {
-    const a = year % 19;
-    const b = Math.floor(year / 100);
-    const c = year % 100;
-    const d = Math.floor(b / 4);
-    const e = b % 4;
-    const f = Math.floor((b + 8) / 25);
-    const g = Math.floor((b - f + 1) / 3);
-    const h = (19 * a + b - d - g + 15) % 30;
-    const i = Math.floor(c / 4);
-    const k = c % 4;
-    const l = (32 + 2 * e + 2 * i - h - k) % 7;
-    const m = Math.floor((a + 11 * h + 22 * l) / 451);
-    const month = Math.floor((h + l - 7 * m + 114) / 31);
-    const day = ((h + l - 7 * m + 114) % 31) + 1;
-    return new Date(year, month - 1, day);
-  };
-
   // Format date as ISO string for comparison
   const formatDateISO = (date: Date): string => {
     return date.toISOString().split('T')[0];
   };
 
-  // Calculate working days (Monday-Friday only, excluding UK bank holidays)
-  const calculateWorkingDays = (startDate: Date, endDate: Date): number => {
+  // Calculate working days (Monday-Friday only, excluding calendar exceptions)
+  const calculateWorkingDays = (startDate: Date, endDate: Date, exceptions: CalendarException[] | undefined): number => {
     let count = 0;
     const current = new Date(startDate);
     const end = new Date(endDate);
     
-    // Get bank holidays for the year range
-    const startYear = current.getFullYear();
-    const endYear = end.getFullYear();
-    const bankHolidays = getUKBankHolidays(startYear, endYear);
+    // Create a set of exception dates for quick lookup
+    const exceptionDates = new Set<string>();
+    const exceptionArray = exceptions || [];
+    for (const exc of exceptionArray) {
+      const excStart = new Date(exc.startDate);
+      const excEnd = new Date(exc.endDate);
+      let excCurrent = new Date(excStart);
+      
+      while (excCurrent <= excEnd) {
+        exceptionDates.add(formatDateISO(excCurrent));
+        excCurrent.setDate(excCurrent.getDate() + 1);
+      }
+    }
     
     while (current <= end) {
       const dayOfWeek = current.getDay();
       const dateISO = formatDateISO(current);
       
       // 1 = Monday, 5 = Friday (0 = Sunday, 6 = Saturday)
-      if (dayOfWeek >= 1 && dayOfWeek <= 5 && !bankHolidays.has(dateISO)) {
+      if (dayOfWeek >= 1 && dayOfWeek <= 5 && !exceptionDates.has(dateISO)) {
         count++;
       }
       current.setDate(current.getDate() + 1);
@@ -162,6 +107,11 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
 
   const { data: tasks } = useQuery<Task[]>({
     queryKey: [`/api/projects/${programme.id}/tasks`],
+    enabled: showGantt,
+  });
+
+  const { data: calendarExceptions = [] } = useQuery<CalendarException[]>({
+    queryKey: [`/api/projects/${programme.id}/calendar-exceptions`],
     enabled: showGantt,
   });
 
@@ -597,7 +547,7 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
                 
                 // Calculate working days duration
                 const durationDays = phaseDates.startDate && phaseDates.endDate 
-                  ? calculateWorkingDays(phaseDates.startDate, phaseDates.endDate)
+                  ? calculateWorkingDays(phaseDates.startDate, phaseDates.endDate, calendarExceptions)
                   : 0;
 
                 return (
@@ -641,7 +591,7 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
                         {childTasks.map((child) => {
                           const childDates = getPhaseStartEndDates(child);
                           const childDurationDays = childDates.startDate && childDates.endDate 
-                            ? calculateWorkingDays(childDates.startDate, childDates.endDate)
+                            ? calculateWorkingDays(childDates.startDate, childDates.endDate, calendarExceptions)
                             : 0;
                           
                           return (
