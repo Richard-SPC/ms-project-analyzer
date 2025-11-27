@@ -56,7 +56,7 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Synergy Project Controls</SidebarGroupLabel>
+          <SidebarGroupLabel className="font-josefin font-semibold">Synergy Project Controls</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
