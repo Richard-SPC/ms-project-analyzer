@@ -36,24 +36,24 @@ function ProgrammeTile({ project, onDelete }: { project: Project; onDelete: () =
   return (
     <>
       <Card className="hover-elevate" data-testid={`card-programme-${project.id}`}>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-3 flex-1 min-w-0">
-              <FolderKanban className="h-5 w-5 text-primary flex-shrink-0" />
+        <CardHeader className="py-2 px-3">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <FolderKanban className="h-4 w-4 text-primary flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-base">{project.name}</CardTitle>
+                <CardTitle className="text-sm">{project.name}</CardTitle>
               </div>
             </div>
-            <div className="flex items-center gap-6 flex-wrap">
-              <div className="text-sm">
-                <p className="text-muted-foreground">Status Date</p>
-                <p className="font-medium text-foreground">
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="text-xs">
+                <p className="text-muted-foreground leading-tight">Status Date</p>
+                <p className="font-medium text-foreground leading-tight">
                   {project.statusDate ? formatDateUK(project.statusDate) : "N/A"}
                 </p>
               </div>
-              <div className="text-sm">
-                <p className="text-muted-foreground">Overall Complete</p>
-                <p className="font-medium text-foreground">
+              <div className="text-xs">
+                <p className="text-muted-foreground leading-tight">Overall Complete</p>
+                <p className="font-medium text-foreground leading-tight">
                   {completion?.percentComplete ?? "-"}%
                 </p>
               </div>
