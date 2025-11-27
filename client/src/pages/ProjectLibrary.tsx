@@ -48,9 +48,43 @@ const colorOptions = [
   { value: "#64748B", label: "Slate" },
 ];
 
+const PROJECT_STATUSES = [
+  "Tender",
+  "Pre-Construction",
+  "On Site",
+  "Off Site",
+  "Commissioning",
+  "Complete",
+];
+
 function ProgrammeTile({ programme, onDelete }: { programme: Project; onDelete: () => void }) {
+  const [isStatusOpen, setIsStatusOpen] = useState(false);
   const { data: completion } = useQuery<{ percentComplete?: number }>({
     queryKey: [`/api/projects/${programme.id}/completion`],
+  });
+  const { toast } = useToast();
+
+  const updateStatusMutation = useMutation({
+    mutationFn: async (newStatus: string) => {
+      const res = await apiRequest("PATCH", `/api/projects/${programme.id}`, { status: newStatus });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/workspaces"] });
+      setIsStatusOpen(false);
+      toast({
+        title: "Status updated",
+        description: "Programme status has been updated.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   return (
@@ -104,6 +138,34 @@ function ProgrammeTile({ programme, onDelete }: { programme: Project; onDelete: 
           </div>
         </div>
       </CardHeader>
+      <Collapsible open={isStatusOpen} onOpenChange={setIsStatusOpen}>
+        <CollapsibleTrigger asChild>
+          <Button variant="ghost" size="sm" className="w-full justify-start px-4 py-1 h-auto text-xs" data-testid={`button-toggle-status-${programme.id}`}>
+            <ChevronDown className={`h-3 w-3 mr-2 transition-transform ${isStatusOpen ? "" : "-rotate-90"}`} />
+            Status: <span className="ml-1 font-medium">{programme.status}</span>
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="px-4 pb-2">
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">Select project stage</p>
+            <div className="grid grid-cols-2 gap-2">
+              {PROJECT_STATUSES.map((status) => (
+                <Button
+                  key={status}
+                  variant={programme.status === status ? "default" : "outline"}
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => updateStatusMutation.mutate(status)}
+                  disabled={updateStatusMutation.isPending}
+                  data-testid={`button-status-${status.toLowerCase().replace(/\s+/g, '-')}-${programme.id}`}
+                >
+                  {status}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
     </Card>
   );
 }
