@@ -520,6 +520,38 @@ export default function ProjectDetail() {
                   return (
                     <>
                       <div className="relative">
+                        {/* Month headers row - same flex structure as timeline rows */}
+                        <div className="flex items-center gap-1 mb-2 relative h-6">
+                          <div className="w-4 flex-shrink-0" />
+                          <div className="w-32 flex-shrink-0" />
+                          <div className="w-16 flex-shrink-0" />
+                          <div className="flex-1 relative">
+                            {markers.map((marker, idx) => {
+                              const currentPosition = ((marker.getTime() - timelineStart.getTime()) / totalMs) * 100;
+                              const nextMarkerDate = idx + 1 < markers.length ? new Date(markers[idx + 1]) : new Date(timelineEnd);
+                              const nextPosition = ((nextMarkerDate.getTime() - timelineStart.getTime()) / totalMs) * 100;
+                              const midPosition = (currentPosition + nextPosition) / 2;
+                              const monthName = marker.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
+                              
+                              return (
+                                <div key={`month-${idx}`} className="absolute inset-0">
+                                  <div
+                                    className="absolute top-0 bottom-0 w-px bg-gray-300/30 dark:bg-gray-600/30"
+                                    style={{ left: `${currentPosition}%` }}
+                                  />
+                                  <span 
+                                    className="absolute text-xs text-muted-foreground whitespace-nowrap"
+                                    style={{ left: `${midPosition}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
+                                  >
+                                    {monthName}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <div className="w-16 flex-shrink-0" />
+                        </div>
+
                         <div className="space-y-2 relative">
                         <div className="text-xs">
                           <div className="flex items-center gap-1">
@@ -686,33 +718,6 @@ export default function ProjectDetail() {
                             </div>
                           );
                         })}
-                        </div>
-                        {/* Month headers and gridlines overlay */}
-                        <div className="relative mt-2 h-6">
-                          <div className="absolute inset-0 pointer-events-none" style={{ marginLeft: 'calc(1rem + 0.25rem + 8rem + 0.25rem + 4rem + 0.25rem)' }}>
-                            {markers.map((marker, idx) => {
-                              const currentPosition = ((marker.getTime() - timelineStart.getTime()) / totalMs) * 100;
-                              const nextMarkerDate = idx + 1 < markers.length ? new Date(markers[idx + 1]) : new Date(timelineEnd);
-                              const nextPosition = ((nextMarkerDate.getTime() - timelineStart.getTime()) / totalMs) * 100;
-                              const midPosition = (currentPosition + nextPosition) / 2;
-                              const monthName = marker.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
-                              
-                              return (
-                                <div key={`month-${idx}`}>
-                                  <div
-                                    className="absolute top-0 bottom-0 w-px bg-gray-300/30 dark:bg-gray-600/30"
-                                    style={{ left: `${currentPosition}%` }}
-                                  />
-                                  <span 
-                                    className="absolute text-xs text-muted-foreground pointer-events-none whitespace-nowrap"
-                                    style={{ left: `${midPosition}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
-                                  >
-                                    {monthName}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </div>
                         </div>
                       </div>
                     </>
