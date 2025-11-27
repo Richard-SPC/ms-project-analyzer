@@ -493,15 +493,16 @@ export default function ProjectDetail() {
                 <p className="text-muted-foreground truncate mb-1">Project Timeline</p>
                 
                 {(() => {
+                  const projectStart = new Date(project.startDate as any);
+                  const projectEnd = new Date(project.endDate as any);
+                  const totalMs = projectEnd.getTime() - projectStart.getTime();
+                  
                   const getMonthlyMarkers = () => {
-                    const start = new Date(project.startDate as any);
-                    const end = new Date(project.endDate as any);
                     const markers = [];
-                    
-                    let current = new Date(start);
+                    let current = new Date(projectStart);
                     current.setDate(1);
                     
-                    while (current < end) {
+                    while (current < projectEnd) {
                       markers.push(new Date(current));
                       current.setMonth(current.getMonth() + 1);
                     }
@@ -510,28 +511,21 @@ export default function ProjectDetail() {
                   };
 
                   const markers = getMonthlyMarkers();
-                  const totalMs = new Date(project.endDate as any).getTime() - new Date(project.startDate as any).getTime();
-                  const startDate = new Date(project.startDate as any);
-
-                  // Calculate month column widths
-                  const monthWidths = markers.map((marker, idx) => {
-                    if (idx === markers.length - 1) {
-                      const nextMonth = new Date(marker);
-                      nextMonth.setMonth(nextMonth.getMonth() + 1);
-                      const endTime = Math.min(nextMonth.getTime(), new Date(project.endDate as any).getTime());
-                      const ms = endTime - marker.getTime();
-                      return (ms / totalMs) * 100;
-                    }
-                    const nextMarker = markers[idx + 1];
-                    const ms = nextMarker.getTime() - marker.getTime();
-                    return (ms / totalMs) * 100;
-                  });
+                  
+                  const getTaskPosition = (task: Task) => {
+                    if (!task.startDate || !task.endDate) return { left: 0, width: 0 };
+                    const taskStart = new Date(task.startDate).getTime();
+                    const taskEnd = new Date(task.endDate).getTime();
+                    const left = ((taskStart - projectStart.getTime()) / totalMs) * 100;
+                    const width = ((taskEnd - taskStart) / totalMs) * 100;
+                    return { left, width };
+                  };
 
                   return (
                     <>
                       <div className="relative w-full mb-1 h-4 flex items-end">
                         {markers.map((marker, idx) => {
-                          const position = markers.slice(0, idx).reduce((sum, _, i) => sum + monthWidths[i], 0);
+                          const position = ((marker.getTime() - projectStart.getTime()) / totalMs) * 100;
                           const monthYear = marker.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
                           
                           return (
@@ -549,27 +543,24 @@ export default function ProjectDetail() {
                         })}
                       </div>
 
-                      <div className="flex w-full mt-6 relative">
-                        {markers.map((marker, idx) => (
-                          <div
-                            key={`month-${idx}`}
-                            className="relative flex-shrink-0 border-r border-muted-foreground/10"
-                            style={{ width: `${monthWidths[idx]}%` }}
-                          >
-                            {idx === 0 && (
-                              <div className="absolute inset-0 h-5 bg-muted rounded overflow-hidden border border-border flex items-center justify-center">
-                                <span className="text-xs font-medium text-foreground/70 pointer-events-none">Project</span>
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                      <div className="relative w-full h-5 bg-muted rounded overflow-hidden border border-border mt-6">
+                        {markers.map((marker, idx) => {
+                          const position = ((marker.getTime() - projectStart.getTime()) / totalMs) * 100;
+                          return (
+                            <div
+                              key={`line-${idx}`}
+                              className="absolute top-0 bottom-0 w-0.5 bg-muted-foreground/10"
+                              style={{ left: `${position}%` }}
+                            />
+                          );
+                        })}
                       </div>
                       <div className="flex justify-between mt-0.5 text-xs text-muted-foreground">
                         <span>{formatDateUK(project.startDate)}</span>
                         <span>{formatDateUK(project.endDate)}</span>
                       </div>
 
-                      <div className="relative space-y-2">
+                      <div className="space-y-2">
                         {phases.map((phase) => {
                           const isOnSite = phase.name?.toLowerCase().includes("on site") || phase.name?.toLowerCase().includes("on-site") || phase.name?.toLowerCase().includes("onsite");
                           const childTasks = isOnSite ? getChildTasks(phase.id) : [];
@@ -580,8 +571,10 @@ export default function ProjectDetail() {
                             ? calculateWorkingDays(phaseDates.startDate, phaseDates.endDate, calendarExceptions)
                             : 0;
 
+                          const phasePos = getTaskPosition(phase);
+
                           return (
-                            <div key={phase.id} className="text-xs mt-2 relative">
+                            <div key={phase.id} className="text-xs">
                               <div className="flex items-center gap-2">
                                 <div className="w-20 flex-shrink-0 flex items-center gap-1">
                                   {childTasks.length > 0 && (
@@ -602,7 +595,7 @@ export default function ProjectDetail() {
                                 <div className="flex-1 h-5 bg-muted rounded overflow-hidden relative border border-border">
                                   <div
                                     className={`h-full absolute ${getPhaseColor(phase.name)} rounded transition-all`}
-                                    style={calculatePhaseStyle(phase)}
+                                    style={{ left: `${phasePos.left}%`, width: `${phasePos.width}%` }}
                                     data-testid={`gantt-phase-${phase.id}`}
                                   />
                                   <div className="absolute inset-0 flex items-center justify-center">
@@ -624,6 +617,8 @@ export default function ProjectDetail() {
                                       ? calculateWorkingDays(childDates.startDate, childDates.endDate, calendarExceptions)
                                       : 0;
                                     
+                                    const childPos = getTaskPosition(child);
+                                    
                                     return (
                                       <div key={child.id} className="text-xs">
                                         <div className="flex items-center gap-2">
@@ -635,7 +630,7 @@ export default function ProjectDetail() {
                                           <div className="flex-1 h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
                                             <div
                                               className="h-full absolute bg-muted-foreground/30 transition-all"
-                                              style={calculatePhaseStyle(child)}
+                                              style={{ left: `${childPos.left}%`, width: `${childPos.width}%` }}
                                               data-testid={`gantt-child-${child.id}`}
                                             />
                                             <div className="absolute inset-0 flex items-center justify-center">
