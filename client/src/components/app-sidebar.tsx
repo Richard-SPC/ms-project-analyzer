@@ -9,7 +9,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
+import logoPath from "@assets/Favicon Transparent_1764235508342.ico";
 
 const menuItems = [
   {
@@ -73,6 +75,11 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <div className="flex justify-center py-4">
+          <img src={logoPath} alt="Synergy Logo" className="h-12 w-12" />
+        </div>
+      </SidebarFooter>
     </Sidebar>
   );
 }
