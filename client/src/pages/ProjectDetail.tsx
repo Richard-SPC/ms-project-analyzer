@@ -468,135 +468,6 @@ export default function ProjectDetail() {
         </Badge>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader className="py-2 px-4">
-            <CardTitle className="text-sm">Project Information</CardTitle>
-            <CardDescription className="text-xs">Basic details and metadata</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 pt-2 pb-2">
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Project Manager:</span>
-              <span className="text-sm font-medium">{workspace?.projectManager || "Not assigned"}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Start Date:</span>
-              <span className="text-sm font-medium">
-                {formatDateUK(project.startDate)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">End Date:</span>
-              <span className="text-sm font-medium">
-                {formatDateUK(project.endDate)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Status Date:</span>
-              <span className="text-sm font-medium">
-                {project.statusDate ? formatDateUK(project.statusDate) : "N/A"}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">% Complete:</span>
-              <span className="text-sm font-medium">
-                {tasks && tasks.length > 0
-                  ? (() => {
-                      // Exclude summary tasks and calculate based on duration-weighted completion
-                      const nonSummaryTasks = tasks.filter(t => !t.isSummary);
-                      if (nonSummaryTasks.length === 0) return "0%";
-                      
-                      const totalDuration = nonSummaryTasks.reduce((sum, t) => sum + (t.duration || 0), 0);
-                      if (totalDuration === 0) return "0%";
-                      
-                      const completedDuration = nonSummaryTasks.reduce((sum, t) => 
-                        sum + ((t.duration || 0) * (parseFloat(t.percentComplete || "0") / 100)), 0
-                      );
-                      
-                      return `${Math.round((completedDuration / totalDuration) * 100)}%`;
-                    })()
-                  : "0%"}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="py-2 px-4">
-            <CardTitle className="flex items-center gap-1 text-sm">
-              <Calendar className="h-4 w-4" />
-              Tasks Overview
-            </CardTitle>
-            <CardDescription className="text-xs">Project activities and milestones</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-2 pt-2 pb-2">
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Total Tasks:</span>
-              <span className="text-sm font-medium">{tasks?.length || 0}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Critical Path Tasks:</span>
-              <span className="text-sm font-medium">
-                {tasks?.filter(t => t.isCriticalPath).length || 0}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">Milestones:</span>
-              <span className="text-sm font-medium">
-                {tasks?.filter(t => t.isMilestone).length || 0}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="py-2 px-4">
-            <CardTitle className="flex items-center gap-1 text-sm">
-              <FileCheck className="h-4 w-4" />
-              DCMA Assessment
-            </CardTitle>
-            <CardDescription className="text-xs">14-point schedule health check</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-2 pb-2">
-            {dcmaAssessment ? (
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Overall Score:</span>
-                  <span className="text-2xl font-bold">
-                    {dcmaAssessment.overallScore || 0}/14
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Status:</span>
-                  <Badge variant={dcmaAssessment.passed ? "default" : "destructive"}>
-                    {dcmaAssessment.passed ? "Passed" : "Failed"}
-                  </Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-muted-foreground">Assessment Date:</span>
-                  <span className="text-sm font-medium">
-                    {formatDateUK(dcmaAssessment.assessmentDate)}
-                  </span>
-                </div>
-                <Link href="/dcma">
-                  <Button variant="outline" className="w-full mt-2" data-testid="button-view-dcma">
-                    View Full Assessment
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <p className="text-sm text-muted-foreground mb-4">No assessment available</p>
-                <Link href="/dcma">
-                  <Button data-testid="button-run-dcma-assessment">Run Assessment</Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-      </div>
-
       {project?.startDate && project?.endDate && phases.length > 0 && (
         <Card>
           <CardHeader>
@@ -771,6 +642,135 @@ export default function ProjectDetail() {
           </CardContent>
         </Card>
       )}
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader className="py-2 px-4">
+            <CardTitle className="text-sm">Project Information</CardTitle>
+            <CardDescription className="text-xs">Basic details and metadata</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 pt-2 pb-2">
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Project Manager:</span>
+              <span className="text-sm font-medium">{workspace?.projectManager || "Not assigned"}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Start Date:</span>
+              <span className="text-sm font-medium">
+                {formatDateUK(project.startDate)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">End Date:</span>
+              <span className="text-sm font-medium">
+                {formatDateUK(project.endDate)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Status Date:</span>
+              <span className="text-sm font-medium">
+                {project.statusDate ? formatDateUK(project.statusDate) : "N/A"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">% Complete:</span>
+              <span className="text-sm font-medium">
+                {tasks && tasks.length > 0
+                  ? (() => {
+                      // Exclude summary tasks and calculate based on duration-weighted completion
+                      const nonSummaryTasks = tasks.filter(t => !t.isSummary);
+                      if (nonSummaryTasks.length === 0) return "0%";
+                      
+                      const totalDuration = nonSummaryTasks.reduce((sum, t) => sum + (t.duration || 0), 0);
+                      if (totalDuration === 0) return "0%";
+                      
+                      const completedDuration = nonSummaryTasks.reduce((sum, t) => 
+                        sum + ((t.duration || 0) * (parseFloat(t.percentComplete || "0") / 100)), 0
+                      );
+                      
+                      return `${Math.round((completedDuration / totalDuration) * 100)}%`;
+                    })()
+                  : "0%"}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="py-2 px-4">
+            <CardTitle className="flex items-center gap-1 text-sm">
+              <Calendar className="h-4 w-4" />
+              Tasks Overview
+            </CardTitle>
+            <CardDescription className="text-xs">Project activities and milestones</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 pt-2 pb-2">
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Total Tasks:</span>
+              <span className="text-sm font-medium">{tasks?.length || 0}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Critical Path Tasks:</span>
+              <span className="text-sm font-medium">
+                {tasks?.filter(t => t.isCriticalPath).length || 0}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Milestones:</span>
+              <span className="text-sm font-medium">
+                {tasks?.filter(t => t.isMilestone).length || 0}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="py-2 px-4">
+            <CardTitle className="flex items-center gap-1 text-sm">
+              <FileCheck className="h-4 w-4" />
+              DCMA Assessment
+            </CardTitle>
+            <CardDescription className="text-xs">14-point schedule health check</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-2 pb-2">
+            {dcmaAssessment ? (
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Overall Score:</span>
+                  <span className="text-2xl font-bold">
+                    {dcmaAssessment.overallScore || 0}/14
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Status:</span>
+                  <Badge variant={dcmaAssessment.passed ? "default" : "destructive"}>
+                    {dcmaAssessment.passed ? "Passed" : "Failed"}
+                  </Badge>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm text-muted-foreground">Assessment Date:</span>
+                  <span className="text-sm font-medium">
+                    {formatDateUK(dcmaAssessment.assessmentDate)}
+                  </span>
+                </div>
+                <Link href="/dcma">
+                  <Button variant="outline" className="w-full mt-2" data-testid="button-view-dcma">
+                    View Full Assessment
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <p className="text-sm text-muted-foreground mb-4">No assessment available</p>
+                <Link href="/dcma">
+                  <Button data-testid="button-run-dcma-assessment">Run Assessment</Button>
+                </Link>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+      </div>
 
       {ganttData.tasks.length > 0 && (
         <Card>
