@@ -39,7 +39,7 @@ export default function Dashboard() {
       </div>
 
       <Card data-testid="card-total-projects" className="w-full">
-        <CardContent className="px-3 py-1 flex gap-6">
+        <CardContent className="px-3 py-1 flex justify-between">
           <div>
             <div className="text-lg font-bold" data-testid="text-total-projects">
               {totalProjects}
