@@ -569,25 +569,7 @@ export default function ProjectDetail() {
                         <span>{formatDateUK(project.endDate)}</span>
                       </div>
 
-                      <div className="relative">
-                        {/* Month separator lines */}
-                        <div className="absolute inset-0 pointer-events-none flex">
-                          {markers.map((marker, idx) => {
-                            const position = markers.slice(0, idx).reduce((sum, _, i) => sum + monthWidths[i], 0);
-                            const sidebarWidth = 132 + 16 + 16; // w-20 + w-32 + w-16 approx
-                            const barStartWidth = 132 + 16 + 16;
-                            return (
-                              <div
-                                key={`line-${idx}`}
-                                className="absolute top-0 bottom-0 w-0.5 bg-muted-foreground/10"
-                                style={{
-                                  left: `calc(${sidebarWidth}px + ${position}% * (100% - ${sidebarWidth}px) / 100)`,
-                                }}
-                              />
-                            );
-                          })}
-                        </div>
-
+                      <div className="relative space-y-2">
                         {phases.map((phase) => {
                           const isOnSite = phase.name?.toLowerCase().includes("on site") || phase.name?.toLowerCase().includes("on-site") || phase.name?.toLowerCase().includes("onsite");
                           const childTasks = isOnSite ? getChildTasks(phase.id) : [];
