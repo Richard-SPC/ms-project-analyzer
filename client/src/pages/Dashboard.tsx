@@ -91,44 +91,51 @@ export default function Dashboard() {
                     <AccordionContent className="pt-2">
                       {projectsForStatus.length > 0 ? (
                         <div className="space-y-2">
-                          {projectsForStatus.map((workspace) => (
-                            <div key={workspace.id} className="space-y-1">
-                              <div className="p-2 rounded-md border bg-muted/50 text-xs">
-                                <div className="flex items-center gap-2">
-                                  <FolderKanban className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                                  <div className="min-w-0 flex-1">
-                                    <p className="font-medium truncate">{workspace.name}</p>
-                                    {workspace.client && (
-                                      <p className="text-xs text-muted-foreground truncate">Client: {workspace.client}</p>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="ml-2 space-y-1">
-                                {(() => {
-                                  const workspaceProjects = allProjects?.filter(p => p.workspaceId === workspace.id) || [];
-                                  const mostRecentProject = workspaceProjects.reduce((latest, current) => {
-                                    const latestDate = latest.statusDate ? new Date(latest.statusDate).getTime() : 0;
-                                    const currentDate = current.statusDate ? new Date(current.statusDate).getTime() : 0;
-                                    return currentDate > latestDate ? current : latest;
-                                  }, workspaceProjects[0]);
-                                  
-                                  return mostRecentProject ? (
-                                    <Link key={mostRecentProject.id} href={`/projects/${mostRecentProject.id}`}>
-                                      <div 
-                                        className="flex items-center gap-2 p-1 hover-elevate rounded-md border text-xs" 
-                                        data-testid={`card-programme-${mostRecentProject.id}-in-${workspace.id}`}
-                                      >
-                                        <div className="min-w-0 flex-1">
-                                          <p className="font-medium text-xs truncate">{mostRecentProject.name}</p>
+                          {projectsForStatus.map((workspace) => {
+                            const workspaceProjects = allProjects?.filter(p => p.workspaceId === workspace.id) || [];
+                            const mostRecentProject = workspaceProjects.reduce((latest, current) => {
+                              const latestDate = latest.statusDate ? new Date(latest.statusDate).getTime() : 0;
+                              const currentDate = current.statusDate ? new Date(current.statusDate).getTime() : 0;
+                              return currentDate > latestDate ? current : latest;
+                            }, workspaceProjects[0]);
+                            
+                            return (
+                              <div key={workspace.id}>
+                                {mostRecentProject ? (
+                                  <Link href={`/projects/${mostRecentProject.id}`}>
+                                    <div 
+                                      className="flex items-center justify-between gap-2 p-2 hover-elevate rounded-md border bg-muted/50 text-xs"
+                                      data-testid={`card-programme-${mostRecentProject.id}-in-${workspace.id}`}
+                                    >
+                                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                                        <FolderKanban className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                        <div className="min-w-0">
+                                          <p className="font-medium truncate">{workspace.name}</p>
+                                          <p className="text-xs text-muted-foreground truncate">{mostRecentProject.name}</p>
                                         </div>
                                       </div>
-                                    </Link>
-                                  ) : null;
-                                })()}
+                                      {workspace.client && (
+                                        <p className="text-xs text-muted-foreground truncate whitespace-nowrap ml-2">{workspace.client}</p>
+                                      )}
+                                    </div>
+                                  </Link>
+                                ) : (
+                                  <div className="flex items-center justify-between gap-2 p-2 rounded-md border bg-muted/50 text-xs">
+                                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                                      <FolderKanban className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                      <div className="min-w-0">
+                                        <p className="font-medium truncate">{workspace.name}</p>
+                                        <p className="text-xs text-muted-foreground">No programme uploaded</p>
+                                      </div>
+                                    </div>
+                                    {workspace.client && (
+                                      <p className="text-xs text-muted-foreground truncate whitespace-nowrap ml-2">{workspace.client}</p>
+                                    )}
+                                  </div>
+                                )}
                               </div>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       ) : (
                         <p className="text-xs text-muted-foreground">No projects</p>
