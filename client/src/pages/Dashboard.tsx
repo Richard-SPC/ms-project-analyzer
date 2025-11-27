@@ -38,9 +38,6 @@ export default function Dashboard() {
           <h1 className="text-3xl font-bold text-foreground" data-testid="text-dashboard-title">
             Overview
           </h1>
-          <p className="text-muted-foreground">
-            Microsoft Project Programme Analyser
-          </p>
         </div>
         <Link href="/projects">
           <Button data-testid="button-view-projects">
