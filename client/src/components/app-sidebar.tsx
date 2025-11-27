@@ -57,9 +57,11 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarContent>
-        <SidebarGroup className="space-y-0">
-          <SidebarGroupLabel className="font-josefin font-semibold text-lg p-3 w-full border-b border-border">Synergy Project Controls</SidebarGroupLabel>
-          <SidebarGroupContent className="mt-0">
+        <div className="border-b border-border">
+          <div className="font-josefin font-semibold text-lg px-3 py-3">Synergy Project Controls</div>
+        </div>
+        <SidebarGroup className="pt-0">
+          <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
