@@ -2,7 +2,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FolderKanban, FileCheck } from "lucide-react";
 import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
 import type { Workspace, Project } from "@shared/schema";
 
 const PROJECT_STATUSES = [
@@ -33,17 +32,10 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground" data-testid="text-dashboard-title">
-            Overview
-          </h1>
-        </div>
-        <Link href="/projects">
-          <Button data-testid="button-view-projects">
-            View All Projects
-          </Button>
-        </Link>
+      <div>
+        <h1 className="text-3xl font-bold text-foreground" data-testid="text-dashboard-title">
+          Overview
+        </h1>
       </div>
 
       <Card data-testid="card-total-projects">
