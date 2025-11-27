@@ -21,7 +21,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
-      <Route path="/library" component={ProjectLibrary} />
+      <Route path="/projects" component={ProjectLibrary} />
       <Route path="/programmes" component={ProgrammeList} />
       <Route path="/programmes/:id" component={ProjectDetail} />
       <Route path="/dcma" component={DcmaAssessment} />
