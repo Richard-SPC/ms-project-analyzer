@@ -502,8 +502,29 @@ export default function ProjectDetail() {
             <div className="space-y-2">
               <div className="text-xs">
                 {(() => {
-                  const projectStart = new Date(project.startDate as any);
-                  const projectEnd = new Date(project.endDate as any);
+                  // Calculate actual project start/end from tasks instead of project metadata
+                  let actualProjectStart = project.startDate ? new Date(project.startDate as any) : new Date();
+                  let actualProjectEnd = project.endDate ? new Date(project.endDate as any) : new Date();
+                  
+                  // Find earliest task start and latest task end
+                  if (tasks && tasks.length > 0) {
+                    const taskStarts = tasks
+                      .filter(t => t.startDate && !t.isSummary)
+                      .map(t => new Date(t.startDate as any).getTime());
+                    const taskEnds = tasks
+                      .filter(t => t.endDate && !t.isSummary)
+                      .map(t => new Date(t.endDate as any).getTime());
+                    
+                    if (taskStarts.length > 0) {
+                      actualProjectStart = new Date(Math.min(...taskStarts));
+                    }
+                    if (taskEnds.length > 0) {
+                      actualProjectEnd = new Date(Math.max(...taskEnds));
+                    }
+                  }
+                  
+                  const projectStart = actualProjectStart;
+                  const projectEnd = actualProjectEnd;
                   
                   // Extend timeline by 1 month on each side
                   const timelineStart = new Date(projectStart);
