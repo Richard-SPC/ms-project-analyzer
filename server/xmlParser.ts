@@ -99,47 +99,29 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
             const dayWorking = exc.DayWorking ? parseInt(String(exc.DayWorking)) : 1;
             if (dayWorking !== 0) continue; // Skip working days
             
+            console.log(`[XML Parser] Exception: ${exc.Name}`, JSON.stringify(exc, null, 2));
+            
             // Microsoft Project stores exception dates in TimePeriod.FromDate and ToDate
+            // TimePeriod can be an array or single object
             let startDate: Date | undefined;
             let endDate: Date | undefined;
             
-            console.log(`[XML Parser] Parsing exception: ${exc.Name}`, { 
-              DayWorking: dayWorking, 
-              TimePeriod: exc.TimePeriod ? Object.keys(exc.TimePeriod) : 'none',
-              FromDate: exc.TimePeriod?.FromDate,
-              ToDate: exc.TimePeriod?.ToDate,
-              Start: exc.Start,
-              Finish: exc.Finish
-            });
-            
             if (exc.TimePeriod) {
-              if (exc.TimePeriod.FromDate) {
-                const fromDate = String(exc.TimePeriod.FromDate);
+              const timePeriods = Array.isArray(exc.TimePeriod) ? exc.TimePeriod : [exc.TimePeriod];
+              
+              // Use the first time period (or could iterate if there are multiple)
+              const tp = timePeriods[0];
+              
+              if (tp.FromDate) {
+                const fromDate = String(tp.FromDate);
                 startDate = new Date(fromDate);
-                console.log(`[XML Parser]   FromDate: ${fromDate} -> ${startDate}`);
+                console.log(`[XML Parser]   FromDate: ${fromDate} -> ${startDate.toISOString()}`);
               }
-              if (exc.TimePeriod.ToDate) {
-                const toDate = String(exc.TimePeriod.ToDate);
+              if (tp.ToDate) {
+                const toDate = String(tp.ToDate);
                 endDate = new Date(toDate);
-                console.log(`[XML Parser]   ToDate: ${toDate} -> ${endDate}`);
+                console.log(`[XML Parser]   ToDate: ${toDate} -> ${endDate.toISOString()}`);
               }
-            }
-            
-            // Fallback for alternative date fields
-            if (!startDate && exc.Start) {
-              startDate = new Date(exc.Start);
-              console.log(`[XML Parser]   Using Start: ${exc.Start} -> ${startDate}`);
-            }
-            if (!endDate && exc.Finish) {
-              endDate = new Date(exc.Finish);
-              console.log(`[XML Parser]   Using Finish: ${exc.Finish} -> ${endDate}`);
-            }
-            
-            // If still no dates, use just the FromDate for a single-day exception
-            if (!startDate && exc.TimePeriod?.FromDate) {
-              startDate = new Date(exc.TimePeriod.FromDate);
-              endDate = new Date(exc.TimePeriod.FromDate);
-              console.log(`[XML Parser]   Single day from FromDate: ${startDate}`);
             }
             
             // Normalize both dates to midnight (date only, no time component)
@@ -149,9 +131,9 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
               startNorm.setHours(0, 0, 0, 0);
               endNorm.setHours(0, 0, 0, 0);
               
-              const excName = exc.Name || exc.Type || `Non-working day`;
+              const excName = exc.Name || `Non-working day`;
               const daysDiff = Math.ceil((endNorm.getTime() - startNorm.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-              console.log(`[XML Parser]   ✓ Adding: ${excName} from ${startNorm.toISOString()} to ${endNorm.toISOString()} (${daysDiff} day(s))`);
+              console.log(`[XML Parser]   ✓ Adding: ${excName} from ${startNorm.toISOString().split('T')[0]} to ${endNorm.toISOString().split('T')[0]} (${daysDiff} days)`);
               
               exceptions.push({
                 startDate: startNorm,
@@ -160,7 +142,7 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
                 calendarName: calendarName,
               } as CalendarException);
             } else {
-              console.log(`[XML Parser]   ✗ Skipped: Invalid dates - start=${startDate}, end=${endDate}`);
+              console.log(`[XML Parser]   ✗ No valid dates found`);
             }
           } catch (e) {
             console.log(`[XML Parser] Error parsing exception:`, e);
