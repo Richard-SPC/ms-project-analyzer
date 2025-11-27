@@ -534,28 +534,6 @@ export default function ProjectDetail() {
                                 style={{ left: "0%", width: "100%" }}
                                 data-testid="gantt-project-overall"
                               />
-                              {markers.map((marker, idx) => {
-                                const currentPosition = ((marker.getTime() - timelineStart.getTime()) / totalMs) * 100;
-                                const nextMarkerDate = idx + 1 < markers.length ? new Date(markers[idx + 1]) : new Date(timelineEnd);
-                                const nextPosition = ((nextMarkerDate.getTime() - timelineStart.getTime()) / totalMs) * 100;
-                                const midPosition = (currentPosition + nextPosition) / 2;
-                                const monthName = marker.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
-                                
-                                return (
-                                  <div key={`month-${idx}`}>
-                                    <div
-                                      className="absolute top-0 bottom-0 w-0.5 bg-muted-foreground/10"
-                                      style={{ left: `${currentPosition}%` }}
-                                    />
-                                    <span 
-                                      className="absolute text-xs text-white pointer-events-none whitespace-nowrap"
-                                      style={{ left: `${midPosition}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
-                                    >
-                                      {monthName}
-                                    </span>
-                                  </div>
-                                );
-                              })}
                             </div>
                             <span className="text-muted-foreground/70 w-16 flex-shrink-0">
                               {formatDateUK(project.endDate)}
@@ -704,18 +682,32 @@ export default function ProjectDetail() {
                           );
                         })}
                         </div>
-                        {/* Month separator grid lines */}
-                        <div className="absolute inset-0 pointer-events-none z-20" style={{ marginLeft: 'calc(1rem + 8.5rem + 1rem)' }}>
-                          {markers.map((marker, idx) => {
-                            const position = ((marker.getTime() - timelineStart.getTime()) / totalMs) * 100;
-                            return (
-                              <div
-                                key={`grid-line-${idx}`}
-                                className="absolute top-0 bottom-0 w-px bg-gray-300/30 dark:bg-gray-600/30"
-                                style={{ left: `${position}%` }}
-                              />
-                            );
-                          })}
+                        {/* Month headers and gridlines overlay */}
+                        <div className="relative mt-2 h-6">
+                          <div className="absolute inset-0 pointer-events-none" style={{ marginLeft: 'calc(1rem + 8.5rem + 1rem)' }}>
+                            {markers.map((marker, idx) => {
+                              const currentPosition = ((marker.getTime() - timelineStart.getTime()) / totalMs) * 100;
+                              const nextMarkerDate = idx + 1 < markers.length ? new Date(markers[idx + 1]) : new Date(timelineEnd);
+                              const nextPosition = ((nextMarkerDate.getTime() - timelineStart.getTime()) / totalMs) * 100;
+                              const midPosition = (currentPosition + nextPosition) / 2;
+                              const monthName = marker.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
+                              
+                              return (
+                                <div key={`month-${idx}`} className="absolute w-full h-full">
+                                  <div
+                                    className="absolute top-0 bottom-0 w-px bg-gray-300/30 dark:bg-gray-600/30"
+                                    style={{ left: `${currentPosition}%` }}
+                                  />
+                                  <span 
+                                    className="absolute text-xs text-muted-foreground pointer-events-none whitespace-nowrap"
+                                    style={{ left: `${midPosition}%`, top: '0', transform: 'translateX(-50%)', lineHeight: '1.5rem' }}
+                                  >
+                                    {monthName}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
                     </>
