@@ -603,7 +603,7 @@ function ProjectSection({
   onDelete: () => void;
   onEdit: () => void;
 }) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [isStatusOpen, setIsStatusOpen] = useState(false);
   const { toast } = useToast();
 
