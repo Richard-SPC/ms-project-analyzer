@@ -69,28 +69,28 @@ function ProgrammeTile({ programme }: { programme: Project }) {
         <div className="flex items-center justify-between gap-2">
           <div className="text-sm font-medium truncate text-foreground">{programme.name}</div>
           <div className="flex-1 flex justify-center gap-4 items-center">
-            <div className="text-xs">
-              <p className="text-muted-foreground">Status Date</p>
+            <div className="text-xs text-center">
+              <p className="text-muted-foreground font-bold">Status Date</p>
               <p className="font-medium text-foreground">
                 {programme.statusDate ? formatDateUK(programme.statusDate) : "N/A"}
               </p>
             </div>
-            <div className="text-xs">
-              <p className="text-muted-foreground">% Complete</p>
+            <div className="text-xs text-center">
+              <p className="text-muted-foreground font-bold">% Complete</p>
               <p className="font-medium text-foreground">
                 {completion?.percentComplete ?? "-"}%
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
-            <div className="text-xs">
-              <p className="text-muted-foreground">Start</p>
+            <div className="text-xs text-center">
+              <p className="text-muted-foreground font-bold">Start</p>
               <p className="font-medium text-foreground">
                 {programme.startDate ? formatDateUK(programme.startDate) : "N/A"}
               </p>
             </div>
-            <div className="text-xs">
-              <p className="text-muted-foreground">End</p>
+            <div className="text-xs text-center">
+              <p className="text-muted-foreground font-bold">End</p>
               <p className="font-medium text-foreground">
                 {programme.endDate ? formatDateUK(programme.endDate) : "N/A"}
               </p>
