@@ -593,7 +593,7 @@ export default function ProjectDetail() {
                                 data-testid="gantt-project-overall"
                               />
                               <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-xs font-bold text-gray-400 pointer-events-none whitespace-nowrap truncate px-1">
+                                <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-2 py-1 rounded bg-black/40" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
                                   {calculateWorkingDays(new Date(project.startDate as any), new Date(project.endDate as any), calendarExceptions)}d
                                 </span>
                               </div>
@@ -667,7 +667,7 @@ export default function ProjectDetail() {
                                     data-testid={`gantt-phase-${phase.id}`}
                                   />
                                   <div className="absolute inset-0 flex items-center justify-center">
-                                    <span className="text-xs font-bold text-gray-400 pointer-events-none whitespace-nowrap truncate px-1">
+                                    <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-2 py-1 rounded bg-black/40" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
                                       {durationDays}d
                                     </span>
                                   </div>
@@ -727,7 +727,7 @@ export default function ProjectDetail() {
                                               data-testid={`gantt-child-${child.id}`}
                                             />
                                             <div className="absolute inset-0 flex items-center justify-center">
-                                              <span className="text-xs font-bold text-gray-400 pointer-events-none whitespace-nowrap truncate px-1">
+                                              <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-2 py-1 rounded bg-black/40" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
                                                 {childDurationDays}d
                                               </span>
                                             </div>
