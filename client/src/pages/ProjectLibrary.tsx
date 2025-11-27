@@ -76,7 +76,7 @@ function ProgrammeTile({ programme }: { programme: Project }) {
               </p>
             </div>
             <div className="text-xs">
-              <p className="text-muted-foreground">Complete</p>
+              <p className="text-muted-foreground">% Complete</p>
               <p className="font-medium text-foreground">
                 {completion?.percentComplete ?? "-"}%
               </p>
