@@ -250,18 +250,53 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
                 </div>
               </div>
 
-              {phases.map((phase) => (
-                <div key={phase.id} className="text-xs">
-                  <p className="text-muted-foreground truncate mb-1">{phase.name}</p>
-                  <div className="w-full h-5 bg-muted rounded overflow-hidden relative border border-border">
-                    <div
-                      className={`h-full ${getPhaseColor(phase.name)} rounded transition-all`}
-                      style={calculatePhaseStyle(phase)}
-                      data-testid={`gantt-phase-${phase.id}`}
-                    />
+              {phases.map((phase) => {
+                const isOnSite = phase.name?.toLowerCase().includes("on site") || phase.name?.toLowerCase().includes("on-site") || phase.name?.toLowerCase().includes("onsite");
+                const childTasks = isOnSite ? getChildTasks(phase.id) : [];
+                const isExpanded = expandedPhase === phase.id;
+
+                return (
+                  <div key={phase.id} className="text-xs">
+                    <div className="flex items-center gap-1">
+                      {childTasks.length > 0 && (
+                        <button
+                          onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
+                          className="p-0 hover:bg-muted rounded transition-colors"
+                          data-testid={`button-toggle-phase-${phase.id}`}
+                        >
+                          {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                        </button>
+                      )}
+                      {childTasks.length === 0 && <div className="w-3" />}
+                      <p className="text-muted-foreground truncate flex-1">{phase.name}</p>
+                    </div>
+                    <div className="w-full h-5 bg-muted rounded overflow-hidden relative border border-border mt-0.5 ml-4">
+                      <div
+                        className={`h-full ${getPhaseColor(phase.name)} rounded transition-all`}
+                        style={calculatePhaseStyle(phase)}
+                        data-testid={`gantt-phase-${phase.id}`}
+                      />
+                    </div>
+
+                    {isExpanded && childTasks.length > 0 && (
+                      <div className="mt-1 ml-4 space-y-1 pl-3 border-l border-muted-foreground/20">
+                        {childTasks.map((child) => (
+                          <div key={child.id} className="text-xs">
+                            <p className="text-muted-foreground truncate mb-0.5">{child.name}</p>
+                            <div className="w-full h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
+                              <div
+                                className="h-full bg-muted-foreground/10 transition-all"
+                                style={calculatePhaseStyle(child)}
+                                data-testid={`gantt-child-${child.id}`}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         );
