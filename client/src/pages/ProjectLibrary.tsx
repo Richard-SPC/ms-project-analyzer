@@ -65,15 +65,15 @@ function ProgrammeTile({ programme, onDelete }: { programme: Project; onDelete: 
 
   return (
     <Card className="hover-elevate" data-testid={`card-programme-${programme.id}`}>
-      <CardHeader className="py-2 px-4">
-        <div className="flex items-center justify-between gap-2 flex-wrap">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
+      <CardHeader className="py-1 px-4">
+        <div className="flex items-center justify-between gap-1 flex-wrap">
+          <div className="flex items-center gap-1 flex-1 min-w-0">
             <FolderKanban className="h-4 w-4 text-primary flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-sm">{programme.name}</CardTitle>
+              <CardTitle className="text-xs">{programme.name}</CardTitle>
             </div>
           </div>
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
             <div className="text-xs">
               <p className="text-muted-foreground">Start</p>
               <p className="font-medium text-foreground">
@@ -262,7 +262,7 @@ function ProjectSection({
             </Collapsible>
 
             {programmes.length > 0 ? (
-              <div className="space-y-1">
+              <div className="space-y-0">
                 {(() => {
                   const mostRecentProgramme = programmes.reduce((latest, current) => {
                     const latestDate = latest.statusDate ? new Date(latest.statusDate).getTime() : 0;
