@@ -174,29 +174,29 @@ function ProjectSection({
     <Card className="mb-3" data-testid={`card-project-${project.id}`}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CardHeader className="py-2 px-4">
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-2 h-9">
             <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="p-0 hover:bg-transparent">
-                <div className="flex items-center gap-2 flex-1">
+              <Button variant="ghost" size="sm" className="p-0 hover:bg-transparent h-auto">
+                <div className="flex items-center gap-2">
                   {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                   <div 
                     className="w-2 h-2 rounded-full" 
                     style={{ backgroundColor: project.color || "#3B82F6" }}
                   />
-                  <CardTitle className="text-lg font-bold">{project.name}</CardTitle>
+                  <CardTitle className="text-lg font-bold leading-none">{project.name}</CardTitle>
                 </div>
               </Button>
             </CollapsibleTrigger>
-            <div className="flex-1 flex justify-center min-w-0 items-center h-6">
-              <p className="text-sm font-semibold text-foreground truncate">
+            <div className="flex-1 flex justify-center min-w-0">
+              <p className="text-sm font-semibold text-foreground truncate leading-none">
                 {project.projectManager ? `PM: ${project.projectManager}` : ""}
               </p>
             </div>
             <div className="flex items-center gap-3">
               {project.client && (
-                <span className="text-sm font-bold text-foreground">{project.client}</span>
+                <span className="text-sm font-bold text-foreground leading-none">{project.client}</span>
               )}
-              <Badge variant="secondary" className="flex-shrink-0 text-xs">
+              <Badge variant="secondary" className="flex-shrink-0 text-xs h-fit">
                 {programmes.length}
               </Badge>
               <DropdownMenu>
