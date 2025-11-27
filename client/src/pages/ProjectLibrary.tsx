@@ -548,7 +548,6 @@ export default function ProjectLibrary() {
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h1 className="text-3xl font-bold text-foreground" data-testid="text-library-title">Project Library</h1>
-          <p className="text-muted-foreground">Organize your programmes into projects</p>
         </div>
         <Input
           placeholder="Search projects..."
