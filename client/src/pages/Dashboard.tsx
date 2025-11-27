@@ -121,7 +121,7 @@ export default function Dashboard() {
               ))}
             </div>
           ) : (
-            <Accordion type="single" collapsible defaultValue="Tender">
+            <Accordion type="single" collapsible>
               {PROJECT_STATUSES.map((status) => {
                 const projectsForStatus = projectsByStatus[status];
                 return (
