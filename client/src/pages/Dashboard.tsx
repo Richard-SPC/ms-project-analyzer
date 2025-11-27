@@ -113,18 +113,27 @@ export default function Dashboard() {
                             </div>
                           </div>
                           <div className="ml-2 space-y-1">
-                            {allProjects?.filter(p => p.workspaceId === workspace.id).map((project) => (
-                              <Link key={project.id} href={`/projects/${project.id}`}>
-                                <div 
-                                  className="flex items-center gap-2 p-1 hover-elevate rounded-md border text-xs" 
-                                  data-testid={`card-programme-${project.id}-in-${workspace.id}`}
-                                >
-                                  <div className="min-w-0 flex-1">
-                                    <p className="font-medium text-xs truncate">{project.name}</p>
+                            {(() => {
+                              const workspaceProjects = allProjects?.filter(p => p.workspaceId === workspace.id) || [];
+                              const mostRecentProject = workspaceProjects.reduce((latest, current) => {
+                                const latestDate = latest.statusDate ? new Date(latest.statusDate).getTime() : 0;
+                                const currentDate = current.statusDate ? new Date(current.statusDate).getTime() : 0;
+                                return currentDate > latestDate ? current : latest;
+                              }, workspaceProjects[0]);
+                              
+                              return mostRecentProject ? (
+                                <Link key={mostRecentProject.id} href={`/projects/${mostRecentProject.id}`}>
+                                  <div 
+                                    className="flex items-center gap-2 p-1 hover-elevate rounded-md border text-xs" 
+                                    data-testid={`card-programme-${mostRecentProject.id}-in-${workspace.id}`}
+                                  >
+                                    <div className="min-w-0 flex-1">
+                                      <p className="font-medium text-xs truncate">{mostRecentProject.name}</p>
+                                    </div>
                                   </div>
-                                </div>
-                              </Link>
-                            ))}
+                                </Link>
+                              ) : null;
+                            })()}
                           </div>
                         </div>
                       ))}
