@@ -336,7 +336,7 @@ export default function CompareProgrammes() {
                         const cells = [
                           <TableHead key={`prog-${progWithTasks.programme.id}`} className="py-0" data-testid={`header-programme-${progWithTasks.programme.id}`}>
                             <div className="flex items-center justify-between gap-2">
-                              <span className="truncate max-w-[120px] text-xs">{progWithTasks.programme.name}</span>
+                              <span className="text-xs">{progWithTasks.programme.name}</span>
                               <Button
                                 variant="ghost"
                                 size="icon"
