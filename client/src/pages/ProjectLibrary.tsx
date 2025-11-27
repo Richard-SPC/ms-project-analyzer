@@ -155,12 +155,12 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
         continue;
       }
       
-      // Check if task is a descendant (any level deeper, not just direct children)
+      // Check if task is a direct child (exactly one level deeper)
       const taskWbsParts = task.wbsCode.split('.');
       const taskLevel = taskWbsParts.length;
       
-      // Task must be deeper and start with parent WBS - include both summary and regular tasks
-      if (taskLevel >= expectedChildLevel && task.wbsCode.startsWith(parentWbs + '.')) {
+      // Task must be exactly one level deeper and start with parent WBS - summary tasks only
+      if (taskLevel === expectedChildLevel && task.wbsCode.startsWith(parentWbs + '.') && task.isSummary) {
         children.push(task);
       }
     }
