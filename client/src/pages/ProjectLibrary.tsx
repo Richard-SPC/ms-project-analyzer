@@ -89,6 +89,25 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
         })
     : [];
 
+  // Check if a summary task has any non-delay descendants
+  const hasNonDelayDescendants = (taskId: number): boolean => {
+    if (!tasks) return false;
+    const task = tasks.find(t => t.id === taskId);
+    if (!task || !task.wbsCode) return false;
+    
+    const taskWbs = task.wbsCode;
+    for (const t of tasks) {
+      if (!t.wbsCode || t.id === taskId) continue;
+      if (t.wbsCode.startsWith(taskWbs + '.')) {
+        // Found a descendant that is not a delay task
+        if (!t.name || !t.name.startsWith("Delay -")) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
   // Get all descendants of a task (for calculating true span)
   const getAllDescendants = (parentId: number, filterDelays: boolean = false): Task[] => {
     if (!tasks) return [];
@@ -108,13 +127,9 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
       
       // Include all tasks that have this parent WBS in their code (any nesting level)
       if (task.wbsCode.startsWith(parentWbs + '.')) {
-        // If filtering delays and this is a summary, check if it only contains delay descendants
-        if (filterDelays && task.isSummary) {
-          const summaryDescendants = getAllDescendants(task.id, false); // Get all descendants without filtering
-          const nonDelayDescendants = summaryDescendants.filter(d => !d.name || !d.name.startsWith("Delay -"));
-          if (nonDelayDescendants.length === 0) {
-            continue; // Skip this summary if it only has delay tasks
-          }
+        // If filtering delays and this is a summary, check if it has any non-delay descendants
+        if (filterDelays && task.isSummary && !hasNonDelayDescendants(task.id)) {
+          continue; // Skip this summary if it only has delay tasks
         }
         descendants.push(task);
       }
