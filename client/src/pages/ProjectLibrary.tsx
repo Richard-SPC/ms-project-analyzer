@@ -70,7 +70,14 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
   // Extract Procurement and On Site Works summary phases
   const phases = showGantt && tasks
     ? tasks
-        .filter(t => t.isSummary && (t.name?.includes("Procurement") || t.name?.includes("On Site")))
+        .filter(t => {
+          if (!t.isSummary || !t.name) return false;
+          const nameLower = t.name.toLowerCase();
+          return nameLower.includes("procurement") || 
+                 nameLower.includes("on site") || 
+                 nameLower.includes("on-site") ||
+                 nameLower.includes("onsite");
+        })
         .sort((a, b) => {
           const aStart = a.startDate ? new Date(a.startDate).getTime() : 0;
           const bStart = b.startDate ? new Date(b.startDate).getTime() : 0;
@@ -99,8 +106,10 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
 
   // Determine phase color
   const getPhaseColor = (name: string | null) => {
-    if (name?.includes("Procurement")) return "bg-[#159775]";
-    if (name?.includes("On Site")) return "bg-[#006093]";
+    if (!name) return "bg-primary";
+    const nameLower = name.toLowerCase();
+    if (nameLower.includes("procurement")) return "bg-[#159775]";
+    if (nameLower.includes("on site") || nameLower.includes("on-site") || nameLower.includes("onsite")) return "bg-[#006093]";
     return "bg-primary";
   };
 
@@ -155,13 +164,31 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
           </div>
         </div>
       </CardHeader>
-      {phases.length > 0 && (
+      {phases.length > 0 && programme.startDate && programme.endDate && (
         <CardContent className="px-4 py-2">
-          <div className="space-y-1">
+          <div className="space-y-2">
+            <div className="text-xs">
+              <p className="text-muted-foreground truncate mb-1">Project Timeline</p>
+              <div className="w-full h-5 bg-muted rounded overflow-hidden relative border border-border">
+                <div
+                  className="h-full bg-muted-foreground/20 transition-all"
+                  style={{
+                    left: "0%",
+                    width: "100%",
+                  }}
+                  data-testid={`gantt-timeline-${programme.id}`}
+                />
+              </div>
+              <div className="flex justify-between mt-0.5 text-xs text-muted-foreground">
+                <span>{formatDateUK(programme.startDate)}</span>
+                <span>{formatDateUK(programme.endDate)}</span>
+              </div>
+            </div>
+
             {phases.map((phase) => (
               <div key={phase.id} className="text-xs">
                 <p className="text-muted-foreground truncate mb-1">{phase.name}</p>
-                <div className="w-full h-5 bg-muted rounded overflow-hidden relative">
+                <div className="w-full h-5 bg-muted rounded overflow-hidden relative border border-border">
                   <div
                     className={`h-full ${getPhaseColor(phase.name)} rounded transition-all`}
                     style={calculatePhaseStyle(phase)}
