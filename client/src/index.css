@@ -347,3 +347,35 @@
     inset: -1px;
   }
 }
+
+/* Logo background for all pages */
+main {
+  background-image: url('/logo-bg.ico');
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 20%;
+  background-color: var(--background);
+}
+
+main::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('/logo-bg.ico');
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 20%;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 0;
+}
+
+main > * {
+  position: relative;
+  z-index: 1;
+}
