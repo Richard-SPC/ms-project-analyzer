@@ -563,7 +563,10 @@ export default function ProjectDetail() {
                             <div className="flex-1 h-5 bg-muted rounded overflow-hidden relative border border-border">
                               <div
                                 className="h-full absolute bg-[#494949]"
-                                style={{ left: "0%", width: "100%" }}
+                                style={{
+                                  left: `${((projectStart.getTime() - timelineStart.getTime()) / totalMs) * 100}%`,
+                                  width: `${((projectEnd.getTime() - projectStart.getTime()) / totalMs) * 100}%`
+                                }}
                                 data-testid="gantt-project-overall"
                               />
                               <div className="absolute inset-0 flex items-center justify-center">
