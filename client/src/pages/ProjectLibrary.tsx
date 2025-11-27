@@ -87,7 +87,7 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
         })
     : [];
 
-  // Calculate timeline position and width
+  // Calculate timeline position and width relative to programme
   const calculatePhaseStyle = (task: Task) => {
     if (!programme.startDate || !programme.endDate || !task.startDate || !task.endDate) {
       return { left: "0%", width: "0%" };
@@ -95,6 +95,25 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
 
     const totalMs = new Date(programme.endDate).getTime() - new Date(programme.startDate).getTime();
     const taskStartMs = new Date(task.startDate).getTime() - new Date(programme.startDate).getTime();
+    const taskDurationMs = new Date(task.endDate).getTime() - new Date(task.startDate).getTime();
+
+    const left = (taskStartMs / totalMs) * 100;
+    const width = (taskDurationMs / totalMs) * 100;
+
+    return {
+      left: `${Math.max(0, left)}%`,
+      width: `${Math.max(0, Math.min(width, 100 - left))}%`,
+    };
+  };
+
+  // Calculate timeline position and width for child tasks relative to parent phase
+  const calculateChildTaskStyle = (task: Task, parentPhase: Task) => {
+    if (!parentPhase.startDate || !parentPhase.endDate || !task.startDate || !task.endDate) {
+      return { left: "0%", width: "0%" };
+    }
+
+    const totalMs = new Date(parentPhase.endDate).getTime() - new Date(parentPhase.startDate).getTime();
+    const taskStartMs = new Date(task.startDate).getTime() - new Date(parentPhase.startDate).getTime();
     const taskDurationMs = new Date(task.endDate).getTime() - new Date(task.startDate).getTime();
 
     const left = (taskStartMs / totalMs) * 100;
@@ -306,7 +325,7 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
                             <div className="w-full h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
                               <div
                                 className="h-full bg-muted-foreground/10 transition-all"
-                                style={calculatePhaseStyle(child)}
+                                style={calculateChildTaskStyle(child, phase)}
                                 data-testid={`gantt-child-${child.id}`}
                               />
                             </div>
