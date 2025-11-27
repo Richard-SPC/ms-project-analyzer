@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { FolderKanban, FileCheck } from "lucide-react";
 import { Link } from "wouter";
 import { useState } from "react";
@@ -17,7 +17,7 @@ const PROJECT_STATUSES = [
 ];
 
 export default function Dashboard() {
-  const [showAllProgrammes, setShowAllProgrammes] = useState(false);
+  const [viewMode, setViewMode] = useState("latest");
 
   const { data: workspaces, isLoading: workspacesLoading } = useQuery<Workspace[]>({
     queryKey: ["/api/workspaces"],
@@ -64,14 +64,20 @@ export default function Dashboard() {
       <Card data-testid="card-project-statuses">
         <CardHeader className="flex flex-row items-center justify-between gap-2">
           <CardTitle>Projects by Status</CardTitle>
-          <Button
-            size="sm"
-            variant={showAllProgrammes ? "default" : "outline"}
-            onClick={() => setShowAllProgrammes(!showAllProgrammes)}
-            data-testid="button-toggle-programmes"
+          <ToggleGroup
+            type="single"
+            value={viewMode}
+            onValueChange={(value) => value && setViewMode(value)}
+            data-testid="toggle-view-mode"
+            className="border rounded-md"
           >
-            {showAllProgrammes ? "All Programmes" : "Latest Programme"}
-          </Button>
+            <ToggleGroupItem value="latest" aria-label="Latest Programme" data-testid="toggle-latest">
+              Latest Programme
+            </ToggleGroupItem>
+            <ToggleGroupItem value="all" aria-label="All Programmes" data-testid="toggle-all">
+              All Programmes
+            </ToggleGroupItem>
+          </ToggleGroup>
         </CardHeader>
         <CardContent>
           {workspacesLoading ? (
@@ -111,7 +117,7 @@ export default function Dashboard() {
                               return currentDate > latestDate ? current : latest;
                             }, workspaceProjects[0]);
                             
-                            const projectsToDisplay = showAllProgrammes ? workspaceProjects : (mostRecentProject ? [mostRecentProject] : []);
+                            const projectsToDisplay = viewMode === "all" ? workspaceProjects : (mostRecentProject ? [mostRecentProject] : []);
                             
                             return (
                               <div key={workspace.id} className="space-y-2">
@@ -126,7 +132,7 @@ export default function Dashboard() {
                                           <FolderKanban className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                                           <div className="min-w-0">
                                             <p className="text-sm font-bold truncate">{workspace.name}</p>
-                                            <p className="text-xs text-muted-foreground truncate">{showAllProgrammes ? "Programme: " : "Latest Programme: "}{project.name}</p>
+                                            <p className="text-xs text-muted-foreground truncate">{viewMode === "all" ? "Programme: " : "Latest Programme: "}{project.name}</p>
                                           </div>
                                         </div>
                                         {workspace.client && (
