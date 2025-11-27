@@ -512,7 +512,21 @@ export default function ProjectDetail() {
 
                   return (
                     <>
-                      <div className="space-y-2">
+                      <div className="relative">
+                        {/* Month separator grid lines */}
+                        <div className="absolute inset-0 pointer-events-none" style={{ marginLeft: 'calc(1rem + 8.5rem + 1rem)' }}>
+                          {markers.map((marker, idx) => {
+                            const position = ((marker.getTime() - projectStart.getTime()) / totalMs) * 100;
+                            return (
+                              <div
+                                key={`grid-line-${idx}`}
+                                className="absolute top-0 bottom-0 w-px bg-gray-300/30 dark:bg-gray-600/30"
+                                style={{ left: `${position}%` }}
+                              />
+                            );
+                          })}
+                        </div>
+                        <div className="space-y-2 relative z-10">
                         <div className="text-xs">
                           <div className="flex items-center gap-1">
                             <div className="w-4 flex-shrink-0" />
@@ -643,6 +657,7 @@ export default function ProjectDetail() {
                             </div>
                           );
                         })}
+                        </div>
                       </div>
                     </>
                   );
