@@ -529,7 +529,7 @@ export default function ProjectDetail() {
                               />
                               {markers.map((marker, idx) => {
                                 const currentPosition = ((marker.getTime() - projectStart.getTime()) / totalMs) * 100;
-                                const nextMarkerDate = idx + 1 < markers.length ? markers[idx + 1] : projectEnd;
+                                const nextMarkerDate = idx + 1 < markers.length ? new Date(markers[idx + 1]) : new Date(projectEnd);
                                 const nextPosition = ((nextMarkerDate.getTime() - projectStart.getTime()) / totalMs) * 100;
                                 const midPosition = (currentPosition + nextPosition) / 2;
                                 const monthName = marker.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
@@ -540,14 +540,12 @@ export default function ProjectDetail() {
                                       className="absolute top-0 bottom-0 w-0.5 bg-muted-foreground/10"
                                       style={{ left: `${currentPosition}%` }}
                                     />
-                                    {idx < markers.length - 1 && (
-                                      <span 
-                                        className="absolute text-xs text-white pointer-events-none whitespace-nowrap"
-                                        style={{ left: `${midPosition}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
-                                      >
-                                        {monthName}
-                                      </span>
-                                    )}
+                                    <span 
+                                      className="absolute text-xs text-white pointer-events-none whitespace-nowrap"
+                                      style={{ left: `${midPosition}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
+                                    >
+                                      {monthName}
+                                    </span>
                                   </div>
                                 );
                               })}
