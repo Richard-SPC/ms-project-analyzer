@@ -36,15 +36,15 @@ function ProgrammeTile({ project, onDelete }: { project: Project; onDelete: () =
   return (
     <>
       <Card className="hover-elevate" data-testid={`card-programme-${project.id}`}>
-        <CardHeader className="py-2 px-3">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
+        <CardHeader className="py-1 px-2">
+          <div className="flex items-center justify-between gap-1 flex-wrap">
+            <div className="flex items-center gap-1 flex-1 min-w-0">
               <FolderKanban className="h-4 w-4 text-primary flex-shrink-0" />
               <div className="flex-1 min-w-0">
-                <CardTitle className="text-sm">{project.name}</CardTitle>
+                <CardTitle className="text-sm font-normal">{project.name}</CardTitle>
               </div>
             </div>
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
               <div className="text-xs">
                 <p className="text-muted-foreground leading-tight">Status Date</p>
                 <p className="font-medium text-foreground leading-tight">
