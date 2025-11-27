@@ -95,7 +95,7 @@ function generateMonthHeaders(startDate: Date, endDate: Date): Array<{ month: st
 }
 
 export default function ProjectDetail() {
-  const [, params] = useRoute("/projects/:id");
+  const [, params] = useRoute("/programmes/:id");
   const projectId = params?.id ? parseInt(params.id) : 0;
   const [expandedPhase, setExpandedPhase] = useState<number | null>(null);
   const [ignoreDelayTasks, setIgnoreDelayTasks] = useState(false);
