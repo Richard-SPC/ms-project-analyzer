@@ -113,26 +113,41 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
               const tp = timePeriods[0];
               
               if (tp.FromDate) {
-                const fromDate = String(tp.FromDate);
-                startDate = new Date(fromDate);
-                console.log(`[XML Parser]   FromDate: ${fromDate} -> ${startDate.toISOString()}`);
+                const fromDateStr = String(tp.FromDate);
+                // Parse as UTC date - only extract YYYY-MM-DD portion
+                const dateMatch = fromDateStr.match(/(\d{4})-(\d{2})-(\d{2})/);
+                if (dateMatch) {
+                  const [, year, month, day] = dateMatch;
+                  startDate = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day), 0, 0, 0, 0));
+                } else {
+                  startDate = new Date(fromDateStr);
+                }
+                console.log(`[XML Parser]   FromDate: ${fromDateStr} -> ${startDate.toISOString()}`);
               }
               if (tp.ToDate) {
-                const toDate = String(tp.ToDate);
-                endDate = new Date(toDate);
-                console.log(`[XML Parser]   ToDate: ${toDate} -> ${endDate.toISOString()}`);
+                const toDateStr = String(tp.ToDate);
+                // Parse as UTC date - only extract YYYY-MM-DD portion
+                const dateMatch = toDateStr.match(/(\d{4})-(\d{2})-(\d{2})/);
+                if (dateMatch) {
+                  const [, year, month, day] = dateMatch;
+                  endDate = new Date(Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day), 23, 59, 59, 999));
+                } else {
+                  endDate = new Date(toDateStr);
+                }
+                console.log(`[XML Parser]   ToDate: ${toDateStr} -> ${endDate.toISOString()}`);
               }
             }
             
-            // Normalize both dates to midnight (date only, no time component)
+            // Use the parsed dates (which are now in UTC at midnight/end-of-day)
             if (startDate && endDate && !isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+              // Reset to midnight UTC for both (endDate was set to 23:59:59, reset it)
               const startNorm = new Date(startDate);
               const endNorm = new Date(endDate);
-              startNorm.setHours(0, 0, 0, 0);
-              endNorm.setHours(0, 0, 0, 0);
+              startNorm.setUTCHours(0, 0, 0, 0);
+              endNorm.setUTCHours(0, 0, 0, 0);
               
               const excName = exc.Name || `Non-working day`;
-              const daysDiff = Math.ceil((endNorm.getTime() - startNorm.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+              const daysDiff = Math.floor((endNorm.getTime() - startNorm.getTime()) / (1000 * 60 * 60 * 24)) + 1;
               console.log(`[XML Parser]   ✓ Adding: ${excName} from ${startNorm.toISOString().split('T')[0]} to ${endNorm.toISOString().split('T')[0]} (${daysDiff} days)`);
               
               exceptions.push({
