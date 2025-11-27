@@ -284,7 +284,7 @@ export default function ProjectLibrary() {
   const [programmeDialogOpen, setProgrammeDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Workspace | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadFiles, setUploadFiles] = useState<File[]>([]);
   const [uploadProjectId, setUploadProjectId] = useState<number | null>(null);
   const [searchText, setSearchText] = useState("");
   const { toast } = useToast();
@@ -480,9 +480,10 @@ export default function ProjectLibrary() {
         });
       }
       
-      setUploadOpen(false);
-      setUploadFile(null);
-      setUploadProjectId(null);
+      if (uploadFiles.length === 0) {
+        setUploadOpen(false);
+        setUploadProjectId(null);
+      }
     },
     onError: (error: Error) => {
       toast({
@@ -518,9 +519,14 @@ export default function ProjectLibrary() {
     createProgrammeMutation.mutate(data);
   };
 
-  const handleUpload = () => {
-    if (uploadFile) {
-      uploadMutation.mutate(uploadFile);
+  const handleUpload = async () => {
+    for (const file of uploadFiles) {
+      await new Promise((resolve) => {
+        uploadMutation.mutate(file, {
+          onSuccess: () => resolve(null),
+          onError: () => resolve(null),
+        });
+      });
     }
   };
 
@@ -587,13 +593,19 @@ export default function ProjectLibrary() {
                 <Input 
                   type="file" 
                   accept=".xml,.mpp,.xlsx,.csv" 
-                  onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
+                  multiple
+                  onChange={(e) => setUploadFiles(Array.from(e.target.files || []))}
                   data-testid="input-file-upload" 
                 />
-                {uploadFile && (
-                  <p className="text-sm text-muted-foreground">
-                    Selected: {uploadFile.name}
-                  </p>
+                {uploadFiles.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Selected files ({uploadFiles.length}):</p>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      {uploadFiles.map((file, idx) => (
+                        <li key={idx}>• {file.name}</li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
                 <div>
                   <label className="text-sm font-medium">Assign to Project (optional)</label>
@@ -618,14 +630,14 @@ export default function ProjectLibrary() {
               <DialogFooter>
                 <Button variant="outline" onClick={() => {
                   setUploadOpen(false);
-                  setUploadFile(null);
+                  setUploadFiles([]);
                   setUploadProjectId(null);
                 }} data-testid="button-cancel-upload">
                   Cancel
                 </Button>
                 <Button 
                   onClick={handleUpload} 
-                  disabled={!uploadFile || uploadMutation.isPending}
+                  disabled={uploadFiles.length === 0 || uploadMutation.isPending}
                   data-testid="button-upload"
                 >
                   {uploadMutation.isPending ? "Uploading..." : "Upload"}
