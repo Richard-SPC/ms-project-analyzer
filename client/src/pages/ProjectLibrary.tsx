@@ -58,6 +58,8 @@ const PROJECT_STATUSES = [
 ];
 
 function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: Project; onDelete: () => void; showGantt?: boolean }) {
+  const [expandedPhase, setExpandedPhase] = useState<number | null>(null);
+
   const { data: completion } = useQuery<{ percentComplete?: number }>({
     queryKey: [`/api/projects/${programme.id}/completion`],
   });
@@ -111,6 +113,25 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
     if (nameLower.includes("procurement")) return "bg-[#159775]";
     if (nameLower.includes("on site") || nameLower.includes("on-site") || nameLower.includes("onsite")) return "bg-[#006093]";
     return "bg-primary";
+  };
+
+  // Get child tasks for a summary task (direct children that are not summaries)
+  const getChildTasks = (phaseId: number) => {
+    if (!tasks) return [];
+    const phaseIndex = tasks.findIndex(t => t.id === phaseId);
+    if (phaseIndex === -1) return [];
+    
+    const children: Task[] = [];
+    for (let i = phaseIndex + 1; i < tasks.length; i++) {
+      const task = tasks[i];
+      if (task.isSummary && !task.name?.toLowerCase().includes("procurement") && 
+          !(task.name?.toLowerCase().includes("on site") || task.name?.toLowerCase().includes("on-site") || task.name?.toLowerCase().includes("onsite"))) {
+        children.push(task);
+      } else if (task.isSummary) {
+        break;
+      }
+    }
+    return children;
   };
 
   return (
