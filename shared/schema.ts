@@ -10,6 +10,7 @@ export const workspaces = pgTable("workspaces", {
   color: text("color").default("#3B82F6"), // hex color for visual distinction
   projectManager: text("project_manager"),
   client: text("client"),
+  status: text("status"), // Tender, Pre-Construction, On Site, Off Site, Commissioning, Complete
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

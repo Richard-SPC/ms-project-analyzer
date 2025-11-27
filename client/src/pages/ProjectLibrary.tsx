@@ -58,33 +58,8 @@ const PROJECT_STATUSES = [
 ];
 
 function ProgrammeTile({ programme, onDelete }: { programme: Project; onDelete: () => void }) {
-  const [isStatusOpen, setIsStatusOpen] = useState(false);
   const { data: completion } = useQuery<{ percentComplete?: number }>({
     queryKey: [`/api/projects/${programme.id}/completion`],
-  });
-  const { toast } = useToast();
-
-  const updateStatusMutation = useMutation({
-    mutationFn: async (newStatus: string) => {
-      const res = await apiRequest("PATCH", `/api/projects/${programme.id}`, { status: newStatus });
-      return await res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/projects"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/workspaces"] });
-      setIsStatusOpen(false);
-      toast({
-        title: "Status updated",
-        description: "Programme status has been updated.",
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
   });
 
   return (
@@ -138,34 +113,6 @@ function ProgrammeTile({ programme, onDelete }: { programme: Project; onDelete: 
           </div>
         </div>
       </CardHeader>
-      <Collapsible open={isStatusOpen} onOpenChange={setIsStatusOpen}>
-        <CollapsibleTrigger asChild>
-          <Button variant="ghost" size="sm" className="w-full justify-start px-4 py-1 h-auto text-xs" data-testid={`button-toggle-status-${programme.id}`}>
-            <ChevronDown className={`h-3 w-3 mr-2 transition-transform ${isStatusOpen ? "" : "-rotate-90"}`} />
-            Status: <span className="ml-1 font-medium">{programme.status}</span>
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="px-4 pb-2">
-          <div className="space-y-2">
-            <p className="text-xs text-muted-foreground">Select project stage</p>
-            <div className="grid grid-cols-2 gap-2">
-              {PROJECT_STATUSES.map((status) => (
-                <Button
-                  key={status}
-                  variant={programme.status === status ? "default" : "outline"}
-                  size="sm"
-                  className="text-xs"
-                  onClick={() => updateStatusMutation.mutate(status)}
-                  disabled={updateStatusMutation.isPending}
-                  data-testid={`button-status-${status.toLowerCase().replace(/\s+/g, '-')}-${programme.id}`}
-                >
-                  {status}
-                </Button>
-              ))}
-            </div>
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
     </Card>
   );
 }
@@ -182,6 +129,7 @@ function ProjectSection({
   onEdit: () => void;
 }) {
   const [isOpen, setIsOpen] = useState(true);
+  const [isStatusOpen, setIsStatusOpen] = useState(false);
   const { toast } = useToast();
 
   const deleteMutation = useMutation({
@@ -195,6 +143,28 @@ function ProjectSection({
       toast({
         title: "Programme deleted",
         description: "Programme has been removed.",
+      });
+    },
+  });
+
+  const updateProjectStatusMutation = useMutation({
+    mutationFn: async (newStatus: string) => {
+      const res = await apiRequest("PATCH", `/api/workspaces/${project.id}`, { status: newStatus });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/workspaces"] });
+      setIsStatusOpen(false);
+      toast({
+        title: "Status updated",
+        description: "Project status has been updated.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
       });
     },
   });
@@ -260,7 +230,36 @@ function ProjectSection({
           )}
         </CardHeader>
         <CollapsibleContent>
-          <CardContent className="pt-2 pb-2">
+          <CardContent className="pt-2 pb-2 space-y-2">
+            <Collapsible open={isStatusOpen} onOpenChange={setIsStatusOpen}>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="w-full justify-start px-0 py-1 h-auto text-xs" data-testid={`button-toggle-project-status-${project.id}`}>
+                  <ChevronDown className={`h-3 w-3 mr-2 transition-transform ${isStatusOpen ? "" : "-rotate-90"}`} />
+                  Project Status: <span className="ml-1 font-medium">{project.status || "Not set"}</span>
+                </Button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pt-2">
+                <div className="space-y-2 mb-2">
+                  <p className="text-xs text-muted-foreground">Select project stage</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {PROJECT_STATUSES.map((status) => (
+                      <Button
+                        key={status}
+                        variant={project.status === status ? "default" : "outline"}
+                        size="sm"
+                        className="text-xs"
+                        onClick={() => updateProjectStatusMutation.mutate(status)}
+                        disabled={updateProjectStatusMutation.isPending}
+                        data-testid={`button-project-status-${status.toLowerCase().replace(/\s+/g, '-')}-${project.id}`}
+                      >
+                        {status}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
             {programmes.length > 0 ? (
               <div className="space-y-1">
                 {programmes.map((programme) => (
