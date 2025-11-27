@@ -757,7 +757,7 @@ export default function ProjectDetail() {
                         })}
                         {ignoreDelayTasks && delayTasks.length > 0 && (
                           <div className="mt-2 space-y-1 border-t border-dashed border-destructive/30 pt-2">
-                            {delayTasks.map((delayTask) => {
+                            {delayTasks.map((delayTask, delayIndex) => {
                               const delayDates = getPhaseStartEndDates(delayTask);
                               const delayDurationDays = delayDates.startDate && delayDates.endDate 
                                 ? calculateWorkingDays(delayDates.startDate, delayDates.endDate, calendarExceptions)
@@ -800,7 +800,9 @@ export default function ProjectDetail() {
                               return (
                                 <div key={delayTask.id} className="text-xs">
                                   <div className="flex items-center gap-1">
-                                    <div className="w-4 flex-shrink-0" />
+                                    <div className="w-4 flex-shrink-0 flex items-center justify-center">
+                                      <span className="text-xs font-bold text-destructive bg-destructive/20 rounded-full w-5 h-5 flex items-center justify-center">{delayIndex + 1}</span>
+                                    </div>
                                     <p className="text-destructive w-32 truncate flex-shrink-0">{delayTask.name}</p>
                                     <span className="text-destructive/70 w-16 text-right flex-shrink-0">
                                       {delayDates.startDate ? formatDateUK(delayDates.startDate) : "N/A"}
@@ -836,9 +838,12 @@ export default function ProjectDetail() {
                 <div className="mt-4 pt-4 border-t border-border">
                   <h3 className="text-xs font-semibold text-muted-foreground mb-2">Delays</h3>
                   <div className="space-y-1">
-                    {delayTasks.map((task) => (
-                      <div key={task.id} className="flex items-center justify-between p-2 bg-destructive/10 rounded text-xs">
-                        <span className="text-destructive truncate">{task.name}</span>
+                    {delayTasks.map((task, delayIndex) => (
+                      <div key={task.id} className="flex items-center justify-between p-2 bg-destructive/10 rounded text-xs gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-xs font-bold text-destructive bg-destructive/20 rounded-full w-5 h-5 flex items-center justify-center flex-shrink-0">{delayIndex + 1}</span>
+                          <span className="text-destructive truncate">{task.name}</span>
+                        </div>
                         <span className="text-destructive/70 ml-2 flex-shrink-0">
                           {task.startDate && task.endDate 
                             ? `${formatDateUK(new Date(task.startDate))} - ${formatDateUK(new Date(task.endDate))}`
