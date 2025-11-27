@@ -36,7 +36,7 @@ export default function Dashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground" data-testid="text-dashboard-title">
-            Programme Dashboard
+            Synergy Dashboard
           </h1>
           <p className="text-muted-foreground">
             Microsoft Project Programme Analyser
