@@ -67,12 +67,7 @@ function ProgrammeTile({ programme }: { programme: Project }) {
     <Card className="hover-elevate" data-testid={`card-programme-${programme.id}`}>
       <CardHeader className="py-1 px-4">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1 flex-shrink-0 min-w-0">
-            <FolderKanban className="h-4 w-4 text-primary flex-shrink-0" />
-            <div className="min-w-0">
-              <CardTitle className="text-xs truncate">{programme.name}</CardTitle>
-            </div>
-          </div>
+          <div className="text-xs truncate text-foreground">{programme.name}</div>
           <div className="flex-1 flex justify-center gap-4 items-center">
             <div className="text-xs">
               <p className="text-muted-foreground">Status Date</p>
@@ -253,7 +248,6 @@ function ProjectSection({
                     <ProgrammeTile
                       key={programme.id}
                       programme={programme}
-                      onDelete={() => deleteMutation.mutate(programme.id)}
                     />
                   ));
                 })()}
