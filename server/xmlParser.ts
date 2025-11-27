@@ -144,11 +144,10 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
               const excName = exc.Name || exc.Type || `Non-working day`;
               console.log(`[XML Parser]   ✓ Adding: ${excName} from ${startDate} to ${endDate}`);
               exceptions.push({
-                startDate,
-                endDate,
+                date: startDate,
                 name: excName,
-                calendarName,
-              });
+                description: calendarName,
+              } as CalendarException);
             } else {
               console.log(`[XML Parser]   ✗ Skipped: Invalid dates - start=${startDate}, end=${endDate}`);
             }
