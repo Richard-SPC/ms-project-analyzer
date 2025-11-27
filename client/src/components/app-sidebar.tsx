@@ -57,7 +57,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarContent>
-        <div className="flex items-center border-b border-border p-3">
+        <div className="flex items-center border-b border-border p-3 min-h-[44px]">
           <div className="font-josefin font-semibold text-lg">Synergy Project Controls</div>
         </div>
         <SidebarGroup className="pt-6 mt-2">
