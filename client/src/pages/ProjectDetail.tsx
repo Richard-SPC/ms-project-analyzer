@@ -778,6 +778,13 @@ export default function ProjectDetail() {
                                 }
                               }
                               
+                              if (delayMinStart === null && delayTask.startDate) {
+                                delayMinStart = new Date(delayTask.startDate).getTime();
+                              }
+                              if (delayMaxEnd === null && delayTask.endDate) {
+                                delayMaxEnd = new Date(delayTask.endDate).getTime();
+                              }
+                              
                               let delayStyle = { left: "0%", width: "0%" };
                               if (delayMinStart !== null && delayMaxEnd !== null) {
                                 const taskStartMs = delayMinStart - timelineStart.getTime();
