@@ -515,7 +515,7 @@ export default function ProjectDetail() {
                       <div className="space-y-2">
                         <div className="text-xs">
                           <div className="flex items-center gap-1">
-                            <div className="w-20 flex-shrink-0" />
+                            <div className="w-4 flex-shrink-0" />
                             <p className="text-muted-foreground w-32 truncate flex-shrink-0">Overall Project</p>
                             <span className="text-muted-foreground/70 w-16 text-right flex-shrink-0">
                               {formatDateUK(project.startDate)}
@@ -568,7 +568,7 @@ export default function ProjectDetail() {
                           return (
                             <div key={phase.id} className="text-xs">
                               <div className="flex items-center gap-1">
-                                <div className="w-20 flex-shrink-0 flex items-center gap-1">
+                                <div className="w-4 flex-shrink-0 flex items-center gap-1">
                                   {childTasks.length > 0 && (
                                     <button
                                       onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
@@ -614,7 +614,7 @@ export default function ProjectDetail() {
                                     return (
                                       <div key={child.id} className="text-xs">
                                         <div className="flex items-center gap-2">
-                                          <div className="w-20 flex-shrink-0" />
+                                          <div className="w-4 flex-shrink-0" />
                                           <p className="text-muted-foreground w-32 truncate flex-shrink-0">{child.name}</p>
                                           <span className="text-muted-foreground/70 w-16 text-right text-xs flex-shrink-0">
                                             {childDates.startDate ? formatDateUK(childDates.startDate) : "N/A"}
