@@ -534,24 +534,41 @@ export default function ProjectDetail() {
                         })}
                       </div>
 
-                      <div className="relative w-full h-5 bg-muted rounded overflow-hidden border border-border mt-6">
-                        {markers.map((marker, idx) => {
-                          const position = ((marker.getTime() - projectStart.getTime()) / totalMs) * 100;
-                          return (
-                            <div
-                              key={`line-${idx}`}
-                              className="absolute top-0 bottom-0 w-0.5 bg-muted-foreground/10"
-                              style={{ left: `${position}%` }}
-                            />
-                          );
-                        })}
-                      </div>
-                      <div className="flex justify-between mt-0.5 text-xs text-muted-foreground">
+                      <div className="flex justify-between mt-0.5 text-xs text-muted-foreground mb-2">
                         <span>{formatDateUK(project.startDate)}</span>
                         <span>{formatDateUK(project.endDate)}</span>
                       </div>
 
                       <div className="space-y-2">
+                        <div className="text-xs">
+                          <div className="flex items-center gap-2">
+                            <div className="w-20 flex-shrink-0" />
+                            <p className="text-muted-foreground w-32 truncate flex-shrink-0">Project</p>
+                            <span className="text-muted-foreground/70 w-16 text-right flex-shrink-0">
+                              {formatDateUK(project.startDate)}
+                            </span>
+                            <div className="flex-1 h-5 bg-muted rounded overflow-hidden relative border border-border">
+                              <div
+                                className="h-full absolute bg-muted-foreground/20"
+                                style={{ left: "0%", width: "100%" }}
+                                data-testid="gantt-project-overall"
+                              />
+                              {markers.map((marker, idx) => {
+                                const position = ((marker.getTime() - projectStart.getTime()) / totalMs) * 100;
+                                return (
+                                  <div
+                                    key={`line-${idx}`}
+                                    className="absolute top-0 bottom-0 w-0.5 bg-muted-foreground/10"
+                                    style={{ left: `${position}%` }}
+                                  />
+                                );
+                              })}
+                            </div>
+                            <span className="text-muted-foreground/70 w-16 flex-shrink-0">
+                              {formatDateUK(project.endDate)}
+                            </span>
+                          </div>
+                        </div>
                         {phases.map((phase) => {
                           const isOnSite = phase.name?.toLowerCase().includes("on site") || phase.name?.toLowerCase().includes("on-site") || phase.name?.toLowerCase().includes("onsite");
                           const childTasks = isOnSite ? getChildTasks(phase.id) : [];
