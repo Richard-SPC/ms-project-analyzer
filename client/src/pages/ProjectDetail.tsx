@@ -689,7 +689,7 @@ export default function ProjectDetail() {
                         </div>
                         {/* Month headers and gridlines overlay */}
                         <div className="relative mt-2 h-6">
-                          <div className="absolute inset-0 pointer-events-none" style={{ marginLeft: 'calc(1rem + 8.5rem + 1rem)' }}>
+                          <div className="absolute inset-0 pointer-events-none" style={{ marginLeft: 'calc(1rem + 0.25rem + 8rem + 0.25rem + 4rem + 0.25rem)' }}>
                             {markers.map((marker, idx) => {
                               const currentPosition = ((marker.getTime() - timelineStart.getTime()) / totalMs) * 100;
                               const nextMarkerDate = idx + 1 < markers.length ? new Date(markers[idx + 1]) : new Date(timelineEnd);
