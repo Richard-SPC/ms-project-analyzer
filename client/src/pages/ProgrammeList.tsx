@@ -43,13 +43,13 @@ function ProgrammeTile({ project, onDelete }: { project: Project; onDelete: () =
             </div>
             <div className="flex-1 flex justify-center gap-3">
               <div className="text-xs text-center">
-                <p className="text-muted-foreground leading-tight">Status Date</p>
+                <p className="text-muted-foreground leading-tight font-bold">Status Date</p>
                 <p className="font-medium text-foreground leading-tight">
                   {project.statusDate ? formatDateUK(project.statusDate) : "N/A"}
                 </p>
               </div>
               <div className="text-xs text-center">
-                <p className="text-muted-foreground leading-tight">Overall Complete</p>
+                <p className="text-muted-foreground leading-tight font-bold">% Complete</p>
                 <p className="font-medium text-foreground leading-tight">
                   {completion?.percentComplete ?? "-"}%
                 </p>
