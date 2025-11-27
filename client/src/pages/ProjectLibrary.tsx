@@ -150,7 +150,7 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
     const children: Task[] = [];
     for (const task of tasks) {
       if (!task.wbsCode || task.id === phaseId) continue;
-      if (ignoreDelayTasks && task.name && task.name.startsWith("Delay")) continue;
+      if (ignoreDelayTasks && task.name && (task.name.toLowerCase().includes("delay") || task.name.startsWith("Delay"))) continue;
       
       // Check if this task's WBS is a direct child
       const taskWbsParts = task.wbsCode.split('.');
