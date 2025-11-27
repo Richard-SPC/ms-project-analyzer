@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { insertWorkspaceSchema, insertProjectSchema, type Workspace, type Project, type Task } from "@shared/schema";
@@ -248,12 +249,10 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
           <CardContent className="px-4 py-2">
             <div className="space-y-2">
               <div className="flex items-center gap-2 mb-2">
-                <input
-                  type="checkbox"
+                <Checkbox
                   id={`ignore-delay-${programme.id}`}
                   checked={ignoreDelayTasks}
-                  onChange={(e) => setIgnoreDelayTasks(e.target.checked)}
-                  className="h-4 w-4 rounded border-border cursor-pointer"
+                  onCheckedChange={(checked) => setIgnoreDelayTasks(checked === true)}
                   data-testid={`checkbox-ignore-delay-${programme.id}`}
                 />
                 <label htmlFor={`ignore-delay-${programme.id}`} className="text-xs text-muted-foreground cursor-pointer">
