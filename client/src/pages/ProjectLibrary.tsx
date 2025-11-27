@@ -136,13 +136,12 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
     return "bg-primary";
   };
 
-  // Get child tasks for a summary task - only direct children (one level down)
+  // Get child tasks for a summary task - includes all nested descendants that should be displayed
   const getChildTasks = (phaseId: number) => {
     if (!tasks) return [];
     const phase = tasks.find(t => t.id === phaseId);
     if (!phase || !phase.wbsCode) return [];
     
-    // Get the parent WBS code - if parent is "1.1" then children are "1.1.1", "1.1.2", etc.
     const parentWbs = phase.wbsCode;
     const parentLevel = parentWbs.split('.').length;
     const expectedChildLevel = parentLevel + 1;
@@ -150,14 +149,18 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
     const children: Task[] = [];
     for (const task of tasks) {
       if (!task.wbsCode || task.id === phaseId) continue;
-      if (ignoreDelayTasks && task.name && (task.name.toLowerCase().includes("delay") || task.name.startsWith("Delay"))) continue;
       
-      // Check if this task's WBS is a direct child
+      // Filter out delay tasks if checkbox is checked
+      if (ignoreDelayTasks && task.name && task.name.startsWith("Delay -")) {
+        continue;
+      }
+      
+      // Check if task is a descendant (any level deeper, not just direct children)
       const taskWbsParts = task.wbsCode.split('.');
       const taskLevel = taskWbsParts.length;
       
-      // Task must be exactly one level deeper and start with parent WBS
-      if (taskLevel === expectedChildLevel && task.wbsCode.startsWith(parentWbs + '.')) {
+      // Task must be deeper and start with parent WBS
+      if (taskLevel >= expectedChildLevel && task.wbsCode.startsWith(parentWbs + '.') && task.isSummary) {
         children.push(task);
       }
     }
