@@ -237,7 +237,6 @@ export default function Projects() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground" data-testid="text-programmes-title">Programmes</h1>
-          <p className="text-muted-foreground">Manage your programmes and schedule files</p>
         </div>
         <div className="flex gap-2">
           <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
