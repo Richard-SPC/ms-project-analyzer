@@ -59,6 +59,7 @@ const PROJECT_STATUSES = [
 
 function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: Project; onDelete: () => void; showGantt?: boolean }) {
   const [expandedPhase, setExpandedPhase] = useState<number | null>(null);
+  const [ignoreDelayTasks, setIgnoreDelayTasks] = useState(false);
 
   const { data: completion } = useQuery<{ percentComplete?: number }>({
     queryKey: [`/api/projects/${programme.id}/completion`],
@@ -74,6 +75,7 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
     ? tasks
         .filter(t => {
           if (!t.isSummary || !t.name) return false;
+          if (ignoreDelayTasks && t.name.startsWith("Delay")) return false;
           const nameLower = t.name.toLowerCase();
           return nameLower.includes("procurement") || 
                  nameLower.includes("on site") || 
@@ -148,6 +150,7 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
     const children: Task[] = [];
     for (const task of tasks) {
       if (!task.wbsCode || task.id === phaseId) continue;
+      if (ignoreDelayTasks && task.name && task.name.startsWith("Delay")) continue;
       
       // Check if this task's WBS is a direct child
       const taskWbsParts = task.wbsCode.split('.');
@@ -244,6 +247,19 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
         return (
           <CardContent className="px-4 py-2">
             <div className="space-y-2">
+              <div className="flex items-center gap-2 mb-2">
+                <input
+                  type="checkbox"
+                  id={`ignore-delay-${programme.id}`}
+                  checked={ignoreDelayTasks}
+                  onChange={(e) => setIgnoreDelayTasks(e.target.checked)}
+                  className="h-4 w-4 rounded border-border cursor-pointer"
+                  data-testid={`checkbox-ignore-delay-${programme.id}`}
+                />
+                <label htmlFor={`ignore-delay-${programme.id}`} className="text-xs text-muted-foreground cursor-pointer">
+                  Hide Delay tasks
+                </label>
+              </div>
               <div className="text-xs">
                 <p className="text-muted-foreground truncate mb-1">Project Timeline</p>
                 
