@@ -529,8 +529,9 @@ export default function ProjectDetail() {
                               />
                               {markers.map((marker, idx) => {
                                 const position = ((marker.getTime() - projectStart.getTime()) / totalMs) * 100;
-                                const nextMarker = markers[idx + 1] ? new Date(markers[idx + 1]) : projectEnd;
-                                const midPosition = (position + ((nextMarker.getTime() - projectStart.getTime()) / totalMs) * 100) / 2;
+                                const nextMarker = idx + 1 < markers.length ? markers[idx + 1] : projectEnd;
+                                const nextPosition = ((nextMarker.getTime() - projectStart.getTime()) / totalMs) * 100;
+                                const midPosition = (position + nextPosition) / 2;
                                 const monthName = marker.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
                                 
                                 return (
@@ -539,12 +540,14 @@ export default function ProjectDetail() {
                                       className="absolute top-0 bottom-0 w-0.5 bg-muted-foreground/10"
                                       style={{ left: `${position}%` }}
                                     />
-                                    <span 
-                                      className="absolute text-xs text-white pointer-events-none whitespace-nowrap"
-                                      style={{ left: `${midPosition}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
-                                    >
-                                      {monthName}
-                                    </span>
+                                    {idx < markers.length - 1 && (
+                                      <span 
+                                        className="absolute text-xs text-white pointer-events-none whitespace-nowrap"
+                                        style={{ left: `${midPosition}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
+                                      >
+                                        {monthName}
+                                      </span>
+                                    )}
                                   </div>
                                 );
                               })}
