@@ -60,7 +60,7 @@ export function AppSidebar() {
         <div className="border-b border-border">
           <div className="font-josefin font-semibold text-lg px-3 py-3">Synergy Project Controls</div>
         </div>
-        <SidebarGroup className="pt-0">
+        <SidebarGroup className="pt-6 mt-2">
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
