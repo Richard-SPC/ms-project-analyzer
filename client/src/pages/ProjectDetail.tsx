@@ -493,14 +493,21 @@ export default function ProjectDetail() {
                 {(() => {
                   const projectStart = new Date(project.startDate as any);
                   const projectEnd = new Date(project.endDate as any);
-                  const totalMs = projectEnd.getTime() - projectStart.getTime();
+                  
+                  // Extend timeline by 1 month on each side
+                  const timelineStart = new Date(projectStart);
+                  timelineStart.setMonth(timelineStart.getMonth() - 1);
+                  const timelineEnd = new Date(projectEnd);
+                  timelineEnd.setMonth(timelineEnd.getMonth() + 1);
+                  
+                  const totalMs = timelineEnd.getTime() - timelineStart.getTime();
                   
                   const getMonthlyMarkers = () => {
                     const markers = [];
-                    let current = new Date(projectStart);
+                    let current = new Date(timelineStart);
                     current.setDate(1);
                     
-                    while (current < projectEnd) {
+                    while (current <= timelineEnd) {
                       markers.push(new Date(current));
                       current.setMonth(current.getMonth() + 1);
                     }
@@ -528,9 +535,9 @@ export default function ProjectDetail() {
                                 data-testid="gantt-project-overall"
                               />
                               {markers.map((marker, idx) => {
-                                const currentPosition = ((marker.getTime() - projectStart.getTime()) / totalMs) * 100;
-                                const nextMarkerDate = idx + 1 < markers.length ? new Date(markers[idx + 1]) : new Date(projectEnd);
-                                const nextPosition = ((nextMarkerDate.getTime() - projectStart.getTime()) / totalMs) * 100;
+                                const currentPosition = ((marker.getTime() - timelineStart.getTime()) / totalMs) * 100;
+                                const nextMarkerDate = idx + 1 < markers.length ? new Date(markers[idx + 1]) : new Date(timelineEnd);
+                                const nextPosition = ((nextMarkerDate.getTime() - timelineStart.getTime()) / totalMs) * 100;
                                 const midPosition = (currentPosition + nextPosition) / 2;
                                 const monthName = marker.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
                                 
@@ -649,7 +656,7 @@ export default function ProjectDetail() {
                         {/* Month separator grid lines */}
                         <div className="absolute inset-0 pointer-events-none z-20" style={{ marginLeft: 'calc(1rem + 8.5rem + 1rem)' }}>
                           {markers.map((marker, idx) => {
-                            const position = ((marker.getTime() - projectStart.getTime()) / totalMs) * 100;
+                            const position = ((marker.getTime() - timelineStart.getTime()) / totalMs) * 100;
                             return (
                               <div
                                 key={`grid-line-${idx}`}
