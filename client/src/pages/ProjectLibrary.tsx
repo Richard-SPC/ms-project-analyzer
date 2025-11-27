@@ -789,6 +789,21 @@ export default function ProjectLibrary() {
             ))
           ) : null}
 
+          {unassignedProgrammes && unassignedProgrammes.length > 0 && (
+            <div className="space-y-2">
+              <h2 className="text-lg font-semibold text-foreground">No Project</h2>
+              <div className="space-y-2">
+                {unassignedProgrammes.map((programme) => (
+                  <ProgrammeTile
+                    key={programme.id}
+                    programme={programme}
+                    onDelete={() => deleteProgrammeMutation.mutate(programme.id)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+
           {filteredProjects.length === 0 && projects && projects.length > 0 && (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
