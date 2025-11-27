@@ -511,20 +511,34 @@ export default function ProjectDetail() {
 
                   const markers = getMonthlyMarkers();
                   const totalMs = new Date(project.endDate as any).getTime() - new Date(project.startDate as any).getTime();
+                  const startDate = new Date(project.startDate as any);
+
+                  // Calculate month column widths
+                  const monthWidths = markers.map((marker, idx) => {
+                    if (idx === markers.length - 1) {
+                      const nextMonth = new Date(marker);
+                      nextMonth.setMonth(nextMonth.getMonth() + 1);
+                      const endTime = Math.min(nextMonth.getTime(), new Date(project.endDate as any).getTime());
+                      const ms = endTime - marker.getTime();
+                      return (ms / totalMs) * 100;
+                    }
+                    const nextMarker = markers[idx + 1];
+                    const ms = nextMarker.getTime() - marker.getTime();
+                    return (ms / totalMs) * 100;
+                  });
 
                   return (
                     <>
                       <div className="relative w-full mb-1 h-4 flex items-end">
                         {markers.map((marker, idx) => {
-                          const markerMs = marker.getTime() - new Date(project.startDate as any).getTime();
-                          const position = (markerMs / totalMs) * 100;
+                          const position = markers.slice(0, idx).reduce((sum, _, i) => sum + monthWidths[i], 0);
                           const monthYear = marker.toLocaleDateString('en-GB', { month: 'short', year: '2-digit' });
                           
                           return (
                             <div
                               key={idx}
                               className="absolute flex flex-col items-center"
-                              style={{ left: `${Math.max(0, Math.min(position, 100))}%` }}
+                              style={{ left: `${position}%` }}
                             >
                               <div className="w-0.5 h-2 bg-muted-foreground/30" />
                               <div className="text-muted-foreground text-xs mt-0.5 whitespace-nowrap -translate-x-1/2">
@@ -535,106 +549,132 @@ export default function ProjectDetail() {
                         })}
                       </div>
 
-                      <div className="w-full h-5 bg-muted rounded overflow-hidden relative border border-border mt-6">
-                        <div
-                          className="h-full bg-muted-foreground/20 transition-all"
-                          style={{
-                            left: "0%",
-                            width: "100%",
-                          }}
-                        />
+                      <div className="flex w-full mt-6 relative">
+                        {markers.map((marker, idx) => (
+                          <div
+                            key={`month-${idx}`}
+                            className="relative flex-shrink-0 border-r border-muted-foreground/10"
+                            style={{ width: `${monthWidths[idx]}%` }}
+                          >
+                            {idx === 0 && (
+                              <div className="absolute inset-0 h-5 bg-muted rounded overflow-hidden border border-border flex items-center justify-center">
+                                <span className="text-xs font-medium text-foreground/70 pointer-events-none">Project</span>
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
                       <div className="flex justify-between mt-0.5 text-xs text-muted-foreground">
                         <span>{formatDateUK(project.startDate)}</span>
                         <span>{formatDateUK(project.endDate)}</span>
                       </div>
 
-                      {phases.map((phase) => {
-                        const isOnSite = phase.name?.toLowerCase().includes("on site") || phase.name?.toLowerCase().includes("on-site") || phase.name?.toLowerCase().includes("onsite");
-                        const childTasks = isOnSite ? getChildTasks(phase.id) : [];
-                        const isExpanded = expandedPhase === phase.id;
-                        const phaseDates = getPhaseStartEndDates(phase);
-                        
-                        const durationDays = phaseDates.startDate && phaseDates.endDate 
-                          ? calculateWorkingDays(phaseDates.startDate, phaseDates.endDate, calendarExceptions)
-                          : 0;
+                      <div className="relative">
+                        {/* Month separator lines */}
+                        <div className="absolute inset-0 pointer-events-none flex">
+                          {markers.map((marker, idx) => {
+                            const position = markers.slice(0, idx).reduce((sum, _, i) => sum + monthWidths[i], 0);
+                            const sidebarWidth = 132 + 16 + 16; // w-20 + w-32 + w-16 approx
+                            const barStartWidth = 132 + 16 + 16;
+                            return (
+                              <div
+                                key={`line-${idx}`}
+                                className="absolute top-0 bottom-0 w-0.5 bg-muted-foreground/10"
+                                style={{
+                                  left: `calc(${sidebarWidth}px + ${position}% * (100% - ${sidebarWidth}px) / 100)`,
+                                }}
+                              />
+                            );
+                          })}
+                        </div>
 
-                        return (
-                          <div key={phase.id} className="text-xs mt-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-20 flex-shrink-0 flex items-center gap-1">
-                                {childTasks.length > 0 && (
-                                  <button
-                                    onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
-                                    className="p-0 hover:bg-muted rounded transition-colors"
-                                    data-testid={`button-toggle-phase-${phase.id}`}
-                                  >
-                                    {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-                                  </button>
-                                )}
-                                {childTasks.length === 0 && <div className="w-3" />}
-                              </div>
-                              <p className="text-muted-foreground w-32 truncate flex-shrink-0">{phase.name}</p>
-                              <span className="text-muted-foreground/70 w-16 text-right flex-shrink-0">
-                                {phaseDates.startDate ? formatDateUK(phaseDates.startDate) : "N/A"}
-                              </span>
-                              <div className="flex-1 h-5 bg-muted rounded overflow-hidden relative border border-border">
-                                <div
-                                  className={`h-full absolute ${getPhaseColor(phase.name)} rounded transition-all`}
-                                  style={calculatePhaseStyle(phase)}
-                                  data-testid={`gantt-phase-${phase.id}`}
-                                />
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                  <span className="text-xs font-medium text-foreground/70 pointer-events-none">
-                                    {durationDays}d
-                                  </span>
+                        {phases.map((phase) => {
+                          const isOnSite = phase.name?.toLowerCase().includes("on site") || phase.name?.toLowerCase().includes("on-site") || phase.name?.toLowerCase().includes("onsite");
+                          const childTasks = isOnSite ? getChildTasks(phase.id) : [];
+                          const isExpanded = expandedPhase === phase.id;
+                          const phaseDates = getPhaseStartEndDates(phase);
+                          
+                          const durationDays = phaseDates.startDate && phaseDates.endDate 
+                            ? calculateWorkingDays(phaseDates.startDate, phaseDates.endDate, calendarExceptions)
+                            : 0;
+
+                          return (
+                            <div key={phase.id} className="text-xs mt-2 relative">
+                              <div className="flex items-center gap-2">
+                                <div className="w-20 flex-shrink-0 flex items-center gap-1">
+                                  {childTasks.length > 0 && (
+                                    <button
+                                      onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
+                                      className="p-0 hover:bg-muted rounded transition-colors"
+                                      data-testid={`button-toggle-phase-${phase.id}`}
+                                    >
+                                      {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                                    </button>
+                                  )}
+                                  {childTasks.length === 0 && <div className="w-3" />}
                                 </div>
+                                <p className="text-muted-foreground w-32 truncate flex-shrink-0">{phase.name}</p>
+                                <span className="text-muted-foreground/70 w-16 text-right flex-shrink-0">
+                                  {phaseDates.startDate ? formatDateUK(phaseDates.startDate) : "N/A"}
+                                </span>
+                                <div className="flex-1 h-5 bg-muted rounded overflow-hidden relative border border-border">
+                                  <div
+                                    className={`h-full absolute ${getPhaseColor(phase.name)} rounded transition-all`}
+                                    style={calculatePhaseStyle(phase)}
+                                    data-testid={`gantt-phase-${phase.id}`}
+                                  />
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-xs font-medium text-foreground/70 pointer-events-none">
+                                      {durationDays}d
+                                    </span>
+                                  </div>
+                                </div>
+                                <span className="text-muted-foreground/70 w-16 flex-shrink-0">
+                                  {phaseDates.endDate ? formatDateUK(phaseDates.endDate) : "N/A"}
+                                </span>
                               </div>
-                              <span className="text-muted-foreground/70 w-16 flex-shrink-0">
-                                {phaseDates.endDate ? formatDateUK(phaseDates.endDate) : "N/A"}
-                              </span>
-                            </div>
 
-                            {isExpanded && childTasks.length > 0 && (
-                              <div className="mt-1 ml-4 space-y-1 pl-3 border-l border-muted-foreground/20">
-                                {childTasks.map((child) => {
-                                  const childDates = getPhaseStartEndDates(child);
-                                  const childDurationDays = childDates.startDate && childDates.endDate 
-                                    ? calculateWorkingDays(childDates.startDate, childDates.endDate, calendarExceptions)
-                                    : 0;
-                                  
-                                  return (
-                                    <div key={child.id} className="text-xs">
-                                      <div className="flex items-center gap-2">
-                                        <div className="w-20 flex-shrink-0" />
-                                        <p className="text-muted-foreground w-32 truncate flex-shrink-0">{child.name}</p>
-                                        <span className="text-muted-foreground/70 w-16 text-right text-xs flex-shrink-0">
-                                          {childDates.startDate ? formatDateUK(childDates.startDate) : "N/A"}
-                                        </span>
-                                        <div className="flex-1 h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
-                                          <div
-                                            className="h-full absolute bg-muted-foreground/30 transition-all"
-                                            style={calculatePhaseStyle(child)}
-                                            data-testid={`gantt-child-${child.id}`}
-                                          />
-                                          <div className="absolute inset-0 flex items-center justify-center">
-                                            <span className="text-xs font-medium text-foreground/70 pointer-events-none">
-                                              {childDurationDays}d
-                                            </span>
+                              {isExpanded && childTasks.length > 0 && (
+                                <div className="mt-1 ml-4 space-y-1 pl-3 border-l border-muted-foreground/20">
+                                  {childTasks.map((child) => {
+                                    const childDates = getPhaseStartEndDates(child);
+                                    const childDurationDays = childDates.startDate && childDates.endDate 
+                                      ? calculateWorkingDays(childDates.startDate, childDates.endDate, calendarExceptions)
+                                      : 0;
+                                    
+                                    return (
+                                      <div key={child.id} className="text-xs">
+                                        <div className="flex items-center gap-2">
+                                          <div className="w-20 flex-shrink-0" />
+                                          <p className="text-muted-foreground w-32 truncate flex-shrink-0">{child.name}</p>
+                                          <span className="text-muted-foreground/70 w-16 text-right text-xs flex-shrink-0">
+                                            {childDates.startDate ? formatDateUK(childDates.startDate) : "N/A"}
+                                          </span>
+                                          <div className="flex-1 h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
+                                            <div
+                                              className="h-full absolute bg-muted-foreground/30 transition-all"
+                                              style={calculatePhaseStyle(child)}
+                                              data-testid={`gantt-child-${child.id}`}
+                                            />
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                              <span className="text-xs font-medium text-foreground/70 pointer-events-none">
+                                                {childDurationDays}d
+                                              </span>
+                                            </div>
                                           </div>
+                                          <span className="text-muted-foreground/70 w-16 text-xs flex-shrink-0">
+                                            {childDates.endDate ? formatDateUK(childDates.endDate) : "N/A"}
+                                          </span>
                                         </div>
-                                        <span className="text-muted-foreground/70 w-16 text-xs flex-shrink-0">
-                                          {childDates.endDate ? formatDateUK(childDates.endDate) : "N/A"}
-                                        </span>
                                       </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
                     </>
                   );
                 })()}
