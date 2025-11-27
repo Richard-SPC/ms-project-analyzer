@@ -618,7 +618,7 @@ export default function ProjectDetail() {
                               </div>
 
                               {isExpanded && childTasks.length > 0 && (
-                                <div className="mt-1 space-y-1 border-l border-muted-foreground/20 pl-3">
+                                <div className="mt-1 space-y-1 border-l border-muted-foreground/20">
                                   {childTasks.map((child) => {
                                     const childDates = getPhaseStartEndDates(child);
                                     const childDurationDays = childDates.startDate && childDates.endDate 
