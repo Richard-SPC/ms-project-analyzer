@@ -32,28 +32,29 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground" data-testid="text-dashboard-title">
-          Overview
-        </h1>
+      <div className="flex items-center justify-between gap-6">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground" data-testid="text-dashboard-title">
+            Overview
+          </h1>
+        </div>
+        <Card data-testid="card-total-projects" className="w-fit">
+          <CardContent className="px-3 py-1 flex gap-6">
+            <div>
+              <div className="text-lg font-bold" data-testid="text-total-projects">
+                {totalProjects}
+              </div>
+              <p className="text-xs text-muted-foreground">Projects</p>
+            </div>
+            <div>
+              <div className="text-lg font-bold" data-testid="text-total-programmes">
+                {allProjects?.length || 0}
+              </div>
+              <p className="text-xs text-muted-foreground">Programmes</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
-
-      <Card data-testid="card-total-projects" className="w-full">
-        <CardContent className="px-3 py-1 flex justify-between">
-          <div>
-            <div className="text-lg font-bold" data-testid="text-total-projects">
-              {totalProjects}
-            </div>
-            <p className="text-xs text-muted-foreground">Projects</p>
-          </div>
-          <div>
-            <div className="text-lg font-bold" data-testid="text-total-programmes">
-              {allProjects?.length || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">Programmes</p>
-          </div>
-        </CardContent>
-      </Card>
 
       {workspacesLoading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
