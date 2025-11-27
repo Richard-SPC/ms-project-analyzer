@@ -155,10 +155,14 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
                 console.log(`[XML Parser]   ⚠ Multi-day exception (${daysDiff} days): ${exc.Name || 'Non-working day'}, using start date only`);
               }
               
+              // Normalize single-day exceptions: use the start date at midnight for both
+              // This ensures startDate === endDate for single-day exceptions
+              const normalizedDate = new Date(startNorm);
+              
               const excName = exc.Name || exc.Type || `Non-working day`;
-              console.log(`[XML Parser]   ✓ Adding: ${excName} on ${startDate}`);
+              console.log(`[XML Parser]   ✓ Adding: ${excName} on ${normalizedDate.toISOString()}`);
               exceptions.push({
-                date: startDate,
+                date: normalizedDate,
                 name: excName,
                 description: calendarName,
               } as CalendarException);
