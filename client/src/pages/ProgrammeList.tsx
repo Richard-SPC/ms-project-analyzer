@@ -38,11 +38,8 @@ function ProgrammeTile({ project, onDelete }: { project: Project; onDelete: () =
       <Card className="hover-elevate" data-testid={`card-programme-${project.id}`}>
         <CardHeader className="py-0.5 px-2">
           <div className="flex items-center justify-between flex-wrap">
-            <div className="flex items-center flex-1 min-w-0">
-              <FolderKanban className="h-3 w-3 text-primary flex-shrink-0 mr-1" />
-              <div className="flex-1 min-w-0">
-                <CardTitle className="text-sm font-normal">{project.name}</CardTitle>
-              </div>
+            <div className="flex-1 min-w-0">
+              <CardTitle className="text-sm font-normal">{project.name}</CardTitle>
             </div>
             <div className="flex items-center gap-1 flex-wrap">
               <div className="text-xs">
