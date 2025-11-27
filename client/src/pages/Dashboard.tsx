@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { FolderKanban, FileCheck } from "lucide-react";
 import { Link } from "wouter";
 import type { Workspace, Project } from "@shared/schema";
@@ -56,91 +57,90 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {workspacesLoading ? (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader className="py-2 px-4">
-                <CardTitle className="text-sm">Loading...</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {[...Array(3)].map((_, j) => (
-                    <div key={j} className="h-6 bg-muted animate-pulse rounded" />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {PROJECT_STATUSES.map((status) => {
-            const projectsForStatus = projectsByStatus[status];
-            return (
-              <Card 
-                key={status} 
-                data-testid={`card-project-status-${status.toLowerCase().replace(/\s+/g, '-')}`}
-              >
-                <CardHeader className="py-2 px-4">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm">{status}</CardTitle>
-                    <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-semibold" data-testid={`text-count-${status.toLowerCase().replace(/\s+/g, '-')}`}>
-                      {projectsForStatus.length}
-                    </span>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-2 pb-2">
-                  {projectsForStatus.length > 0 ? (
-                    <div className="space-y-1">
-                      {projectsForStatus.map((workspace) => (
-                        <div key={workspace.id} className="space-y-1">
-                          <div className="p-2 rounded-md border bg-muted/50 text-xs">
-                            <div className="flex items-center gap-2">
-                              <FolderKanban className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                              <div className="min-w-0 flex-1">
-                                <p className="font-medium truncate">{workspace.name}</p>
-                                {workspace.client && (
-                                  <p className="text-xs text-muted-foreground truncate">Client: {workspace.client}</p>
-                                )}
+      <Card data-testid="card-project-statuses">
+        <CardHeader>
+          <CardTitle>Projects by Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {workspacesLoading ? (
+            <div className="space-y-2">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-10 bg-muted animate-pulse rounded" />
+              ))}
+            </div>
+          ) : (
+            <Accordion type="single" collapsible defaultValue="Tender">
+              {PROJECT_STATUSES.map((status) => {
+                const projectsForStatus = projectsByStatus[status];
+                return (
+                  <AccordionItem key={status} value={status}>
+                    <AccordionTrigger 
+                      data-testid={`button-status-${status.toLowerCase().replace(/\s+/g, '-')}`}
+                      className="hover:no-underline"
+                    >
+                      <div className="flex items-center justify-between w-full gap-2 pr-2">
+                        <span className="text-sm font-medium">{status}</span>
+                        <span 
+                          className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-semibold"
+                          data-testid={`text-count-${status.toLowerCase().replace(/\s+/g, '-')}`}
+                        >
+                          {projectsForStatus.length}
+                        </span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="pt-2">
+                      {projectsForStatus.length > 0 ? (
+                        <div className="space-y-2">
+                          {projectsForStatus.map((workspace) => (
+                            <div key={workspace.id} className="space-y-1">
+                              <div className="p-2 rounded-md border bg-muted/50 text-xs">
+                                <div className="flex items-center gap-2">
+                                  <FolderKanban className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-medium truncate">{workspace.name}</p>
+                                    {workspace.client && (
+                                      <p className="text-xs text-muted-foreground truncate">Client: {workspace.client}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="ml-2 space-y-1">
+                                {(() => {
+                                  const workspaceProjects = allProjects?.filter(p => p.workspaceId === workspace.id) || [];
+                                  const mostRecentProject = workspaceProjects.reduce((latest, current) => {
+                                    const latestDate = latest.statusDate ? new Date(latest.statusDate).getTime() : 0;
+                                    const currentDate = current.statusDate ? new Date(current.statusDate).getTime() : 0;
+                                    return currentDate > latestDate ? current : latest;
+                                  }, workspaceProjects[0]);
+                                  
+                                  return mostRecentProject ? (
+                                    <Link key={mostRecentProject.id} href={`/projects/${mostRecentProject.id}`}>
+                                      <div 
+                                        className="flex items-center gap-2 p-1 hover-elevate rounded-md border text-xs" 
+                                        data-testid={`card-programme-${mostRecentProject.id}-in-${workspace.id}`}
+                                      >
+                                        <div className="min-w-0 flex-1">
+                                          <p className="font-medium text-xs truncate">{mostRecentProject.name}</p>
+                                        </div>
+                                      </div>
+                                    </Link>
+                                  ) : null;
+                                })()}
                               </div>
                             </div>
-                          </div>
-                          <div className="ml-2 space-y-1">
-                            {(() => {
-                              const workspaceProjects = allProjects?.filter(p => p.workspaceId === workspace.id) || [];
-                              const mostRecentProject = workspaceProjects.reduce((latest, current) => {
-                                const latestDate = latest.statusDate ? new Date(latest.statusDate).getTime() : 0;
-                                const currentDate = current.statusDate ? new Date(current.statusDate).getTime() : 0;
-                                return currentDate > latestDate ? current : latest;
-                              }, workspaceProjects[0]);
-                              
-                              return mostRecentProject ? (
-                                <Link key={mostRecentProject.id} href={`/projects/${mostRecentProject.id}`}>
-                                  <div 
-                                    className="flex items-center gap-2 p-1 hover-elevate rounded-md border text-xs" 
-                                    data-testid={`card-programme-${mostRecentProject.id}-in-${workspace.id}`}
-                                  >
-                                    <div className="min-w-0 flex-1">
-                                      <p className="font-medium text-xs truncate">{mostRecentProject.name}</p>
-                                    </div>
-                                  </div>
-                                </Link>
-                              ) : null;
-                            })()}
-                          </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">No projects</p>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
+                      ) : (
+                        <p className="text-xs text-muted-foreground">No projects</p>
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                );
+              })}
+            </Accordion>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
