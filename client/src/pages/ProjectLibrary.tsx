@@ -325,7 +325,7 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
                             <div className="w-full h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
                               <div
                                 className="h-full bg-muted-foreground/10 transition-all"
-                                style={calculatePhaseStyle(child)}
+                                style={calculateChildTaskStyle(child, phase)}
                                 data-testid={`gantt-child-${child.id}`}
                               />
                             </div>
