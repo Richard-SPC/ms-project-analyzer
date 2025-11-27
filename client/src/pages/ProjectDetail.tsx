@@ -572,7 +572,33 @@ export default function ProjectDetail() {
                             ? calculateWorkingDays(phaseDates.startDate, phaseDates.endDate, calendarExceptions)
                             : 0;
 
-                          const phaseStyle = calculatePhaseStyle(phase);
+                          const phaseDatesData = getPhaseStartEndDates(phase);
+                          let phaseMinStart: number | null = null;
+                          let phaseMaxEnd: number | null = null;
+                          
+                          const phaseDescendants = getAllDescendants(phase.id, ignoreDelayTasks);
+                          for (const desc of phaseDescendants) {
+                            if (desc.startDate) {
+                              const startMs = new Date(desc.startDate).getTime();
+                              phaseMinStart = phaseMinStart === null ? startMs : Math.min(phaseMinStart, startMs);
+                            }
+                            if (desc.endDate) {
+                              const endMs = new Date(desc.endDate).getTime();
+                              phaseMaxEnd = phaseMaxEnd === null ? endMs : Math.max(phaseMaxEnd, endMs);
+                            }
+                          }
+                          
+                          let phaseStyle = { left: "0%", width: "0%" };
+                          if (phaseMinStart !== null && phaseMaxEnd !== null) {
+                            const taskStartMs = phaseMinStart - timelineStart.getTime();
+                            const taskDurationMs = phaseMaxEnd - phaseMinStart;
+                            const left = (taskStartMs / totalMs) * 100;
+                            const width = (taskDurationMs / totalMs) * 100;
+                            phaseStyle = {
+                              left: `${Math.max(0, left)}%`,
+                              width: `${Math.max(0, Math.min(width, 100 - left))}%`,
+                            };
+                          }
 
                           return (
                             <div key={phase.id} className="text-xs">
@@ -618,7 +644,32 @@ export default function ProjectDetail() {
                                       ? calculateWorkingDays(childDates.startDate, childDates.endDate, calendarExceptions)
                                       : 0;
                                     
-                                    const childStyle = calculatePhaseStyle(child);
+                                    let childMinStart: number | null = null;
+                                    let childMaxEnd: number | null = null;
+                                    
+                                    const childDescendants = getAllDescendants(child.id, ignoreDelayTasks);
+                                    for (const desc of childDescendants) {
+                                      if (desc.startDate) {
+                                        const startMs = new Date(desc.startDate).getTime();
+                                        childMinStart = childMinStart === null ? startMs : Math.min(childMinStart, startMs);
+                                      }
+                                      if (desc.endDate) {
+                                        const endMs = new Date(desc.endDate).getTime();
+                                        childMaxEnd = childMaxEnd === null ? endMs : Math.max(childMaxEnd, endMs);
+                                      }
+                                    }
+                                    
+                                    let childStyle = { left: "0%", width: "0%" };
+                                    if (childMinStart !== null && childMaxEnd !== null) {
+                                      const taskStartMs = childMinStart - timelineStart.getTime();
+                                      const taskDurationMs = childMaxEnd - childMinStart;
+                                      const left = (taskStartMs / totalMs) * 100;
+                                      const width = (taskDurationMs / totalMs) * 100;
+                                      childStyle = {
+                                        left: `${Math.max(0, left)}%`,
+                                        width: `${Math.max(0, Math.min(width, 100 - left))}%`,
+                                      };
+                                    }
                                     
                                     return (
                                       <div key={child.id} className="text-xs">
