@@ -389,7 +389,7 @@ export default function ProjectDetail() {
   const getPhaseColor = (name: string | null) => {
     if (!name) return "bg-primary";
     const nameLower = name.toLowerCase();
-    if (nameLower.includes("procurement")) return "bg-[#159775]";
+    if (nameLower.includes("procurement")) return "bg-[#006093]";
     if (nameLower.includes("on site") || nameLower.includes("on-site") || nameLower.includes("onsite")) return "bg-[#006093]";
     return "bg-primary";
   };
@@ -522,7 +522,7 @@ export default function ProjectDetail() {
                             </span>
                             <div className="flex-1 h-5 bg-muted rounded overflow-hidden relative border border-border">
                               <div
-                                className="h-full absolute bg-muted-foreground/20"
+                                className="h-full absolute bg-[#494949]"
                                 style={{ left: "0%", width: "100%" }}
                                 data-testid="gantt-project-overall"
                               />
@@ -621,7 +621,7 @@ export default function ProjectDetail() {
                                           </span>
                                           <div className="flex-1 h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
                                             <div
-                                              className="h-full absolute bg-muted-foreground/30 transition-all"
+                                              className="h-full absolute bg-[#159775] transition-all"
                                               style={{ left: childStyle.left, width: childStyle.width }}
                                               data-testid={`gantt-child-${child.id}`}
                                             />
