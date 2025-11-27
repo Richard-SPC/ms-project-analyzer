@@ -111,7 +111,7 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
   });
 
   const { data: calendarExceptions = [] } = useQuery<CalendarException[]>({
-    queryKey: [`/api/projects/${programme.id}/calendar-exceptions`],
+    queryKey: [`/api/projects/${programme.id}/exceptions`],
     enabled: showGantt,
   });
 
