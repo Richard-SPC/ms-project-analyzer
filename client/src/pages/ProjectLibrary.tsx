@@ -246,35 +246,6 @@ function ProjectSection({
         </CardHeader>
         <CollapsibleContent>
           <CardContent className="pt-2 pb-2 space-y-2">
-            <Collapsible open={isStatusOpen} onOpenChange={setIsStatusOpen}>
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="w-full justify-start px-0 py-1 h-auto text-xs" data-testid={`button-toggle-project-status-${project.id}`}>
-                  <ChevronDown className={`h-3 w-3 mr-2 transition-transform ${isStatusOpen ? "" : "-rotate-90"}`} />
-                  Project Status: <span className="ml-1 font-medium">{project.status || "Not set"}</span>
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pt-2">
-                <div className="space-y-2 mb-2">
-                  <p className="text-xs text-muted-foreground">Select project stage</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {PROJECT_STATUSES.map((status) => (
-                      <Button
-                        key={status}
-                        variant={project.status === status ? "default" : "outline"}
-                        size="sm"
-                        className="text-xs"
-                        onClick={() => updateProjectStatusMutation.mutate(status)}
-                        disabled={updateProjectStatusMutation.isPending}
-                        data-testid={`button-project-status-${status.toLowerCase().replace(/\s+/g, '-')}-${project.id}`}
-                      >
-                        {status}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-
             {programmes.length > 0 ? (
               <div className="space-y-0">
                 {(() => {
