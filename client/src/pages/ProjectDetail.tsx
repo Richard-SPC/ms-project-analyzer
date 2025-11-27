@@ -490,8 +490,6 @@ export default function ProjectDetail() {
             </div>
             <div className="space-y-2">
               <div className="text-xs">
-                <p className="text-muted-foreground truncate mb-1">Project Timeline</p>
-                
                 {(() => {
                   const projectStart = new Date(project.startDate as any);
                   const projectEnd = new Date(project.endDate as any);
