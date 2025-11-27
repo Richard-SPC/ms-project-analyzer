@@ -613,7 +613,7 @@ export default function ProjectDetail() {
                                     
                                     return (
                                       <div key={child.id} className="text-xs">
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1">
                                           <div className="w-4 flex-shrink-0" />
                                           <p className="text-muted-foreground w-32 truncate flex-shrink-0">{child.name}</p>
                                           <span className="text-muted-foreground/70 w-16 text-right text-xs flex-shrink-0">
