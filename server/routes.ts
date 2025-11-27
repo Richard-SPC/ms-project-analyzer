@@ -656,14 +656,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (parsedData.exceptions && parsedData.exceptions.length > 0) {
             for (const exc of parsedData.exceptions) {
               try {
-                await storage.createCalendarException({
-                  projectId: createdProject.id,
-                  startDate: exc.startDate,
-                  endDate: exc.endDate,
-                  name: exc.name,
-                  calendarName: exc.calendarName,
-                });
-                exceptionsCreated++;
+                if (exc.startDate && exc.endDate) {
+                  await storage.createCalendarException({
+                    projectId: createdProject.id,
+                    startDate: exc.startDate,
+                    endDate: exc.endDate,
+                    name: exc.name,
+                    calendarName: exc.calendarName,
+                  });
+                  exceptionsCreated++;
+                }
               } catch (e) {
                 console.log(`[Routes] Error creating calendar exception:`, e);
               }
