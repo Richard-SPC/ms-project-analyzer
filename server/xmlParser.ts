@@ -6,9 +6,11 @@ interface ParsedTask extends Omit<InsertTask, 'id' | 'projectId'> {
 }
 
 export interface CalendarException {
-  date: Date;
+  date?: Date; // Legacy
+  startDate?: Date;
+  endDate?: Date;
   name: string;
-  description?: string;
+  calendarName?: string;
 }
 
 interface ParsedXmlData {
@@ -162,9 +164,10 @@ export async function parseProjectXml(xmlContent: string, fileName: string): Pro
               const excName = exc.Name || exc.Type || `Non-working day`;
               console.log(`[XML Parser]   ✓ Adding: ${excName} on ${normalizedDate.toISOString()}`);
               exceptions.push({
-                date: normalizedDate,
+                startDate: normalizedDate,
+                endDate: normalizedDate,
                 name: excName,
-                description: calendarName,
+                calendarName: calendarName,
               } as CalendarException);
             } else {
               console.log(`[XML Parser]   ✗ Skipped: Invalid dates - start=${startDate}, end=${endDate}`);
