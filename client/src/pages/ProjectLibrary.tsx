@@ -137,36 +137,31 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
     return descendants;
   };
 
-  // Calculate timeline position and width using all descendants' dates
+  // Calculate timeline position and width using direct child summary tasks' dates
   const calculatePhaseStyle = (task: Task) => {
     if (!programme.startDate || !programme.endDate) {
       return { left: "0%", width: "0%" };
     }
 
-    // Get all descendants to calculate true span, filtering delays if checkbox is checked
-    const descendants = getAllDescendants(task.id, ignoreDelayTasks);
+    // Get direct child summary tasks only
+    const childSummaries = getChildTasks(task.id);
     
-    // Find earliest start and latest end from descendants ONLY (not the parent task itself)
+    // Find earliest start and latest end from child summary tasks
     let minStart: number | null = null;
     let maxEnd: number | null = null;
     
-    for (const desc of descendants) {
-      if (desc.startDate) {
-        const startMs = new Date(desc.startDate).getTime();
+    for (const child of childSummaries) {
+      if (child.startDate) {
+        const startMs = new Date(child.startDate).getTime();
         minStart = minStart === null ? startMs : Math.min(minStart, startMs);
       }
-      if (desc.endDate) {
-        const endMs = new Date(desc.endDate).getTime();
+      if (child.endDate) {
+        const endMs = new Date(child.endDate).getTime();
         maxEnd = maxEnd === null ? endMs : Math.max(maxEnd, endMs);
       }
     }
     
-    // Debug log for On Site Works
-    if (task.name && (task.name.includes("On Site") || task.name.includes("on site"))) {
-      console.log(`On Site Works: descendants=${descendants.length}, minStart=${minStart}, maxEnd=${maxEnd}, ignoreDelayTasks=${ignoreDelayTasks}`);
-    }
-    
-    // If no descendants found, use parent task's dates as fallback
+    // If no child summaries found, use parent task's dates as fallback
     if (minStart === null && task.startDate) {
       minStart = new Date(task.startDate).getTime();
     }
