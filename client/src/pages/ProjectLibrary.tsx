@@ -151,15 +151,38 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
     
     // Use child summaries if they exist, otherwise use all descendants
     if (childSummaries.length > 0) {
-      // Calculate from child summary tasks
+      // For parent phases, calculate from descendants of all child summaries (with delay filtering)
       for (const child of childSummaries) {
-        if (child.startDate) {
-          const startMs = new Date(child.startDate).getTime();
-          minStart = minStart === null ? startMs : Math.min(minStart, startMs);
+        const childDescendants = getAllDescendants(child.id, ignoreDelayTasks);
+        
+        // If child has no filtered descendants, use child's own dates
+        let childMinStart: number | null = null;
+        let childMaxEnd: number | null = null;
+        
+        for (const desc of childDescendants) {
+          if (desc.startDate) {
+            const startMs = new Date(desc.startDate).getTime();
+            childMinStart = childMinStart === null ? startMs : Math.min(childMinStart, startMs);
+          }
+          if (desc.endDate) {
+            const endMs = new Date(desc.endDate).getTime();
+            childMaxEnd = childMaxEnd === null ? endMs : Math.max(childMaxEnd, endMs);
+          }
         }
-        if (child.endDate) {
-          const endMs = new Date(child.endDate).getTime();
-          maxEnd = maxEnd === null ? endMs : Math.max(maxEnd, endMs);
+        
+        // Use child's own dates as fallback
+        if (childMinStart === null && child.startDate) {
+          childMinStart = new Date(child.startDate).getTime();
+        }
+        if (childMaxEnd === null && child.endDate) {
+          childMaxEnd = new Date(child.endDate).getTime();
+        }
+        
+        if (childMinStart !== null) {
+          minStart = minStart === null ? childMinStart : Math.min(minStart, childMinStart);
+        }
+        if (childMaxEnd !== null) {
+          maxEnd = maxEnd === null ? childMaxEnd : Math.max(maxEnd, childMaxEnd);
         }
       }
     } else {
