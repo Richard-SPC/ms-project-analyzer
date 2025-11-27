@@ -540,12 +540,14 @@ export default function ProjectDetail() {
                                       className="absolute top-0 bottom-0 w-0.5 bg-muted-foreground/10"
                                       style={{ left: `${currentPosition}%` }}
                                     />
-                                    <span 
-                                      className="absolute text-xs text-white pointer-events-none whitespace-nowrap"
-                                      style={{ left: `${midPosition}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
-                                    >
-                                      {monthName}
-                                    </span>
+                                    {idx < markers.length - 1 && (
+                                      <span 
+                                        className="absolute text-xs text-white pointer-events-none whitespace-nowrap"
+                                        style={{ left: `${midPosition}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
+                                      >
+                                        {monthName}
+                                      </span>
+                                    )}
                                   </div>
                                 );
                               })}
