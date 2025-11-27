@@ -110,12 +110,12 @@ export default function Dashboard() {
                                       <div className="flex items-center gap-2 min-w-0 flex-1">
                                         <FolderKanban className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                                         <div className="min-w-0">
-                                          <p className="font-medium truncate">{workspace.name}</p>
+                                          <p className="text-sm font-bold truncate">{workspace.name}</p>
                                           <p className="text-xs text-muted-foreground truncate">Latest Programme: {mostRecentProject.name}</p>
                                         </div>
                                       </div>
                                       {workspace.client && (
-                                        <p className="text-xs text-muted-foreground truncate whitespace-nowrap ml-2">{workspace.client}</p>
+                                        <p className="text-sm font-bold text-foreground truncate whitespace-nowrap ml-2">{workspace.client}</p>
                                       )}
                                     </div>
                                   </Link>
@@ -124,12 +124,12 @@ export default function Dashboard() {
                                     <div className="flex items-center gap-2 min-w-0 flex-1">
                                       <FolderKanban className="h-3 w-3 text-muted-foreground flex-shrink-0" />
                                       <div className="min-w-0">
-                                        <p className="font-medium truncate">{workspace.name}</p>
+                                        <p className="text-sm font-bold truncate">{workspace.name}</p>
                                         <p className="text-xs text-muted-foreground">No programme uploaded</p>
                                       </div>
                                     </div>
                                     {workspace.client && (
-                                      <p className="text-xs text-muted-foreground truncate whitespace-nowrap ml-2">{workspace.client}</p>
+                                      <p className="text-sm font-bold text-foreground truncate whitespace-nowrap ml-2">{workspace.client}</p>
                                     )}
                                   </div>
                                 )}
