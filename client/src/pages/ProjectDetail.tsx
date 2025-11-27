@@ -504,14 +504,13 @@ export default function ProjectDetail() {
                   
                   const getMonthlyMarkers = () => {
                     const markers = [];
-                    // Only show first month (before start) and last month (after end)
-                    let firstMonth = new Date(timelineStart);
-                    firstMonth.setDate(1);
-                    markers.push(new Date(firstMonth));
+                    let current = new Date(timelineStart);
+                    current.setDate(1);
                     
-                    let lastMonth = new Date(timelineEnd);
-                    lastMonth.setDate(1);
-                    markers.push(new Date(lastMonth));
+                    while (current <= timelineEnd) {
+                      markers.push(new Date(current));
+                      current.setMonth(current.getMonth() + 1);
+                    }
                     
                     return markers;
                   };
