@@ -394,6 +394,15 @@ export default function ProjectDetail() {
     return "bg-primary";
   };
 
+  // Get all delay tasks
+  const getDelayTasks = (): Task[] => {
+    if (!tasks) return [];
+    return tasks.filter(t => {
+      if (!t.name) return false;
+      return t.name.toLowerCase().includes("delay");
+    });
+  };
+
   // Extract phases
   const phases = tasks
     ? tasks
@@ -411,6 +420,8 @@ export default function ProjectDetail() {
           return aStart - bStart;
         })
     : [];
+
+  const delayTasks = getDelayTasks();
 
   const ganttData = project && tasks && project.startDate ? formatGanttData(tasks, project.startDate) : { tasks: [], startDate: new Date(), endDate: new Date(), totalDays: 0 };
   const monthHeaders = ganttData.tasks.length > 0 ? generateMonthHeaders(ganttData.startDate, ganttData.endDate) : [];
@@ -750,6 +761,24 @@ export default function ProjectDetail() {
                   );
                 })()}
               </div>
+              {ignoreDelayTasks && delayTasks.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-border">
+                  <h3 className="text-xs font-semibold text-muted-foreground mb-2">Delays</h3>
+                  <div className="space-y-1">
+                    {delayTasks.map((task) => (
+                      <div key={task.id} className="flex items-center justify-between p-2 bg-muted/30 rounded text-xs">
+                        <span className="text-muted-foreground truncate">{task.name}</span>
+                        <span className="text-muted-foreground/70 ml-2 flex-shrink-0">
+                          {task.startDate && task.endDate 
+                            ? `${formatDateUK(new Date(task.startDate))} - ${formatDateUK(new Date(task.endDate))}`
+                            : "N/A"
+                          }
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
