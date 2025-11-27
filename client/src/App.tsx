@@ -22,8 +22,8 @@ function Router() {
     <Switch>
       <Route path="/" component={Dashboard} />
       <Route path="/library" component={ProjectLibrary} />
-      <Route path="/projects" component={ProgrammeList} />
-      <Route path="/projects/:id" component={ProjectDetail} />
+      <Route path="/programmes" component={ProgrammeList} />
+      <Route path="/programmes/:id" component={ProjectDetail} />
       <Route path="/dcma" component={DcmaAssessment} />
       <Route path="/procurement" component={ProcurementDurations} />
       <Route path="/compare" component={CompareProgrammes} />

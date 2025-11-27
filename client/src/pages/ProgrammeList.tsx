@@ -54,7 +54,7 @@ function ProgrammeTile({ project, onDelete }: { project: Project; onDelete: () =
                 {completion?.percentComplete ?? "-"}%
               </p>
             </div>
-            <Link href={`/projects/${project.id}`}>
+            <Link href={`/programmes/${project.id}`}>
               <Button variant="outline" size="sm" data-testid={`button-view-programme-${project.id}`}>
                 View Details
               </Button>
