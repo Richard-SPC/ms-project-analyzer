@@ -475,20 +475,22 @@ export default function ProjectDetail() {
             <CardDescription>Phase-level schedule visualization</CardDescription>
           </CardHeader>
           <CardContent className="px-4 py-2">
-            <div className="flex items-center gap-2 mb-3">
-              <input
-                type="checkbox"
-                id="ignore-delay-tasks"
-                checked={ignoreDelayTasks}
-                onChange={(e) => setIgnoreDelayTasks(e.target.checked)}
-                className="cursor-pointer"
-                data-testid="checkbox-ignore-delay"
-              />
-              <label htmlFor="ignore-delay-tasks" className="text-xs text-muted-foreground cursor-pointer">
-                Hide Delay tasks
-              </label>
-            </div>
-            <div className="space-y-2">
+            <div className="flex gap-6">
+              <div className="flex-shrink-0">
+                <div className="flex items-center gap-2 mb-3">
+                  <input
+                    type="checkbox"
+                    id="ignore-delay-tasks"
+                    checked={ignoreDelayTasks}
+                    onChange={(e) => setIgnoreDelayTasks(e.target.checked)}
+                    className="cursor-pointer"
+                    data-testid="checkbox-ignore-delay"
+                  />
+                  <label htmlFor="ignore-delay-tasks" className="text-xs text-muted-foreground cursor-pointer">
+                    Hide Delay tasks
+                  </label>
+                </div>
+                <div className="space-y-2" style={{ width: '600px' }}>
               <div className="text-xs">
                 <p className="text-muted-foreground truncate mb-1">Project Timeline</p>
                 
@@ -664,6 +666,8 @@ export default function ProjectDetail() {
                   );
                 })()}
               </div>
+              </div>
+            </div>
             </div>
           </CardContent>
         </Card>
