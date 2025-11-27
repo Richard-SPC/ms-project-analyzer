@@ -183,27 +183,15 @@ function ProjectSection({
                     className="w-2 h-2 rounded-full" 
                     style={{ backgroundColor: project.color || "#3B82F6" }}
                   />
-                  <div className="flex-1 flex items-center justify-between gap-2">
-                    <div className="flex-shrink-0">
-                      <CardTitle className="text-lg font-bold">{project.name}</CardTitle>
-                    </div>
-                    <div className="flex-1 flex justify-center">
-                      {project.client && (
-                        <span className="text-xs text-muted-foreground">Client: {project.client}</span>
-                      )}
-                    </div>
-                    <div className="flex-shrink-0">
-                      {project.projectManager && (
-                        <p className="text-xs text-muted-foreground">PM: {project.projectManager}</p>
-                      )}
-                    </div>
-                  </div>
-                  <Badge variant="secondary" className="ml-1 flex-shrink-0 text-xs">
-                    {programmes.length}
-                  </Badge>
+                  <CardTitle className="text-lg font-bold">{project.name}</CardTitle>
                 </div>
               </Button>
             </CollapsibleTrigger>
+            <div className="flex-1 flex justify-center">
+              <span className="text-sm font-semibold px-3 py-1 rounded-md bg-primary/10 text-primary">
+                {project.status || "Not set"}
+              </span>
+            </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" data-testid={`button-project-menu-${project.id}`}>
