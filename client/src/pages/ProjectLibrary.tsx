@@ -302,7 +302,7 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
                     </div>
                     <div className="w-full h-5 bg-muted rounded overflow-hidden relative border border-border mt-0.5 ml-4">
                       <div
-                        className={`h-full ${getPhaseColor(phase.name)} rounded transition-all`}
+                        className={`h-full absolute ${getPhaseColor(phase.name)} rounded transition-all`}
                         style={calculatePhaseStyle(phase)}
                         data-testid={`gantt-phase-${phase.id}`}
                       />
@@ -324,7 +324,7 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
                             </div>
                             <div className="w-full h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
                               <div
-                                className="h-full bg-muted-foreground/30 transition-all"
+                                className="h-full absolute bg-muted-foreground/30 transition-all"
                                 style={calculatePhaseStyle(child)}
                                 data-testid={`gantt-child-${child.id}`}
                               />
