@@ -62,6 +62,24 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
   const [expandedPhase, setExpandedPhase] = useState<number | null>(null);
   const [ignoreDelayTasks, setIgnoreDelayTasks] = useState(false);
 
+  // Calculate working days (Monday-Friday only)
+  const calculateWorkingDays = (startDate: Date, endDate: Date): number => {
+    let count = 0;
+    const current = new Date(startDate);
+    const end = new Date(endDate);
+    
+    while (current <= end) {
+      const dayOfWeek = current.getDay();
+      // 1 = Monday, 5 = Friday (0 = Sunday, 6 = Saturday)
+      if (dayOfWeek >= 1 && dayOfWeek <= 5) {
+        count++;
+      }
+      current.setDate(current.getDate() + 1);
+    }
+    
+    return count;
+  };
+
   const { data: completion } = useQuery<{ percentComplete?: number }>({
     queryKey: [`/api/projects/${programme.id}/completion`],
   });
@@ -501,13 +519,10 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
                 const isExpanded = expandedPhase === phase.id;
                 const phaseDates = getPhaseStartEndDates(phase);
                 
-                // Calculate duration in days
-                const getDurationDays = () => {
-                  if (!phaseDates.startDate || !phaseDates.endDate) return 0;
-                  const ms = phaseDates.endDate.getTime() - phaseDates.startDate.getTime();
-                  return Math.ceil(ms / (1000 * 60 * 60 * 24));
-                };
-                const durationDays = getDurationDays();
+                // Calculate working days duration
+                const durationDays = phaseDates.startDate && phaseDates.endDate 
+                  ? calculateWorkingDays(phaseDates.startDate, phaseDates.endDate)
+                  : 0;
 
                 return (
                   <div key={phase.id} className="text-xs">
@@ -549,8 +564,9 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
                       <div className="mt-1 ml-4 space-y-1 pl-3 border-l border-muted-foreground/20">
                         {childTasks.map((child) => {
                           const childDates = getPhaseStartEndDates(child);
-                          const childDurationDays = childDates.startDate && childDates.endDate ? 
-                            Math.ceil((childDates.endDate.getTime() - childDates.startDate.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+                          const childDurationDays = childDates.startDate && childDates.endDate 
+                            ? calculateWorkingDays(childDates.startDate, childDates.endDate)
+                            : 0;
                           
                           return (
                             <div key={child.id} className="text-xs">
