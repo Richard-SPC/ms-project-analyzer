@@ -95,7 +95,7 @@ function ProgrammeTile({ programme }: { programme: Project }) {
                 {programme.endDate ? formatDateUK(programme.endDate) : "N/A"}
               </p>
             </div>
-            <Link href={`/projects/${programme.id}`}>
+            <Link href={`/programmes/${programme.id}`}>
               <Button variant="outline" size="sm" data-testid={`button-view-programme-${programme.id}`}>
                 View Details
               </Button>
