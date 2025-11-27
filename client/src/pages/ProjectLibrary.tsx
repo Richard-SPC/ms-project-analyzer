@@ -161,6 +161,11 @@ function ProgrammeTile({ programme, onDelete, showGantt = true }: { programme: P
       }
     }
     
+    // Debug log for On Site Works
+    if (task.name && (task.name.includes("On Site") || task.name.includes("on site"))) {
+      console.log(`On Site Works: descendants=${descendants.length}, minStart=${minStart}, maxEnd=${maxEnd}, ignoreDelayTasks=${ignoreDelayTasks}`);
+    }
+    
     // If no descendants found, use parent task's dates as fallback
     if (minStart === null && task.startDate) {
       minStart = new Date(task.startDate).getTime();
