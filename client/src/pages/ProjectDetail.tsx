@@ -535,10 +535,10 @@ export default function ProjectDetail() {
                   // Find earliest task start and latest task end
                   if (tasks && tasks.length > 0) {
                     const taskStarts = tasks
-                      .filter(t => t.startDate && !t.isSummary)
+                      .filter(t => t.startDate && !t.isSummary && !(ignoreDelayTasks && t.name && t.name.startsWith("Delay -")))
                       .map(t => new Date(t.startDate as any).getTime());
                     const taskEnds = tasks
-                      .filter(t => t.endDate && !t.isSummary)
+                      .filter(t => t.endDate && !t.isSummary && !(ignoreDelayTasks && t.name && t.name.startsWith("Delay -")))
                       .map(t => new Date(t.endDate as any).getTime());
                     
                     if (taskStarts.length > 0) {
