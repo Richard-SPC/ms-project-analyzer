@@ -63,6 +63,36 @@ function ProgrammeTile({ programme }: { programme: Project }) {
     queryKey: [`/api/projects/${programme.id}/completion`],
   });
 
+  const { data: tasks = [] } = useQuery<Task[]>({
+    queryKey: [`/api/projects/${programme.id}/tasks`],
+  });
+
+  // Calculate actual project start/end from tasks
+  const getActualProjectDates = () => {
+    let actualStart = programme.startDate ? new Date(programme.startDate) : undefined;
+    let actualEnd = programme.endDate ? new Date(programme.endDate) : undefined;
+
+    if (tasks && tasks.length > 0) {
+      const taskStarts = tasks
+        .filter(t => t.startDate && !t.isSummary)
+        .map(t => new Date(t.startDate as any).getTime());
+      const taskEnds = tasks
+        .filter(t => t.endDate && !t.isSummary)
+        .map(t => new Date(t.endDate as any).getTime());
+
+      if (taskStarts.length > 0) {
+        actualStart = new Date(Math.min(...taskStarts));
+      }
+      if (taskEnds.length > 0) {
+        actualEnd = new Date(Math.max(...taskEnds));
+      }
+    }
+
+    return { actualStart, actualEnd };
+  };
+
+  const { actualStart, actualEnd } = getActualProjectDates();
+
   return (
     <Card className="hover-elevate" data-testid={`card-programme-${programme.id}`}>
       <CardHeader className="py-1 px-4">
@@ -86,13 +116,13 @@ function ProgrammeTile({ programme }: { programme: Project }) {
             <div className="text-xs text-center">
               <p className="text-muted-foreground font-bold">Project Start</p>
               <p className="font-medium text-foreground">
-                {programme.startDate ? formatDateUK(programme.startDate) : "N/A"}
+                {actualStart ? formatDateUK(actualStart) : "N/A"}
               </p>
             </div>
             <div className="text-xs text-center">
               <p className="text-muted-foreground font-bold">Project End</p>
               <p className="font-medium text-foreground">
-                {programme.endDate ? formatDateUK(programme.endDate) : "N/A"}
+                {actualEnd ? formatDateUK(actualEnd) : "N/A"}
               </p>
             </div>
             <Link href={`/programmes/${programme.id}`}>
