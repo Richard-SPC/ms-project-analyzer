@@ -616,7 +616,7 @@ export default function ProjectDetail() {
                           <div className="flex items-start gap-1 h-full">
                             <div className="w-4 flex-shrink-0" />
                             <div className="w-32 flex-shrink-0" />
-                            <div className="w-16 flex-shrink-0" />
+                            <div className="w-24 flex-shrink-0" />
                             <div className="flex-1 relative h-full">
                               {markers.map((marker, idx) => {
                                 const currentPosition = ((marker.getTime() - timelineStart.getTime()) / totalMs) * 100;
@@ -629,7 +629,7 @@ export default function ProjectDetail() {
                                 );
                               })}
                             </div>
-                            <div className="w-16 flex-shrink-0" />
+                            <div className="w-24 flex-shrink-0" />
                           </div>
                         </div>
 
@@ -638,7 +638,7 @@ export default function ProjectDetail() {
                           <div className="flex items-center gap-1">
                             <div className="w-4 flex-shrink-0" />
                             <p className="text-muted-foreground w-32 truncate flex-shrink-0">Overall Project</p>
-                            <span className="text-muted-foreground/70 w-16 text-right flex-shrink-0">
+                            <span className="text-muted-foreground/70 w-24 text-right flex-shrink-0">
                               {formatDateUK(projectStart)}
                             </span>
                             <div className="flex-1 h-5 bg-muted rounded overflow-hidden relative border border-border">
@@ -656,7 +656,7 @@ export default function ProjectDetail() {
                                 </span>
                               </div>
                             </div>
-                            <span className="text-muted-foreground/70 w-16 flex-shrink-0">
+                            <span className="text-muted-foreground/70 w-24 flex-shrink-0">
                               {formatDateUK(projectEnd)}
                             </span>
                           </div>
@@ -715,7 +715,7 @@ export default function ProjectDetail() {
                                   {childTasks.length === 0 && <div className="w-3" />}
                                 </div>
                                 <p className="text-muted-foreground w-32 truncate flex-shrink-0">{phase.name}</p>
-                                <span className="text-muted-foreground/70 w-16 text-right flex-shrink-0">
+                                <span className="text-muted-foreground/70 w-24 text-right flex-shrink-0">
                                   {phaseDates.startDate ? formatDateUK(phaseDates.startDate) : "N/A"}
                                 </span>
                                 <div className="flex-1 h-5 bg-muted rounded overflow-hidden relative border border-border">
@@ -730,7 +730,7 @@ export default function ProjectDetail() {
                                     </span>
                                   </div>
                                 </div>
-                                <span className="text-muted-foreground/70 w-16 flex-shrink-0">
+                                <span className="text-muted-foreground/70 w-24 flex-shrink-0">
                                   {phaseDates.endDate ? formatDateUK(phaseDates.endDate) : "N/A"}
                                 </span>
                               </div>
@@ -775,7 +775,7 @@ export default function ProjectDetail() {
                                         <div className="flex items-center gap-1">
                                           <div className="w-4 flex-shrink-0" />
                                           <p className="text-muted-foreground w-32 truncate flex-shrink-0">{child.name}</p>
-                                          <span className="text-muted-foreground/70 w-16 text-right text-xs flex-shrink-0">
+                                          <span className="text-muted-foreground/70 w-24 text-right text-xs flex-shrink-0">
                                             {childDates.startDate ? formatDateUK(childDates.startDate) : "N/A"}
                                           </span>
                                           <div className="flex-1 h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
@@ -790,7 +790,7 @@ export default function ProjectDetail() {
                                               </span>
                                             </div>
                                           </div>
-                                          <span className="text-muted-foreground/70 w-16 text-xs flex-shrink-0">
+                                          <span className="text-muted-foreground/70 w-24 text-xs flex-shrink-0">
                                             {childDates.endDate ? formatDateUK(childDates.endDate) : "N/A"}
                                           </span>
                                         </div>
