@@ -582,13 +582,13 @@ export default function ProjectDetail() {
 
                   return (
                     <>
-                      <div className="relative">
+                      <div className="relative overflow-x-auto">
                         {/* Month headers row - same flex structure as timeline rows */}
-                        <div className="flex items-center gap-1 mb-2 relative h-6">
+                        <div className="flex items-center gap-1 mb-3 relative h-7 min-w-max">
                           <div className="w-4 flex-shrink-0" />
-                          <div className="w-32 flex-shrink-0" />
-                          <div className="w-16 flex-shrink-0" />
-                          <div className="flex-1 relative">
+                          <div className="w-40 flex-shrink-0" />
+                          <div className="px-2 flex-shrink-0 border-l border-muted-foreground/30" />
+                          <div className="flex-1 relative min-w-96">
                             {markers.map((marker, idx) => {
                               const currentPosition = ((marker.getTime() - timelineStart.getTime()) / totalMs) * 100;
                               const nextMarkerDate = idx + 1 < markers.length ? new Date(markers[idx + 1]) : new Date(timelineEnd);
@@ -599,7 +599,7 @@ export default function ProjectDetail() {
                               return (
                                 <div key={`month-${idx}`} className="absolute inset-0">
                                   <span 
-                                    className="absolute text-xs text-muted-foreground whitespace-nowrap"
+                                    className="absolute text-xs font-semibold text-muted-foreground whitespace-nowrap"
                                     style={{ left: `${midPosition}%`, top: '50%', transform: 'translate(-50%, -50%)' }}
                                   >
                                     {monthName}
@@ -608,60 +608,59 @@ export default function ProjectDetail() {
                               );
                             })}
                           </div>
-                          <div className="w-16 flex-shrink-0" />
                         </div>
 
-                        {/* Gridlines overlay extending from month header to bottom of bars */}
-                        <div className="absolute left-0 right-0 top-0 bottom-0 pointer-events-none z-20">
-                          <div className="flex items-start gap-1 h-full">
-                            <div className="w-4 flex-shrink-0" />
-                            <div className="w-32 flex-shrink-0" />
-                            <div className="w-24 flex-shrink-0" />
-                            <div className="flex-1 relative h-full">
+                        {/* Gridlines overlay - only over chart area, not labels */}
+                        <div className="absolute left-0 right-0 top-6 bottom-0 pointer-events-none z-10 overflow-hidden">
+                          <div className="flex items-start gap-1 h-full ml-44">
+                            <div className="px-2 flex-shrink-0" />
+                            <div className="flex-1 relative h-full min-w-96">
                               {markers.map((marker, idx) => {
                                 const currentPosition = ((marker.getTime() - timelineStart.getTime()) / totalMs) * 100;
                                 return (
                                   <div
                                     key={`gridline-full-${idx}`}
-                                    className="absolute top-0 bottom-0 w-px bg-gray-400/60 dark:bg-gray-500/60"
+                                    className="absolute top-0 bottom-0 w-px bg-border/40"
                                     style={{ left: `${currentPosition}%`, height: '100%' }}
                                   />
                                 );
                               })}
                             </div>
-                            <div className="w-24 flex-shrink-0" />
                           </div>
                         </div>
 
-                        <div className="space-y-1 relative">
-                        <div className="text-xs space-y-1">
-                          <div className="flex items-center gap-1">
+                        <div className="space-y-2 relative">
+                        <div className="text-xs space-y-2">
+                          <div className="flex items-start gap-1 min-w-max">
                             <div className="w-4 flex-shrink-0" />
-                            <p className="text-muted-foreground w-32 truncate flex-shrink-0">Overall Project</p>
-                            <div className="flex-1 h-5 bg-muted rounded overflow-hidden relative border border-border">
-                              <div
-                                className="h-full absolute bg-[#494949]"
-                                style={{
-                                  left: `${((projectStart.getTime() - timelineStart.getTime()) / totalMs) * 100}%`,
-                                  width: `${((projectEnd.getTime() - projectStart.getTime()) / totalMs) * 100}%`
-                                }}
-                                data-testid="gantt-project-overall"
-                              />
-                              <div className="absolute inset-0 flex items-center justify-center">
-                                <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-2 py-1 rounded bg-black/40" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-                                  {calculateWorkingDays(projectStart, projectEnd, calendarExceptions)}d
-                                </span>
+                            <div className="w-36 flex-shrink-0">
+                              <p className="text-muted-foreground font-semibold truncate">Overall Project</p>
+                            </div>
+                            <div className="px-2 flex-shrink-0 border-l border-muted-foreground/30" />
+                            <div className="flex-1 min-w-96">
+                              <div className="flex flex-col gap-1">
+                                <div className="h-5 bg-muted rounded overflow-hidden relative border border-border">
+                                  <div
+                                    className="h-full absolute bg-[#494949]"
+                                    style={{
+                                      left: `${((projectStart.getTime() - timelineStart.getTime()) / totalMs) * 100}%`,
+                                      width: `${((projectEnd.getTime() - projectStart.getTime()) / totalMs) * 100}%`
+                                    }}
+                                    data-testid="gantt-project-overall"
+                                  />
+                                  <div className="absolute inset-0 flex items-center justify-center">
+                                    <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-2 py-1 rounded bg-black/40" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                                      {calculateWorkingDays(projectStart, projectEnd, calendarExceptions)}d
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex gap-2 text-xs">
+                                  <span className="text-muted-foreground/70">{formatDateUK(projectStart)}</span>
+                                  <span className="text-muted-foreground/70">→</span>
+                                  <span className="text-muted-foreground/70">{formatDateUK(projectEnd)}</span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <div className="w-4 flex-shrink-0" />
-                            <span className="text-muted-foreground/70 w-32 text-right text-xs flex-shrink-0">
-                              {formatDateUK(projectStart)}
-                            </span>
-                            <span className="text-muted-foreground/70 flex-1 text-right text-xs flex-shrink-0">
-                              {formatDateUK(projectEnd)}
-                            </span>
                           </div>
                         </div>
                         {phases.map((phase) => {
@@ -703,9 +702,9 @@ export default function ProjectDetail() {
                           }
 
                           return (
-                            <div key={phase.id} className="text-xs space-y-1">
-                              <div className="flex items-center gap-1">
-                                <div className="w-4 flex-shrink-0 flex items-center gap-1">
+                            <div key={phase.id} className="text-xs space-y-2 min-w-max">
+                              <div className="flex items-start gap-1">
+                                <div className="w-4 flex-shrink-0 flex items-center gap-1 pt-0.5">
                                   {childTasks.length > 0 && (
                                     <button
                                       onClick={() => setExpandedPhase(isExpanded ? null : phase.id)}
@@ -717,28 +716,31 @@ export default function ProjectDetail() {
                                   )}
                                   {childTasks.length === 0 && <div className="w-3" />}
                                 </div>
-                                <p className="text-muted-foreground w-32 truncate flex-shrink-0">{phase.name}</p>
-                                <div className="flex-1 h-5 bg-muted rounded overflow-hidden relative border border-border">
-                                  <div
-                                    className={`h-full absolute ${getPhaseColor(phase.name)} rounded transition-all`}
-                                    style={{ left: phaseStyle.left, width: phaseStyle.width }}
-                                    data-testid={`gantt-phase-${phase.id}`}
-                                  />
-                                  <div className="absolute inset-0 flex items-center justify-center">
-                                    <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-2 py-1 rounded bg-black/40" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-                                      {durationDays}d
-                                    </span>
+                                <div className="w-36 flex-shrink-0">
+                                  <p className="text-muted-foreground truncate">{phase.name}</p>
+                                </div>
+                                <div className="px-2 flex-shrink-0 border-l border-muted-foreground/30" />
+                                <div className="flex-1 min-w-96">
+                                  <div className="flex flex-col gap-1">
+                                    <div className="h-5 bg-muted rounded overflow-hidden relative border border-border">
+                                      <div
+                                        className={`h-full absolute ${getPhaseColor(phase.name)} rounded transition-all`}
+                                        style={{ left: phaseStyle.left, width: phaseStyle.width }}
+                                        data-testid={`gantt-phase-${phase.id}`}
+                                      />
+                                      <div className="absolute inset-0 flex items-center justify-center">
+                                        <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-2 py-1 rounded bg-black/40" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                                          {durationDays}d
+                                        </span>
+                                      </div>
+                                    </div>
+                                    <div className="flex gap-2 text-xs">
+                                      <span className="text-muted-foreground/70">{phaseDates.startDate ? formatDateUK(phaseDates.startDate) : "N/A"}</span>
+                                      <span className="text-muted-foreground/70">→</span>
+                                      <span className="text-muted-foreground/70">{phaseDates.endDate ? formatDateUK(phaseDates.endDate) : "N/A"}</span>
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <div className="w-4 flex-shrink-0" />
-                                <span className="text-muted-foreground/70 w-32 text-right text-xs flex-shrink-0">
-                                  {phaseDates.startDate ? formatDateUK(phaseDates.startDate) : "N/A"}
-                                </span>
-                                <span className="text-muted-foreground/70 flex-1 text-right text-xs flex-shrink-0">
-                                  {phaseDates.endDate ? formatDateUK(phaseDates.endDate) : "N/A"}
-                                </span>
                               </div>
 
                               {isExpanded && childTasks.length > 0 && (
@@ -777,31 +779,34 @@ export default function ProjectDetail() {
                                     }
                                     
                                     return (
-                                      <div key={child.id} className="text-xs space-y-1">
-                                        <div className="flex items-center gap-1">
+                                      <div key={child.id} className="text-xs space-y-2 min-w-max">
+                                        <div className="flex items-start gap-1">
                                           <div className="w-4 flex-shrink-0" />
-                                          <p className="text-muted-foreground w-32 truncate flex-shrink-0">{child.name}</p>
-                                          <div className="flex-1 h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
-                                            <div
-                                              className="h-full absolute bg-[#159775] transition-all"
-                                              style={{ left: childStyle.left, width: childStyle.width }}
-                                              data-testid={`gantt-child-${child.id}`}
-                                            />
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                              <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-2 py-1 rounded bg-black/40" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-                                                {childDurationDays}d
-                                              </span>
+                                          <div className="w-36 flex-shrink-0">
+                                            <p className="text-muted-foreground/80 truncate">{child.name}</p>
+                                          </div>
+                                          <div className="px-2 flex-shrink-0 border-l border-muted-foreground/30" />
+                                          <div className="flex-1 min-w-96">
+                                            <div className="flex flex-col gap-1">
+                                              <div className="h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
+                                                <div
+                                                  className="h-full absolute bg-[#159775] transition-all"
+                                                  style={{ left: childStyle.left, width: childStyle.width }}
+                                                  data-testid={`gantt-child-${child.id}`}
+                                                />
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                  <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-2 py-1 rounded bg-black/40" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                                                    {childDurationDays}d
+                                                  </span>
+                                                </div>
+                                              </div>
+                                              <div className="flex gap-2 text-xs">
+                                                <span className="text-muted-foreground/70">{childDates.startDate ? formatDateUK(childDates.startDate) : "N/A"}</span>
+                                                <span className="text-muted-foreground/70">→</span>
+                                                <span className="text-muted-foreground/70">{childDates.endDate ? formatDateUK(childDates.endDate) : "N/A"}</span>
+                                              </div>
                                             </div>
                                           </div>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                          <div className="w-4 flex-shrink-0" />
-                                          <span className="text-muted-foreground/70 w-32 text-right text-xs flex-shrink-0">
-                                            {childDates.startDate ? formatDateUK(childDates.startDate) : "N/A"}
-                                          </span>
-                                          <span className="text-muted-foreground/70 flex-1 text-right text-xs flex-shrink-0">
-                                            {childDates.endDate ? formatDateUK(childDates.endDate) : "N/A"}
-                                          </span>
                                         </div>
                                       </div>
                                     );
