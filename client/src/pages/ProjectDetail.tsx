@@ -125,6 +125,32 @@ export default function ProjectDetail() {
     enabled: !!projectId,
   });
 
+  // Calculate actual project start/end from tasks
+  const getActualProjectDates = () => {
+    let actualStart = project?.startDate ? new Date(project.startDate as any) : new Date();
+    let actualEnd = project?.endDate ? new Date(project.endDate as any) : new Date();
+
+    if (tasks && tasks.length > 0) {
+      const taskStarts = tasks
+        .filter(t => t.startDate && !t.isSummary)
+        .map(t => new Date(t.startDate as any).getTime());
+      const taskEnds = tasks
+        .filter(t => t.endDate && !t.isSummary)
+        .map(t => new Date(t.endDate as any).getTime());
+
+      if (taskStarts.length > 0) {
+        actualStart = new Date(Math.min(...taskStarts));
+      }
+      if (taskEnds.length > 0) {
+        actualEnd = new Date(Math.max(...taskEnds));
+      }
+    }
+
+    return { actualStart, actualEnd };
+  };
+
+  const { actualStart, actualEnd } = getActualProjectDates();
+
   // Format date as ISO string for comparison
   const formatDateISO = (date: Date): string => {
     return date.toISOString().split('T')[0];
@@ -895,13 +921,13 @@ export default function ProjectDetail() {
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">Start Date:</span>
               <span className="text-sm font-medium">
-                {formatDateUK(project.startDate)}
+                {formatDateUK(actualStart)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm text-muted-foreground">End Date:</span>
               <span className="text-sm font-medium">
-                {formatDateUK(project.endDate)}
+                {formatDateUK(actualEnd)}
               </span>
             </div>
             <div className="flex justify-between">
