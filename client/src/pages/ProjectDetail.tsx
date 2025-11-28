@@ -633,14 +633,11 @@ export default function ProjectDetail() {
                           </div>
                         </div>
 
-                        <div className="space-y-2 relative">
-                        <div className="text-xs">
+                        <div className="space-y-1 relative">
+                        <div className="text-xs space-y-1">
                           <div className="flex items-center gap-1">
                             <div className="w-4 flex-shrink-0" />
                             <p className="text-muted-foreground w-32 truncate flex-shrink-0">Overall Project</p>
-                            <span className="text-muted-foreground/70 w-24 text-right flex-shrink-0">
-                              {formatDateUK(projectStart)}
-                            </span>
                             <div className="flex-1 h-5 bg-muted rounded overflow-hidden relative border border-border">
                               <div
                                 className="h-full absolute bg-[#494949]"
@@ -656,7 +653,13 @@ export default function ProjectDetail() {
                                 </span>
                               </div>
                             </div>
-                            <span className="text-muted-foreground/70 w-24 flex-shrink-0">
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className="w-4 flex-shrink-0" />
+                            <span className="text-muted-foreground/70 w-32 text-right text-xs flex-shrink-0">
+                              {formatDateUK(projectStart)}
+                            </span>
+                            <span className="text-muted-foreground/70 flex-1 text-right text-xs flex-shrink-0">
                               {formatDateUK(projectEnd)}
                             </span>
                           </div>
@@ -700,7 +703,7 @@ export default function ProjectDetail() {
                           }
 
                           return (
-                            <div key={phase.id} className="text-xs">
+                            <div key={phase.id} className="text-xs space-y-1">
                               <div className="flex items-center gap-1">
                                 <div className="w-4 flex-shrink-0 flex items-center gap-1">
                                   {childTasks.length > 0 && (
@@ -715,9 +718,6 @@ export default function ProjectDetail() {
                                   {childTasks.length === 0 && <div className="w-3" />}
                                 </div>
                                 <p className="text-muted-foreground w-32 truncate flex-shrink-0">{phase.name}</p>
-                                <span className="text-muted-foreground/70 w-24 text-right flex-shrink-0">
-                                  {phaseDates.startDate ? formatDateUK(phaseDates.startDate) : "N/A"}
-                                </span>
                                 <div className="flex-1 h-5 bg-muted rounded overflow-hidden relative border border-border">
                                   <div
                                     className={`h-full absolute ${getPhaseColor(phase.name)} rounded transition-all`}
@@ -730,7 +730,13 @@ export default function ProjectDetail() {
                                     </span>
                                   </div>
                                 </div>
-                                <span className="text-muted-foreground/70 w-24 flex-shrink-0">
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <div className="w-4 flex-shrink-0" />
+                                <span className="text-muted-foreground/70 w-32 text-right text-xs flex-shrink-0">
+                                  {phaseDates.startDate ? formatDateUK(phaseDates.startDate) : "N/A"}
+                                </span>
+                                <span className="text-muted-foreground/70 flex-1 text-right text-xs flex-shrink-0">
                                   {phaseDates.endDate ? formatDateUK(phaseDates.endDate) : "N/A"}
                                 </span>
                               </div>
@@ -771,13 +777,10 @@ export default function ProjectDetail() {
                                     }
                                     
                                     return (
-                                      <div key={child.id} className="text-xs">
+                                      <div key={child.id} className="text-xs space-y-1">
                                         <div className="flex items-center gap-1">
                                           <div className="w-4 flex-shrink-0" />
                                           <p className="text-muted-foreground w-32 truncate flex-shrink-0">{child.name}</p>
-                                          <span className="text-muted-foreground/70 w-24 text-right text-xs flex-shrink-0">
-                                            {childDates.startDate ? formatDateUK(childDates.startDate) : "N/A"}
-                                          </span>
                                           <div className="flex-1 h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
                                             <div
                                               className="h-full absolute bg-[#159775] transition-all"
@@ -790,7 +793,13 @@ export default function ProjectDetail() {
                                               </span>
                                             </div>
                                           </div>
-                                          <span className="text-muted-foreground/70 w-24 text-xs flex-shrink-0">
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                          <div className="w-4 flex-shrink-0" />
+                                          <span className="text-muted-foreground/70 w-32 text-right text-xs flex-shrink-0">
+                                            {childDates.startDate ? formatDateUK(childDates.startDate) : "N/A"}
+                                          </span>
+                                          <span className="text-muted-foreground/70 flex-1 text-right text-xs flex-shrink-0">
                                             {childDates.endDate ? formatDateUK(childDates.endDate) : "N/A"}
                                           </span>
                                         </div>
