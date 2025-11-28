@@ -496,7 +496,7 @@ export default function ProjectDetail() {
                 data-testid="checkbox-ignore-delay"
               />
               <label htmlFor="ignore-delay-tasks" className="text-xs text-muted-foreground cursor-pointer">
-                Hide Delay tasks
+                Detail Delay Tasks
               </label>
             </div>
             <div className="space-y-2">
