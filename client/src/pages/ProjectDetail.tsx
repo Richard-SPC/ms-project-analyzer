@@ -633,31 +633,29 @@ export default function ProjectDetail() {
                         <div className="text-xs space-y-2">
                           <div className="flex items-start gap-1 min-w-max">
                             <div className="w-4 flex-shrink-0" />
-                            <div className="w-36 flex-shrink-0">
+                            <div className="w-36 flex-shrink-0 space-y-1">
                               <p className="text-muted-foreground font-semibold truncate">Overall Project</p>
+                              <div className="flex gap-2 text-xs">
+                                <span className="text-muted-foreground/70">{formatDateUK(projectStart)}</span>
+                                <span className="text-muted-foreground/70">→</span>
+                                <span className="text-muted-foreground/70">{formatDateUK(projectEnd)}</span>
+                              </div>
                             </div>
                             <div className="px-2 flex-shrink-0 border-l border-muted-foreground/30" />
                             <div className="flex-1 min-w-96">
-                              <div className="flex flex-col gap-1">
-                                <div className="h-5 bg-muted rounded overflow-hidden relative border border-border">
-                                  <div
-                                    className="h-full absolute bg-[#494949]"
-                                    style={{
-                                      left: `${((projectStart.getTime() - timelineStart.getTime()) / totalMs) * 100}%`,
-                                      width: `${((projectEnd.getTime() - projectStart.getTime()) / totalMs) * 100}%`
-                                    }}
-                                    data-testid="gantt-project-overall"
-                                  />
-                                  <div className="absolute inset-0 flex items-center justify-center">
-                                    <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-2 py-1 rounded bg-black/40" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-                                      {calculateWorkingDays(projectStart, projectEnd, calendarExceptions)}d
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="flex gap-2 text-xs">
-                                  <span className="text-muted-foreground/70">{formatDateUK(projectStart)}</span>
-                                  <span className="text-muted-foreground/70">→</span>
-                                  <span className="text-muted-foreground/70">{formatDateUK(projectEnd)}</span>
+                              <div className="h-5 bg-muted rounded overflow-hidden relative border border-border">
+                                <div
+                                  className="h-full absolute bg-[#494949]"
+                                  style={{
+                                    left: `${((projectStart.getTime() - timelineStart.getTime()) / totalMs) * 100}%`,
+                                    width: `${((projectEnd.getTime() - projectStart.getTime()) / totalMs) * 100}%`
+                                  }}
+                                  data-testid="gantt-project-overall"
+                                />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-2 py-1 rounded bg-black/40" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                                    {calculateWorkingDays(projectStart, projectEnd, calendarExceptions)}d
+                                  </span>
                                 </div>
                               </div>
                             </div>
@@ -716,28 +714,26 @@ export default function ProjectDetail() {
                                   )}
                                   {childTasks.length === 0 && <div className="w-3" />}
                                 </div>
-                                <div className="w-36 flex-shrink-0">
+                                <div className="w-36 flex-shrink-0 space-y-1">
                                   <p className="text-muted-foreground truncate">{phase.name}</p>
+                                  <div className="flex gap-2 text-xs">
+                                    <span className="text-muted-foreground/70">{phaseDates.startDate ? formatDateUK(phaseDates.startDate) : "N/A"}</span>
+                                    <span className="text-muted-foreground/70">→</span>
+                                    <span className="text-muted-foreground/70">{phaseDates.endDate ? formatDateUK(phaseDates.endDate) : "N/A"}</span>
+                                  </div>
                                 </div>
                                 <div className="px-2 flex-shrink-0 border-l border-muted-foreground/30" />
                                 <div className="flex-1 min-w-96">
-                                  <div className="flex flex-col gap-1">
-                                    <div className="h-5 bg-muted rounded overflow-hidden relative border border-border">
-                                      <div
-                                        className={`h-full absolute ${getPhaseColor(phase.name)} rounded transition-all`}
-                                        style={{ left: phaseStyle.left, width: phaseStyle.width }}
-                                        data-testid={`gantt-phase-${phase.id}`}
-                                      />
-                                      <div className="absolute inset-0 flex items-center justify-center">
-                                        <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-2 py-1 rounded bg-black/40" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-                                          {durationDays}d
-                                        </span>
-                                      </div>
-                                    </div>
-                                    <div className="flex gap-2 text-xs">
-                                      <span className="text-muted-foreground/70">{phaseDates.startDate ? formatDateUK(phaseDates.startDate) : "N/A"}</span>
-                                      <span className="text-muted-foreground/70">→</span>
-                                      <span className="text-muted-foreground/70">{phaseDates.endDate ? formatDateUK(phaseDates.endDate) : "N/A"}</span>
+                                  <div className="h-5 bg-muted rounded overflow-hidden relative border border-border">
+                                    <div
+                                      className={`h-full absolute ${getPhaseColor(phase.name)} rounded transition-all`}
+                                      style={{ left: phaseStyle.left, width: phaseStyle.width }}
+                                      data-testid={`gantt-phase-${phase.id}`}
+                                    />
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                      <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-2 py-1 rounded bg-black/40" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                                        {durationDays}d
+                                      </span>
                                     </div>
                                   </div>
                                 </div>
@@ -782,28 +778,26 @@ export default function ProjectDetail() {
                                       <div key={child.id} className="text-xs space-y-2 min-w-max">
                                         <div className="flex items-start gap-1">
                                           <div className="w-4 flex-shrink-0" />
-                                          <div className="w-36 flex-shrink-0">
+                                          <div className="w-36 flex-shrink-0 space-y-1">
                                             <p className="text-muted-foreground/80 truncate">{child.name}</p>
+                                            <div className="flex gap-2 text-xs">
+                                              <span className="text-muted-foreground/70">{childDates.startDate ? formatDateUK(childDates.startDate) : "N/A"}</span>
+                                              <span className="text-muted-foreground/70">→</span>
+                                              <span className="text-muted-foreground/70">{childDates.endDate ? formatDateUK(childDates.endDate) : "N/A"}</span>
+                                            </div>
                                           </div>
                                           <div className="px-2 flex-shrink-0 border-l border-muted-foreground/30" />
                                           <div className="flex-1 min-w-96">
-                                            <div className="flex flex-col gap-1">
-                                              <div className="h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
-                                                <div
-                                                  className="h-full absolute bg-[#159775] transition-all"
-                                                  style={{ left: childStyle.left, width: childStyle.width }}
-                                                  data-testid={`gantt-child-${child.id}`}
-                                                />
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                  <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-2 py-1 rounded bg-black/40" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-                                                    {childDurationDays}d
-                                                  </span>
-                                                </div>
-                                              </div>
-                                              <div className="flex gap-2 text-xs">
-                                                <span className="text-muted-foreground/70">{childDates.startDate ? formatDateUK(childDates.startDate) : "N/A"}</span>
-                                                <span className="text-muted-foreground/70">→</span>
-                                                <span className="text-muted-foreground/70">{childDates.endDate ? formatDateUK(childDates.endDate) : "N/A"}</span>
+                                            <div className="h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
+                                              <div
+                                                className="h-full absolute bg-[#159775] transition-all"
+                                                style={{ left: childStyle.left, width: childStyle.width }}
+                                                data-testid={`gantt-child-${child.id}`}
+                                              />
+                                              <div className="absolute inset-0 flex items-center justify-center">
+                                                <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-2 py-1 rounded bg-black/40" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                                                  {childDurationDays}d
+                                                </span>
                                               </div>
                                             </div>
                                           </div>
