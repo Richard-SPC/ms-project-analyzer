@@ -613,7 +613,7 @@ export default function ProjectDetail() {
                             <div className="w-4 flex-shrink-0" />
                             <p className="text-muted-foreground w-32 truncate flex-shrink-0">Overall Project</p>
                             <span className="text-muted-foreground/70 w-16 text-right flex-shrink-0">
-                              {formatDateUK(project.startDate)}
+                              {formatDateUK(projectStart)}
                             </span>
                             <div className="flex-1 h-5 bg-muted rounded overflow-hidden relative border border-border">
                               <div
@@ -626,12 +626,12 @@ export default function ProjectDetail() {
                               />
                               <div className="absolute inset-0 flex items-center justify-center">
                                 <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-2 py-1 rounded bg-black/40" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-                                  {calculateWorkingDays(new Date(project.startDate as any), new Date(project.endDate as any), calendarExceptions)}d
+                                  {calculateWorkingDays(projectStart, projectEnd, calendarExceptions)}d
                                 </span>
                               </div>
                             </div>
                             <span className="text-muted-foreground/70 w-16 flex-shrink-0">
-                              {formatDateUK(project.endDate)}
+                              {formatDateUK(projectEnd)}
                             </span>
                           </div>
                         </div>
