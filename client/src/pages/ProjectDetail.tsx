@@ -719,10 +719,16 @@ export default function ProjectDetail() {
                           
                           let phaseStyle = { left: "0%", width: "0%" };
                           if (phaseMinStart !== null && phaseMaxEnd !== null) {
-                            const taskStartMs = phaseMinStart - timelineStart.getTime();
-                            const taskDurationMs = phaseMaxEnd - phaseMinStart;
-                            const left = (taskStartMs / totalMs) * 100;
-                            const width = (taskDurationMs / totalMs) * 100;
+                            // Use actual project boundaries (not timeline boundaries) for phase positioning
+                            const actualProjectStart = new Date(projectStart).getTime();
+                            const actualProjectEnd = new Date(projectEnd).getTime();
+                            const projectDurationMs = actualProjectEnd - actualProjectStart;
+                            
+                            const phaseStartOffset = phaseMinStart - actualProjectStart;
+                            const phaseDurationMs = phaseMaxEnd - phaseMinStart;
+                            
+                            const left = (phaseStartOffset / projectDurationMs) * 100;
+                            const width = (phaseDurationMs / projectDurationMs) * 100;
                             phaseStyle = {
                               left: `${Math.max(0, left)}%`,
                               width: `${Math.max(0, Math.min(width, 100 - left))}%`,
