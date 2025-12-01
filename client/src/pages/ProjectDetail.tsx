@@ -614,7 +614,7 @@ export default function ProjectDetail() {
 
                         {/* Gridlines overlay - only over chart area, not labels */}
                         <div className="absolute left-0 right-0 top-6 bottom-0 pointer-events-none z-10 overflow-hidden">
-                          <div className="flex items-start gap-1 h-full ml-44">
+                          <div className="flex items-start gap-1 h-full" style={{ marginLeft: 'calc(1rem + 0.25rem + 9rem + 0.25rem + 1rem)' }}>
                             <div className="px-2 flex-shrink-0" />
                             <div className="flex-1 relative h-full min-w-96">
                               {markers.map((marker, idx) => {
