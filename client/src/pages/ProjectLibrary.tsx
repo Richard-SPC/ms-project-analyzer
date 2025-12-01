@@ -206,7 +206,7 @@ function ProjectSection({
                 </div>
               </Button>
             </CollapsibleTrigger>
-            <div className="flex-1 flex justify-start min-w-0 items-center gap-4">
+            <div className="flex-1 flex justify-center min-w-0 items-center gap-4">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="text-xs w-28 flex-shrink-0" data-testid={`button-status-dropdown-${project.id}`}>
