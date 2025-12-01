@@ -73,63 +73,63 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between gap-6">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground" data-testid="text-dashboard-title">
             Overview
           </h1>
         </div>
-        <Card data-testid="card-total-projects" className="w-fit">
-          <CardContent className="px-3 py-1 flex gap-6">
-            <div>
-              <div className="text-lg font-bold" data-testid="text-total-projects">
-                {totalProjects}
+        <div className="flex gap-4">
+          <Card data-testid="card-total-projects" className="w-fit">
+            <CardContent className="px-3 py-1 flex gap-6">
+              <div>
+                <div className="text-lg font-bold" data-testid="text-total-projects">
+                  {totalProjects}
+                </div>
+                <p className="text-xs text-muted-foreground">Projects</p>
               </div>
-              <p className="text-xs text-muted-foreground">Projects</p>
-            </div>
-            <div>
-              <div className="text-lg font-bold" data-testid="text-total-programmes">
-                {allProjects?.length || 0}
+              <div>
+                <div className="text-lg font-bold" data-testid="text-total-programmes">
+                  {allProjects?.length || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">Programmes</p>
               </div>
-              <p className="text-xs text-muted-foreground">Programmes</p>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+          
+          {projectsByClient.length > 0 && (
+            <Card data-testid="card-projects-by-client" className="w-72">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">By Client</CardTitle>
+              </CardHeader>
+              <CardContent className="h-40">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={projectsByClient}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={false}
+                      outerRadius={50}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {projectsByClient.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip 
+                      formatter={(value: number) => `${value}`}
+                      contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
-
-      {projectsByClient.length > 0 && (
-        <Card data-testid="card-projects-by-client">
-          <CardHeader>
-            <CardTitle>Projects by Client</CardTitle>
-            <CardDescription>Total project distribution across clients</CardDescription>
-          </CardHeader>
-          <CardContent className="h-80 flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={projectsByClient}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, value }) => `${name}: ${value}`}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {projectsByClient.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  formatter={(value: number) => `${value} project${value > 1 ? 's' : ''}`}
-                  contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
-                />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      )}
 
       <Card data-testid="card-project-statuses">
         <CardHeader className="flex flex-row items-center justify-between gap-2">
