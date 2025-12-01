@@ -706,6 +706,12 @@ export default function ProjectDetail() {
                             }
                           }
                           
+                          // Create phaseDates object from min/max start/end
+                          const phaseDates = {
+                            startDate: phaseMinStart !== null ? new Date(phaseMinStart) : null,
+                            endDate: phaseMaxEnd !== null ? new Date(phaseMaxEnd) : null
+                          };
+                          
                           // Calculate working days for duration label
                           const durationDays = phaseMinStart !== null && phaseMaxEnd !== null 
                             ? calculateWorkingDays(new Date(phaseMinStart), new Date(phaseMaxEnd), calendarExceptions)
