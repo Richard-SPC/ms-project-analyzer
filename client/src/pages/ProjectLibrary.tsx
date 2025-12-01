@@ -206,7 +206,7 @@ function ProjectSection({
                 </div>
               </Button>
             </CollapsibleTrigger>
-            <div className="flex-1 flex justify-center min-w-0 items-center gap-4">
+            <div className="flex items-center gap-4 w-96">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="text-xs w-28 flex-shrink-0" data-testid={`button-status-dropdown-${project.id}`}>
@@ -225,7 +225,7 @@ function ProjectSection({
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <p className="text-sm font-semibold text-foreground truncate leading-tight min-w-40">
+              <p className="text-sm font-semibold text-foreground truncate leading-tight">
                 {project.projectManager ? `PM: ${project.projectManager}` : ""}
               </p>
             </div>
