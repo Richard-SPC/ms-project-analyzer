@@ -192,10 +192,10 @@ function ProjectSection({
   return (
     <Card className="mb-3" data-testid={`card-project-${project.id}`}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CardHeader className="py-2 px-4">
-          <div className="flex items-center justify-between gap-2 h-9">
+        <CardHeader className="py-3 px-4">
+          <div className="flex items-center justify-between gap-2">
             <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="p-0 hover:bg-transparent h-auto">
+              <Button variant="ghost" size="sm" className="p-0 hover:bg-transparent">
                 <div className="flex items-center gap-2">
                   {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                   <div 
