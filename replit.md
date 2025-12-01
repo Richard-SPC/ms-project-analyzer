@@ -12,6 +12,8 @@ A professional web application for construction project managers and planners to
 - Project and task management
 - Multi-project/programme tracking
 - Detailed compliance reports
+- Interactive Gantt charts with phase-level timeline visualization
+- Delay task filtering for timeline analysis
 
 **Target Users:** Construction project managers, planners, schedulers, and contract administrators.
 
@@ -30,6 +32,15 @@ Preferred communication style: Simple, everyday language.
 **State Management:** React Query for server state, React hooks for local state, Context API for theme with localStorage persistence.
 
 **Key Design Decisions:** Single-page application, optimistic UI updates, responsive design (mobile breakpoint at 768px), accessibility-first.
+
+**Timeline/Gantt Features:**
+- Phase-level timeline visualization with Gantt chart bars
+- Status date line showing project progress
+- Monthly gridlines and month headers for reference
+- Working day calculations using 5-day calendar (Mon-Fri) with exception handling
+- Delay task filtering capability - check "Detail Delay Tasks" to exclude delay-related work from timeline calculations
+- Dynamic phase bar recalculation when delay filter is toggled
+- Task name matching: Identifies delay tasks by checking if task name includes "DELAY" (case-insensitive)
 
 ### Backend Architecture
 
@@ -85,3 +96,11 @@ Preferred communication style: Simple, everyday language.
 - **Development Tools:** `typescript`, `@replit/vite-plugin-*`, `drizzle-kit`, `esbuild`
 
 **Environment Configuration:** `NODE_ENV`, `DATABASE_URL`, sensitive configurations via environment variables.
+
+## Recent Fixes
+
+**Delay Task Filtering in Timeline (Dec 1, 2025):**
+- Fixed issue where Procurement phase bar was not updating when toggling "Detail Delay Tasks" checkbox
+- Root cause: Delay task detection was case-sensitive, looking for "Delay -" when actual task names use uppercase "DELAY"
+- Solution: Updated `getAllDescendants()` function to use case-insensitive check: `task.name.includes("DELAY")`
+- Now properly excludes delay tasks and their descendants when checkbox is toggled, causing timeline bar to recalculate and visually update

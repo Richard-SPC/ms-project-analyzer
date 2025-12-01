@@ -200,7 +200,7 @@ export default function ProjectDetail() {
     for (const t of tasks) {
       if (!t.wbsCode || t.id === taskId) continue;
       if (t.wbsCode.startsWith(taskWbs + '.')) {
-        if (!t.name || !t.name.startsWith("Delay -")) {
+        if (!t.name || !t.name.includes("DELAY")) {
           return true;
         }
       }
@@ -259,10 +259,6 @@ export default function ProjectDetail() {
       }
     }
     
-    if (filterDelays && parent.id === 4556) {
-      console.log(`[Procurement] Filtering delays: found ${delayTasksFound.length} delay tasks`, delayTasksFound.map(t => t.name), `; returned ${descendants.length} descendants`);
-    }
-    
     return descendants;
   };
 
@@ -280,7 +276,7 @@ export default function ProjectDetail() {
     for (const task of tasks) {
       if (!task.wbsCode || task.id === phaseId) continue;
       
-      if (ignoreDelayTasks && task.name && task.name.startsWith("Delay -")) {
+      if (ignoreDelayTasks && task.name && task.name.includes("DELAY")) {
         continue;
       }
       
@@ -711,8 +707,6 @@ export default function ProjectDetail() {
                           
                           // ALWAYS use the direct getAllDescendants for phase calculations
                           const allPhaseDescendants = getAllDescendants(phase.id, ignoreDelayTasks);
-                          const delayTasksInPhase = tasks?.filter(t => t.wbsCode && t.wbsCode.startsWith(phase.wbsCode + '.') && t.name?.startsWith("Delay -")) || [];
-                          console.log(`Phase ${phase.name} (${phase.id}): ignoreDelayTasks=${ignoreDelayTasks}, descendants=${allPhaseDescendants.length}, delayTasks=${delayTasksInPhase.length}`, delayTasksInPhase.map(t => t.name));
                           
                           for (const desc of allPhaseDescendants) {
                             // Only use non-summary tasks for min/max calculation
