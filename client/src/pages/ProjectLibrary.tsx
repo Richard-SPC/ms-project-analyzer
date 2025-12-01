@@ -193,20 +193,22 @@ function ProjectSection({
     <Card className="mb-3" data-testid={`card-project-${project.id}`}>
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CardHeader className="py-3 px-4">
-          <div className="flex items-center justify-between gap-2">
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm" className="p-0 hover:bg-transparent">
-                <div className="flex items-center gap-2">
-                  {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                  <div 
-                    className="w-2 h-2 rounded-full" 
-                    style={{ backgroundColor: project.color || "#3B82F6" }}
-                  />
-                  <CardTitle className="text-lg font-bold leading-tight">{project.name}</CardTitle>
-                </div>
-              </Button>
-            </CollapsibleTrigger>
-            <div className="flex items-center gap-4 w-96">
+          <div className="grid grid-cols-12 items-start gap-4">
+            <div className="col-span-3">
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="p-0 hover:bg-transparent h-auto justify-start">
+                  <div className="flex items-center gap-2">
+                    {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    <div 
+                      className="w-2 h-2 rounded-full" 
+                      style={{ backgroundColor: project.color || "#3B82F6" }}
+                    />
+                    <CardTitle className="text-lg font-bold leading-tight">{project.name}</CardTitle>
+                  </div>
+                </Button>
+              </CollapsibleTrigger>
+            </div>
+            <div className="col-span-4 flex items-center gap-4">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" className="text-xs w-28 flex-shrink-0" data-testid={`button-status-dropdown-${project.id}`}>
@@ -229,7 +231,7 @@ function ProjectSection({
                 {project.projectManager ? `PM: ${project.projectManager}` : ""}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="col-span-5 flex items-center justify-end gap-3">
               {project.client && (
                 <span className="text-sm font-bold text-foreground leading-tight">{project.client}</span>
               )}
