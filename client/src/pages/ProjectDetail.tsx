@@ -200,7 +200,7 @@ export default function ProjectDetail() {
     for (const t of tasks) {
       if (!t.wbsCode || t.id === taskId) continue;
       if (t.wbsCode.startsWith(taskWbs + '.')) {
-        if (!t.name || !t.name.includes("DELAY")) {
+        if (!t.name || !t.name.toLowerCase().includes("delay")) {
           return true;
         }
       }
@@ -222,7 +222,7 @@ export default function ProjectDetail() {
     const delayTasksFound: Task[] = [];
     if (filterDelays) {
       for (const task of tasks) {
-        if (task.name && task.name.includes("DELAY") && task.wbsCode && task.wbsCode.startsWith(parentWbs + '.')) {
+        if (task.name && task.name.toLowerCase().includes("delay") && task.wbsCode && task.wbsCode.startsWith(parentWbs + '.')) {
           delayTaskWbsCodes.push(task.wbsCode);
           delayTasksFound.push(task);
         }
@@ -233,8 +233,8 @@ export default function ProjectDetail() {
       if (!task.wbsCode || task.id === parentId) continue;
       
       if (task.wbsCode.startsWith(parentWbs + '.')) {
-        // Skip if this task contains "DELAY" when filtering
-        if (filterDelays && task.name && task.name.includes("DELAY")) {
+        // Skip if this task contains "delay" when filtering (case-insensitive)
+        if (filterDelays && task.name && task.name.toLowerCase().includes("delay")) {
           continue;
         }
         
@@ -276,7 +276,7 @@ export default function ProjectDetail() {
     for (const task of tasks) {
       if (!task.wbsCode || task.id === phaseId) continue;
       
-      if (ignoreDelayTasks && task.name && task.name.includes("DELAY")) {
+      if (ignoreDelayTasks && task.name && task.name.toLowerCase().includes("delay")) {
         continue;
       }
       
