@@ -671,19 +671,35 @@ export default function ProjectDetail() {
                             ? calculateWorkingDays(phaseDates.startDate, phaseDates.endDate, calendarExceptions)
                             : 0;
 
-                          const phaseDatesData = getPhaseStartEndDates(phase);
                           let phaseMinStart: number | null = null;
                           let phaseMaxEnd: number | null = null;
                           
-                          const phaseDescendants = getAllDescendants(phase.id, ignoreDelayTasks);
-                          for (const desc of phaseDescendants) {
-                            if (desc.startDate) {
-                              const startMs = new Date(desc.startDate).getTime();
-                              phaseMinStart = phaseMinStart === null ? startMs : Math.min(phaseMinStart, startMs);
+                          const childSummaries = getChildTasks(phase.id);
+                          if (childSummaries.length > 0) {
+                            for (const child of childSummaries) {
+                              const childDescendants = getAllDescendants(child.id, ignoreDelayTasks);
+                              for (const desc of childDescendants) {
+                                if (desc.startDate) {
+                                  const startMs = new Date(desc.startDate).getTime();
+                                  phaseMinStart = phaseMinStart === null ? startMs : Math.min(phaseMinStart, startMs);
+                                }
+                                if (desc.endDate) {
+                                  const endMs = new Date(desc.endDate).getTime();
+                                  phaseMaxEnd = phaseMaxEnd === null ? endMs : Math.max(phaseMaxEnd, endMs);
+                                }
+                              }
                             }
-                            if (desc.endDate) {
-                              const endMs = new Date(desc.endDate).getTime();
-                              phaseMaxEnd = phaseMaxEnd === null ? endMs : Math.max(phaseMaxEnd, endMs);
+                          } else {
+                            const descendants = getAllDescendants(phase.id, ignoreDelayTasks);
+                            for (const desc of descendants) {
+                              if (desc.startDate) {
+                                const startMs = new Date(desc.startDate).getTime();
+                                phaseMinStart = phaseMinStart === null ? startMs : Math.min(phaseMinStart, startMs);
+                              }
+                              if (desc.endDate) {
+                                const endMs = new Date(desc.endDate).getTime();
+                                phaseMaxEnd = phaseMaxEnd === null ? endMs : Math.max(phaseMaxEnd, endMs);
+                              }
                             }
                           }
                           
