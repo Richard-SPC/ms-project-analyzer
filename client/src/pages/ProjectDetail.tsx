@@ -584,7 +584,7 @@ export default function ProjectDetail() {
 
                   return (
                     <>
-                      <div className="relative overflow-x-auto">
+                      <div className="relative overflow-x-hidden">
                         {/* Month headers row - same flex structure as timeline rows */}
                         <div className="flex items-center gap-1 mb-3 relative h-7 min-w-max">
                           <div className="w-4 flex-shrink-0" />
