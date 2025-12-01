@@ -7,7 +7,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FolderKanban, FileCheck } from "lucide-react";
 import { Link } from "wouter";
 import { useState, useMemo } from "react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import type { Workspace, Project } from "@shared/schema";
+
+const COLORS = ["#006093", "#159775", "#29CE58", "#494949", "#8B5CF6", "#EC4899", "#F59E0B", "#3B82F6"];
 
 const PROJECT_STATUSES = [
   "Tender",
@@ -55,6 +58,19 @@ export default function Dashboard() {
     return acc;
   }, {} as Record<string, Workspace[]>);
 
+  // Calculate projects by client
+  const projectsByClient = useMemo(() => {
+    if (!workspaces) return [];
+    const clientCounts: Record<string, number> = {};
+    workspaces.forEach(workspace => {
+      const clientName = workspace.client || "Unassigned";
+      clientCounts[clientName] = (clientCounts[clientName] || 0) + 1;
+    });
+    return Object.entries(clientCounts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [workspaces]);
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between gap-6">
@@ -80,6 +96,40 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {projectsByClient.length > 0 && (
+        <Card data-testid="card-projects-by-client">
+          <CardHeader>
+            <CardTitle>Projects by Client</CardTitle>
+            <CardDescription>Total project distribution across clients</CardDescription>
+          </CardHeader>
+          <CardContent className="h-80 flex items-center justify-center">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={projectsByClient}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, value }) => `${name}: ${value}`}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {projectsByClient.map((_, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip 
+                  formatter={(value: number) => `${value} project${value > 1 ? 's' : ''}`}
+                  contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
+                />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      )}
 
       <Card data-testid="card-project-statuses">
         <CardHeader className="flex flex-row items-center justify-between gap-2">
