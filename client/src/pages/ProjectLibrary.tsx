@@ -58,20 +58,20 @@ const PROJECT_STATUSES = [
   "Complete",
 ];
 
-const getStatusButtonClass = (status?: string): string => {
+const getStatusButtonClass = (status?: string | null): string => {
   switch (status) {
     case "Tender":
       return "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100 border-blue-300 dark:border-blue-700";
     case "Pre-Construction":
-      return "bg-yellow-100 text-yellow-900 dark:bg-yellow-900 dark:text-yellow-100 border-yellow-300 dark:border-yellow-700";
-    case "On Site":
       return "bg-orange-100 text-orange-900 dark:bg-orange-900 dark:text-orange-100 border-orange-300 dark:border-orange-700";
-    case "Off Site":
-      return "bg-purple-100 text-purple-900 dark:bg-purple-900 dark:text-purple-100 border-purple-300 dark:border-purple-700";
-    case "Commissioning":
-      return "bg-cyan-100 text-cyan-900 dark:bg-cyan-900 dark:text-cyan-100 border-cyan-300 dark:border-cyan-700";
-    case "Complete":
+    case "On Site":
       return "bg-green-100 text-green-900 dark:bg-green-900 dark:text-green-100 border-green-300 dark:border-green-700";
+    case "Off Site":
+      return "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200 border-red-300 dark:border-red-700";
+    case "Commissioning":
+      return "bg-yellow-100 text-yellow-900 dark:bg-yellow-900 dark:text-yellow-100 border-yellow-300 dark:border-yellow-700";
+    case "Complete":
+      return "bg-red-100 text-red-900 dark:bg-red-900 dark:text-red-100 border-red-300 dark:border-red-700";
     default:
       return "bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700";
   }
