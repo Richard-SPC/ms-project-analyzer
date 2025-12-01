@@ -992,6 +992,66 @@ export default function ProjectDetail() {
                   : "0%"}
               </span>
             </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">Procurement % Complete:</span>
+              <span className="text-sm font-medium">
+                {phases && tasks
+                  ? (() => {
+                      const procurementPhase = phases.find(p => p.name?.toLowerCase().includes("procurement"));
+                      if (!procurementPhase) return "N/A";
+                      
+                      const procurementTasks = tasks.filter(t => {
+                        if (!t.wbsCode || t.isSummary) return false;
+                        const phaseName = procurementPhase.name;
+                        if (!phaseName || !t.wbsCode) return false;
+                        // Check if task is within this phase's WBS
+                        const phaseWbs = procurementPhase.wbsCode;
+                        return t.wbsCode.startsWith(phaseWbs + '.');
+                      });
+                      
+                      if (procurementTasks.length === 0) return "0%";
+                      const totalDuration = procurementTasks.reduce((sum, t) => sum + (t.duration || 0), 0);
+                      if (totalDuration === 0) return "0%";
+                      
+                      const completedDuration = procurementTasks.reduce((sum, t) => 
+                        sum + ((t.duration || 0) * (parseFloat(t.percentComplete || "0") / 100)), 0
+                      );
+                      
+                      return `${Math.round((completedDuration / totalDuration) * 100)}%`;
+                    })()
+                  : "N/A"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm text-muted-foreground">On-Site Works % Complete:</span>
+              <span className="text-sm font-medium">
+                {phases && tasks
+                  ? (() => {
+                      const onSitePhase = phases.find(p => p.name?.toLowerCase().includes("on site") || p.name?.toLowerCase().includes("on-site") || p.name?.toLowerCase().includes("onsite"));
+                      if (!onSitePhase) return "N/A";
+                      
+                      const onSiteTasks = tasks.filter(t => {
+                        if (!t.wbsCode || t.isSummary) return false;
+                        const phaseName = onSitePhase.name;
+                        if (!phaseName || !t.wbsCode) return false;
+                        // Check if task is within this phase's WBS
+                        const phaseWbs = onSitePhase.wbsCode;
+                        return t.wbsCode.startsWith(phaseWbs + '.');
+                      });
+                      
+                      if (onSiteTasks.length === 0) return "0%";
+                      const totalDuration = onSiteTasks.reduce((sum, t) => sum + (t.duration || 0), 0);
+                      if (totalDuration === 0) return "0%";
+                      
+                      const completedDuration = onSiteTasks.reduce((sum, t) => 
+                        sum + ((t.duration || 0) * (parseFloat(t.percentComplete || "0") / 100)), 0
+                      );
+                      
+                      return `${Math.round((completedDuration / totalDuration) * 100)}%`;
+                    })()
+                  : "N/A"}
+              </span>
+            </div>
           </CardContent>
         </Card>
 
