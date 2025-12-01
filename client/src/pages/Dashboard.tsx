@@ -80,16 +80,16 @@ export default function Dashboard() {
           </h1>
         </div>
         <div className="flex gap-4">
-          <Card data-testid="card-total-projects" className="w-fit">
-            <CardContent className="px-3 py-1 flex gap-6">
+          <Card data-testid="card-total-projects" className="w-72">
+            <CardContent className="px-4 py-4 space-y-4">
               <div>
-                <div className="text-lg font-bold" data-testid="text-total-projects">
+                <div className="text-2xl font-bold" data-testid="text-total-projects">
                   {totalProjects}
                 </div>
                 <p className="text-xs text-muted-foreground">Projects</p>
               </div>
               <div>
-                <div className="text-lg font-bold" data-testid="text-total-programmes">
+                <div className="text-2xl font-bold" data-testid="text-total-programmes">
                   {allProjects?.length || 0}
                 </div>
                 <p className="text-xs text-muted-foreground">Programmes</p>
