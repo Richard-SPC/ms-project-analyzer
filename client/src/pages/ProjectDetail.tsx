@@ -876,30 +876,34 @@ export default function ProjectDetail() {
                               }
                               
                               return (
-                                <div key={delayTask.id} className="text-xs">
-                                  <div className="flex items-center gap-1">
-                                    <div className="w-4 flex-shrink-0 flex items-center justify-center">
+                                <div key={delayTask.id} className="text-xs space-y-2 min-w-max">
+                                  <div className="flex items-start gap-1">
+                                    <div className="w-4 flex-shrink-0 flex items-center justify-center pt-0.5">
                                       <span className="text-xs font-bold text-destructive bg-destructive/20 rounded-full w-5 h-5 flex items-center justify-center">{delayIndex + 1}</span>
                                     </div>
-                                    <p className="text-destructive w-32 truncate flex-shrink-0">{delayTask.name}</p>
-                                    <span className="text-destructive/70 w-16 text-right flex-shrink-0">
-                                      {delayDates.startDate ? formatDateUK(delayDates.startDate) : "N/A"}
-                                    </span>
-                                    <div className="flex-1 h-5 bg-muted rounded overflow-hidden relative border border-destructive/30">
-                                      <div
-                                        className="h-full absolute bg-destructive transition-all"
-                                        style={{ left: delayStyle.left, width: delayStyle.width }}
-                                        data-testid={`gantt-delay-${delayTask.id}`}
-                                      />
-                                      <div className="absolute inset-0 flex items-center justify-center">
-                                        <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-2 py-1 rounded bg-black/40" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-                                          {delayDurationDays}d
-                                        </span>
+                                    <div className="w-36 flex-shrink-0 space-y-1">
+                                      <p className="text-destructive truncate">{delayTask.name}</p>
+                                      <div className="flex gap-2 text-xs">
+                                        <span className="text-destructive/70">{delayDates.startDate ? formatDateUK(delayDates.startDate) : "N/A"}</span>
+                                        <span className="text-destructive/70">→</span>
+                                        <span className="text-destructive/70">{delayDates.endDate ? formatDateUK(delayDates.endDate) : "N/A"}</span>
                                       </div>
                                     </div>
-                                    <span className="text-destructive/70 w-16 flex-shrink-0">
-                                      {delayDates.endDate ? formatDateUK(delayDates.endDate) : "N/A"}
-                                    </span>
+                                    <div className="px-2 flex-shrink-0 border-l border-destructive/30" />
+                                    <div className="flex-1 min-w-96">
+                                      <div className="h-5 bg-muted rounded overflow-hidden relative border border-destructive/30">
+                                        <div
+                                          className="h-full absolute bg-destructive transition-all"
+                                          style={{ left: delayStyle.left, width: delayStyle.width }}
+                                          data-testid={`gantt-delay-${delayTask.id}`}
+                                        />
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                          <span className="text-xs font-bold text-white pointer-events-none whitespace-nowrap truncate px-2 py-1 rounded bg-black/40" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+                                            {delayDurationDays}d
+                                          </span>
+                                        </div>
+                                      </div>
+                                    </div>
                                   </div>
                                 </div>
                               );
