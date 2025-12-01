@@ -281,11 +281,6 @@ export default function CompareProgrammes() {
                     <p className="text-sm font-medium text-foreground truncate">
                       {programme.name}
                     </p>
-                    {programme.description && (
-                      <p className="text-xs text-muted-foreground truncate">
-                        {programme.description}
-                      </p>
-                    )}
                   </div>
                   {programme.statusDate && (
                     <span className="text-xs text-muted-foreground flex-shrink-0">
