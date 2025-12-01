@@ -730,7 +730,7 @@ export default function ProjectDetail() {
                           }
 
                           return (
-                            <div key={phase.id} className="text-xs space-y-2 min-w-max">
+                            <div key={`${phase.id}-${ignoreDelayTasks}`} className="text-xs space-y-2 min-w-max">
                               <div className="flex items-start gap-1">
                                 <div className="w-4 flex-shrink-0 flex items-center gap-1 pt-0.5">
                                   {childTasks.length > 0 && (
