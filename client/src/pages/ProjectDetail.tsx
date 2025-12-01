@@ -555,8 +555,10 @@ export default function ProjectDetail() {
                   // Extend timeline by 1 month on each side
                   const timelineStart = new Date(projectStart);
                   timelineStart.setMonth(timelineStart.getMonth() - 1);
+                  timelineStart.setDate(1);
                   const timelineEnd = new Date(projectEnd);
                   timelineEnd.setMonth(timelineEnd.getMonth() + 1);
+                  timelineEnd.setDate(1);
                   
                   const totalMs = timelineEnd.getTime() - timelineStart.getTime();
                   
