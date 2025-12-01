@@ -972,7 +972,7 @@ export default function ProjectDetail() {
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-sm text-muted-foreground">% Complete:</span>
+              <span className="text-sm text-muted-foreground">Overall Project % Complete:</span>
               <span className="text-sm font-medium">
                 {tasks && tasks.length > 0
                   ? (() => {
