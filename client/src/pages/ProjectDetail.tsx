@@ -682,11 +682,12 @@ export default function ProjectDetail() {
                             for (const child of childSummaries) {
                               const childDescendants = getAllDescendants(child.id, ignoreDelayTasks);
                               for (const desc of childDescendants) {
-                                if (desc.startDate) {
+                                // Only use non-summary tasks for min/max calculation
+                                if (!desc.isSummary && desc.startDate) {
                                   const startMs = new Date(desc.startDate).getTime();
                                   phaseMinStart = phaseMinStart === null ? startMs : Math.min(phaseMinStart, startMs);
                                 }
-                                if (desc.endDate) {
+                                if (!desc.isSummary && desc.endDate) {
                                   const endMs = new Date(desc.endDate).getTime();
                                   phaseMaxEnd = phaseMaxEnd === null ? endMs : Math.max(phaseMaxEnd, endMs);
                                 }
@@ -695,11 +696,12 @@ export default function ProjectDetail() {
                           } else {
                             const descendants = getAllDescendants(phase.id, ignoreDelayTasks);
                             for (const desc of descendants) {
-                              if (desc.startDate) {
+                              // Only use non-summary tasks for min/max calculation
+                              if (!desc.isSummary && desc.startDate) {
                                 const startMs = new Date(desc.startDate).getTime();
                                 phaseMinStart = phaseMinStart === null ? startMs : Math.min(phaseMinStart, startMs);
                               }
-                              if (desc.endDate) {
+                              if (!desc.isSummary && desc.endDate) {
                                 const endMs = new Date(desc.endDate).getTime();
                                 phaseMaxEnd = phaseMaxEnd === null ? endMs : Math.max(phaseMaxEnd, endMs);
                               }
@@ -719,16 +721,10 @@ export default function ProjectDetail() {
                           
                           let phaseStyle = { left: "0%", width: "0%" };
                           if (phaseMinStart !== null && phaseMaxEnd !== null) {
-                            // Use actual project boundaries (not timeline boundaries) for phase positioning
-                            const actualProjectStart = new Date(projectStart).getTime();
-                            const actualProjectEnd = new Date(projectEnd).getTime();
-                            const projectDurationMs = actualProjectEnd - actualProjectStart;
-                            
-                            const phaseStartOffset = phaseMinStart - actualProjectStart;
-                            const phaseDurationMs = phaseMaxEnd - phaseMinStart;
-                            
-                            const left = (phaseStartOffset / projectDurationMs) * 100;
-                            const width = (phaseDurationMs / projectDurationMs) * 100;
+                            const taskStartMs = phaseMinStart - timelineStart.getTime();
+                            const taskDurationMs = phaseMaxEnd - phaseMinStart;
+                            const left = (taskStartMs / totalMs) * 100;
+                            const width = (taskDurationMs / totalMs) * 100;
                             phaseStyle = {
                               left: `${Math.max(0, left)}%`,
                               width: `${Math.max(0, Math.min(width, 100 - left))}%`,
