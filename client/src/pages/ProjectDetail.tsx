@@ -217,14 +217,39 @@ export default function ProjectDetail() {
     const parentWbs = parent.wbsCode;
     const descendants: Task[] = [];
     
+    // If filtering delays, collect all delay task WBS codes to exclude their descendants
+    const delayTaskWbsCodes = new Set<string>();
+    if (filterDelays) {
+      for (const task of tasks) {
+        if (task.name && task.name.startsWith("Delay -") && task.wbsCode && task.wbsCode.startsWith(parentWbs + '.')) {
+          delayTaskWbsCodes.add(task.wbsCode);
+        }
+      }
+    }
+    
     for (const task of tasks) {
       if (!task.wbsCode || task.id === parentId) continue;
       
-      if (filterDelays && task.name && task.name.startsWith("Delay -")) {
-        continue;
-      }
-      
       if (task.wbsCode.startsWith(parentWbs + '.')) {
+        // Skip if this task is a delay task
+        if (filterDelays && task.name && task.name.startsWith("Delay -")) {
+          continue;
+        }
+        
+        // Skip if this task is a descendant of a delay task
+        if (filterDelays && delayTaskWbsCodes.size > 0) {
+          let isDescendantOfDelayTask = false;
+          for (const delayWbs of delayTaskWbsCodes) {
+            if (task.wbsCode.startsWith(delayWbs + '.')) {
+              isDescendantOfDelayTask = true;
+              break;
+            }
+          }
+          if (isDescendantOfDelayTask) {
+            continue;
+          }
+        }
+        
         if (filterDelays && task.isSummary && !hasNonDelayDescendants(task.id)) {
           continue;
         }
