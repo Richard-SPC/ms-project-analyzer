@@ -673,38 +673,20 @@ export default function ProjectDetail() {
                           const childTasks = getChildTasks(phase.id);
                           const isExpanded = expandedPhase === phase.id;
                           
-                          // Recalculate phase min/max using current timeline
+                          // Recalculate phase min/max using current timeline with ignoreDelayTasks
                           let phaseMinStart: number | null = null;
                           let phaseMaxEnd: number | null = null;
                           
-                          const childSummaries = getChildTasks(phase.id);
-                          if (childSummaries.length > 0) {
-                            for (const child of childSummaries) {
-                              const childDescendants = getAllDescendants(child.id, ignoreDelayTasks);
-                              for (const desc of childDescendants) {
-                                // Only use non-summary tasks for min/max calculation
-                                if (!desc.isSummary && desc.startDate) {
-                                  const startMs = new Date(desc.startDate).getTime();
-                                  phaseMinStart = phaseMinStart === null ? startMs : Math.min(phaseMinStart, startMs);
-                                }
-                                if (!desc.isSummary && desc.endDate) {
-                                  const endMs = new Date(desc.endDate).getTime();
-                                  phaseMaxEnd = phaseMaxEnd === null ? endMs : Math.max(phaseMaxEnd, endMs);
-                                }
-                              }
+                          const descendants = getAllDescendants(phase.id, ignoreDelayTasks);
+                          for (const desc of descendants) {
+                            // Only use non-summary tasks for min/max calculation
+                            if (!desc.isSummary && desc.startDate) {
+                              const startMs = new Date(desc.startDate).getTime();
+                              phaseMinStart = phaseMinStart === null ? startMs : Math.min(phaseMinStart, startMs);
                             }
-                          } else {
-                            const descendants = getAllDescendants(phase.id, ignoreDelayTasks);
-                            for (const desc of descendants) {
-                              // Only use non-summary tasks for min/max calculation
-                              if (!desc.isSummary && desc.startDate) {
-                                const startMs = new Date(desc.startDate).getTime();
-                                phaseMinStart = phaseMinStart === null ? startMs : Math.min(phaseMinStart, startMs);
-                              }
-                              if (!desc.isSummary && desc.endDate) {
-                                const endMs = new Date(desc.endDate).getTime();
-                                phaseMaxEnd = phaseMaxEnd === null ? endMs : Math.max(phaseMaxEnd, endMs);
-                              }
+                            if (!desc.isSummary && desc.endDate) {
+                              const endMs = new Date(desc.endDate).getTime();
+                              phaseMaxEnd = phaseMaxEnd === null ? endMs : Math.max(phaseMaxEnd, endMs);
                             }
                           }
                           
