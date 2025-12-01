@@ -704,7 +704,8 @@ export default function ProjectDetail() {
                           
                           // ALWAYS use the direct getAllDescendants for phase calculations
                           const allPhaseDescendants = getAllDescendants(phase.id, ignoreDelayTasks);
-                          console.log(`Phase ${phase.name} (${phase.id}): ignoreDelayTasks=${ignoreDelayTasks}, descendants=${allPhaseDescendants.length}`);
+                          const delayTasksInPhase = tasks?.filter(t => t.wbsCode && t.wbsCode.startsWith(phase.wbsCode + '.') && t.name?.startsWith("Delay -")) || [];
+                          console.log(`Phase ${phase.name} (${phase.id}): ignoreDelayTasks=${ignoreDelayTasks}, descendants=${allPhaseDescendants.length}, delayTasks=${delayTasksInPhase.length}`, delayTasksInPhase.map(t => t.name));
                           
                           for (const desc of allPhaseDescendants) {
                             // Only use non-summary tasks for min/max calculation
