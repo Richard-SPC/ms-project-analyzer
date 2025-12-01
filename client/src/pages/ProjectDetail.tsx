@@ -670,7 +670,7 @@ export default function ProjectDetail() {
                         </div>
                         {phases.map((phase) => {
                           const isOnSite = phase.name?.toLowerCase().includes("on site") || phase.name?.toLowerCase().includes("on-site") || phase.name?.toLowerCase().includes("onsite");
-                          const childTasks = isOnSite ? getChildTasks(phase.id) : [];
+                          const childTasks = getChildTasks(phase.id);
                           const isExpanded = expandedPhase === phase.id;
                           
                           // Recalculate phase min/max using current timeline
