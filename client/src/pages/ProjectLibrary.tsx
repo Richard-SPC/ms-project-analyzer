@@ -580,6 +580,10 @@ export default function ProjectLibrary() {
     // Also include project if any of its programmes match
     const projectProgrammes = getProgrammesForProject(project.id);
     return projectProgrammes.some(p => p.name.toLowerCase().includes(searchLower));
+  })?.sort((a, b) => {
+    const statusIndexA = PROJECT_STATUSES.indexOf(a.status || "");
+    const statusIndexB = PROJECT_STATUSES.indexOf(b.status || "");
+    return statusIndexA - statusIndexB;
   }) || [];
 
   return (
