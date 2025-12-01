@@ -225,7 +225,7 @@ function ProjectSection({
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-              <p className="text-sm font-semibold text-foreground truncate leading-tight">
+              <p className="text-sm font-semibold text-foreground truncate leading-tight min-w-40">
                 {project.projectManager ? `PM: ${project.projectManager}` : ""}
               </p>
             </div>
