@@ -219,10 +219,12 @@ export default function ProjectDetail() {
     
     // If filtering delays, collect all delay task WBS codes to exclude their descendants
     const delayTaskWbsCodes: string[] = [];
+    const delayTasksFound: Task[] = [];
     if (filterDelays) {
       for (const task of tasks) {
-        if (task.name && task.name.startsWith("Delay -") && task.wbsCode && task.wbsCode.startsWith(parentWbs + '.')) {
+        if (task.name && task.name.includes("DELAY") && task.wbsCode && task.wbsCode.startsWith(parentWbs + '.')) {
           delayTaskWbsCodes.push(task.wbsCode);
+          delayTasksFound.push(task);
         }
       }
     }
@@ -231,8 +233,8 @@ export default function ProjectDetail() {
       if (!task.wbsCode || task.id === parentId) continue;
       
       if (task.wbsCode.startsWith(parentWbs + '.')) {
-        // Skip if this task is a delay task
-        if (filterDelays && task.name && task.name.startsWith("Delay -")) {
+        // Skip if this task contains "DELAY" when filtering
+        if (filterDelays && task.name && task.name.includes("DELAY")) {
           continue;
         }
         
@@ -256,6 +258,11 @@ export default function ProjectDetail() {
         descendants.push(task);
       }
     }
+    
+    if (filterDelays && parent.id === 4556) {
+      console.log(`[Procurement] Filtering delays: found ${delayTasksFound.length} delay tasks`, delayTasksFound.map(t => t.name), `; returned ${descendants.length} descendants`);
+    }
+    
     return descendants;
   };
 
