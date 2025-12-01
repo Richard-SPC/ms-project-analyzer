@@ -147,30 +147,13 @@ export default function Dashboard() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm">By Project Manager</CardTitle>
               </CardHeader>
-              <CardContent className="h-48">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={projectsByPM} layout="vertical" margin={{ top: 5, right: 20, left: 120, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                    <XAxis type="number" fontSize={11} />
-                    <YAxis 
-                      dataKey="name"
-                      type="category" 
-                      width={115} 
-                      tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }}
-                    />
-                    <Tooltip 
-                      formatter={(value: number) => [`${value} project${value > 1 ? 's' : ''}`, 'Count']}
-                      contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
-                      cursor={{ fill: 'hsl(var(--muted))/0.1' }}
-                    />
-                    <Bar 
-                      dataKey="value" 
-                      fill="#006093" 
-                      radius={[0, 4, 4, 0]}
-                      label={{ position: 'right', fontSize: 12, fill: 'hsl(var(--foreground))' }}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+              <CardContent className="space-y-2">
+                {projectsByPM.map((pm) => (
+                  <div key={pm.name} className="flex items-center justify-between py-1">
+                    <span className="text-sm text-foreground">{pm.name}</span>
+                    <span className="text-lg font-bold text-primary">{pm.value}</span>
+                  </div>
+                ))}
               </CardContent>
             </Card>
           )}
