@@ -614,6 +614,16 @@ export default function ProjectDetail() {
 
 
                         <div className="space-y-2 relative">
+                        {/* Continuous status date line */}
+                        {project?.statusDate && (
+                          <div className="absolute inset-0 pointer-events-none z-30" style={{ marginLeft: 'calc(0.25rem + 1rem + 0.25rem + 9rem + 0.25rem + 0.5rem)' }}>
+                            <div
+                              className="absolute top-0 bottom-0 w-0.5 bg-red-500"
+                              style={{ left: `${((new Date(project.statusDate).getTime() - timelineStart.getTime()) / totalMs) * 100}%`, height: '100%' }}
+                              data-testid="gantt-status-date-line-continuous"
+                            />
+                          </div>
+                        )}
                         <div className="text-xs space-y-2">
                           <div className="flex items-start gap-1 min-w-max">
                             <div className="w-4 flex-shrink-0" />
@@ -640,16 +650,6 @@ export default function ProjectDetail() {
                                   );
                                 })}
                               </div>
-                              {/* Status date progress line */}
-                              {project?.statusDate && (
-                                <div className="absolute inset-0 pointer-events-none z-20">
-                                  <div
-                                    className="absolute top-0 bottom-0 w-0.5 bg-red-500"
-                                    style={{ left: `${((new Date(project.statusDate).getTime() - timelineStart.getTime()) / totalMs) * 100}%`, height: '100%' }}
-                                    data-testid="gantt-status-date-line"
-                                  />
-                                </div>
-                              )}
                               <div className="h-5 bg-muted rounded overflow-hidden relative border border-border">
                                 <div
                                   className="h-full absolute bg-[#494949]"
@@ -747,15 +747,6 @@ export default function ProjectDetail() {
                                 </div>
                                 <div className="px-2 flex-shrink-0 border-l border-muted-foreground/30" />
                                 <div className="flex-1 min-w-96 relative">
-                                  {/* Status line for phase bars */}
-                                  {project?.statusDate && (
-                                    <div className="absolute inset-0 pointer-events-none z-20">
-                                      <div
-                                        className="absolute top-0 bottom-0 w-0.5 bg-red-500"
-                                        style={{ left: `${((new Date(project.statusDate).getTime() - timelineStart.getTime()) / totalMs) * 100}%`, height: '100%' }}
-                                      />
-                                    </div>
-                                  )}
                                   <div className="h-5 bg-muted rounded overflow-hidden relative border border-border">
                                     <div
                                       className={`h-full absolute ${getPhaseColor(phase.name)} rounded transition-all`}
@@ -820,15 +811,6 @@ export default function ProjectDetail() {
                                           </div>
                                           <div className="px-2 flex-shrink-0 border-l border-muted-foreground/30" />
                                           <div className="flex-1 min-w-96 relative">
-                                            {/* Status line for child bars */}
-                                            {project?.statusDate && (
-                                              <div className="absolute inset-0 pointer-events-none z-20">
-                                                <div
-                                                  className="absolute top-0 bottom-0 w-0.5 bg-red-500"
-                                                  style={{ left: `${((new Date(project.statusDate).getTime() - timelineStart.getTime()) / totalMs) * 100}%`, height: '100%' }}
-                                                />
-                                              </div>
-                                            )}
                                             <div className="h-4 bg-muted rounded overflow-hidden relative border border-muted-foreground/30">
                                               <div
                                                 className="h-full absolute bg-[#159775] transition-all"
