@@ -21,6 +21,25 @@ const PROJECT_STATUSES = [
   "Complete",
 ];
 
+const getStatusBgClass = (status: string): string => {
+  switch (status) {
+    case "Tender":
+      return "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100";
+    case "Pre-Construction":
+      return "bg-orange-100 text-orange-900 dark:bg-orange-900 dark:text-orange-100";
+    case "On Site":
+      return "bg-green-100 text-green-900 dark:bg-green-900 dark:text-green-100";
+    case "Off Site":
+      return "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200";
+    case "Commissioning":
+      return "bg-yellow-100 text-yellow-900 dark:bg-yellow-900 dark:text-yellow-100";
+    case "Complete":
+      return "bg-red-900 text-red-100 dark:bg-red-950 dark:text-red-100";
+    default:
+      return "bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100";
+  }
+};
+
 export default function Dashboard() {
   const [viewMode, setViewMode] = useState("latest");
   const [selectedClient, setSelectedClient] = useState<string>("all");
@@ -213,7 +232,7 @@ export default function Dashboard() {
                       <div className="flex items-center justify-between w-full gap-2 pr-2">
                         <span className="text-lg font-bold">{status}</span>
                         <span 
-                          className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-semibold"
+                          className={`inline-flex items-center justify-center h-6 w-6 rounded-full text-xs font-semibold ${getStatusBgClass(status)}`}
                           data-testid={`text-count-${status.toLowerCase().replace(/\s+/g, '-')}`}
                         >
                           {projectsForStatus.length}
