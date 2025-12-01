@@ -588,7 +588,7 @@ export default function ProjectDetail() {
                         {/* Month headers row - same flex structure as timeline rows */}
                         <div className="flex items-center gap-1 mb-3 relative h-7 min-w-max">
                           <div className="w-4 flex-shrink-0" />
-                          <div className="w-40 flex-shrink-0" />
+                          <div className="w-36 flex-shrink-0" />
                           <div className="px-2 flex-shrink-0 border-l border-muted-foreground/30" />
                           <div className="flex-1 relative min-w-96">
                             {markers.map((marker, idx) => {
@@ -612,24 +612,6 @@ export default function ProjectDetail() {
                           </div>
                         </div>
 
-                        {/* Gridlines overlay - only over chart area, not labels */}
-                        <div className="absolute left-0 right-0 top-6 bottom-0 pointer-events-none z-10 overflow-hidden">
-                          <div className="flex items-start gap-1 h-full" style={{ marginLeft: 'calc(1rem + 0.25rem + 9rem + 0.25rem + 1rem)' }}>
-                            <div className="px-2 flex-shrink-0" />
-                            <div className="flex-1 relative h-full min-w-96">
-                              {markers.map((marker, idx) => {
-                                const currentPosition = ((marker.getTime() - timelineStart.getTime()) / totalMs) * 100;
-                                return (
-                                  <div
-                                    key={`gridline-full-${idx}`}
-                                    className="absolute top-0 bottom-0 w-px bg-border/40"
-                                    style={{ left: `${currentPosition}%`, height: '100%' }}
-                                  />
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </div>
 
                         <div className="space-y-2 relative">
                         <div className="text-xs space-y-2">
@@ -644,7 +626,20 @@ export default function ProjectDetail() {
                               </div>
                             </div>
                             <div className="px-2 flex-shrink-0 border-l border-muted-foreground/30" />
-                            <div className="flex-1 min-w-96">
+                            <div className="flex-1 min-w-96 relative">
+                              {/* Gridlines for chart area */}
+                              <div className="absolute inset-0 pointer-events-none z-10">
+                                {markers.map((marker, idx) => {
+                                  const currentPosition = ((marker.getTime() - timelineStart.getTime()) / totalMs) * 100;
+                                  return (
+                                    <div
+                                      key={`gridline-${idx}`}
+                                      className="absolute top-0 bottom-0 w-px bg-border/40"
+                                      style={{ left: `${currentPosition}%`, height: '100%' }}
+                                    />
+                                  );
+                                })}
+                              </div>
                               <div className="h-5 bg-muted rounded overflow-hidden relative border border-border">
                                 <div
                                   className="h-full absolute bg-[#494949]"
