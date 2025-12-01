@@ -286,13 +286,13 @@ function ProjectSection({
             {programmes.length > 0 ? (
               <div className="space-y-0">
                 {(() => {
-                  const mostRecentProgramme = programmes.reduce((latest, current) => {
-                    const latestDate = latest.statusDate ? new Date(latest.statusDate).getTime() : 0;
-                    const currentDate = current.statusDate ? new Date(current.statusDate).getTime() : 0;
-                    return currentDate > latestDate ? current : latest;
-                  }, programmes[0]);
+                  const sortedProgrammes = [...programmes].sort((a, b) => {
+                    const dateA = a.statusDate ? new Date(a.statusDate).getTime() : 0;
+                    const dateB = b.statusDate ? new Date(b.statusDate).getTime() : 0;
+                    return dateB - dateA; // Most recent first (descending)
+                  });
 
-                  return programmes.map((programme) => (
+                  return sortedProgrammes.map((programme) => (
                     <ProgrammeTile
                       key={programme.id}
                       programme={programme}
