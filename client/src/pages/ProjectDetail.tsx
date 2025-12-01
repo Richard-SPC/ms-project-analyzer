@@ -505,9 +505,8 @@ export default function ProjectDetail() {
         </Badge>
       </div>
 
-      {project?.startDate && project?.endDate && phases.length > 0 && (() => {
-        const timeline = (
-          <Card>
+      {project?.startDate && project?.endDate && phases.length > 0 && (
+        <Card>
             <CardHeader>
               <CardTitle>Project Timeline</CardTitle>
               <CardDescription>Phase-level schedule visualization</CardDescription>
