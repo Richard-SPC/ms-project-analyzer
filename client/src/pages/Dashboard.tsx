@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FolderKanban, FileCheck } from "lucide-react";
 import { Link } from "wouter";
 import { useState, useMemo } from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import type { Workspace, Project } from "@shared/schema";
 
 const COLORS = ["#006093", "#159775", "#29CE58", "#494949", "#8B5CF6", "#EC4899", "#F59E0B", "#3B82F6"];
@@ -71,6 +71,19 @@ export default function Dashboard() {
       .sort((a, b) => b.value - a.value);
   }, [workspaces]);
 
+  // Calculate projects by PM
+  const projectsByPM = useMemo(() => {
+    if (!workspaces) return [];
+    const pmCounts: Record<string, number> = {};
+    workspaces.forEach(workspace => {
+      const pmName = workspace.projectManager || "Unassigned";
+      pmCounts[pmName] = (pmCounts[pmName] || 0) + 1;
+    });
+    return Object.entries(pmCounts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [workspaces]);
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-start justify-between gap-4">
@@ -79,7 +92,7 @@ export default function Dashboard() {
             Overview
           </h1>
         </div>
-        <div className="flex gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <Card data-testid="card-total-projects" className="w-72">
             <CardContent className="px-4 py-4 space-y-4">
               <div>
@@ -124,6 +137,28 @@ export default function Dashboard() {
                       contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
                     />
                   </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          )}
+
+          {projectsByPM.length > 0 && (
+            <Card data-testid="card-projects-by-pm" className="w-72">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">By PM</CardTitle>
+              </CardHeader>
+              <CardContent className="h-40">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={projectsByPM} layout="vertical" margin={{ top: 0, right: 30, left: 80, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis type="number" />
+                    <YAxis dataKey="name" type="category" width={75} tick={{ fontSize: 12 }} />
+                    <Tooltip 
+                      formatter={(value: number) => `${value}`}
+                      contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
+                    />
+                    <Bar dataKey="value" fill="#006093" radius={[0, 4, 4, 0]} />
+                  </BarChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
