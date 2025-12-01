@@ -218,11 +218,11 @@ export default function ProjectDetail() {
     const descendants: Task[] = [];
     
     // If filtering delays, collect all delay task WBS codes to exclude their descendants
-    const delayTaskWbsCodes = new Set<string>();
+    const delayTaskWbsCodes: string[] = [];
     if (filterDelays) {
       for (const task of tasks) {
         if (task.name && task.name.startsWith("Delay -") && task.wbsCode && task.wbsCode.startsWith(parentWbs + '.')) {
-          delayTaskWbsCodes.add(task.wbsCode);
+          delayTaskWbsCodes.push(task.wbsCode);
         }
       }
     }
@@ -237,7 +237,7 @@ export default function ProjectDetail() {
         }
         
         // Skip if this task is a descendant of a delay task
-        if (filterDelays && delayTaskWbsCodes.size > 0) {
+        if (filterDelays && delayTaskWbsCodes.length > 0) {
           let isDescendantOfDelayTask = false;
           for (const delayWbs of delayTaskWbsCodes) {
             if (task.wbsCode.startsWith(delayWbs + '.')) {
@@ -702,8 +702,11 @@ export default function ProjectDetail() {
                           let phaseMinStart: number | null = null;
                           let phaseMaxEnd: number | null = null;
                           
-                          const descendants = getAllDescendants(phase.id, ignoreDelayTasks);
-                          for (const desc of descendants) {
+                          // ALWAYS use the direct getAllDescendants for phase calculations
+                          const allPhaseDescendants = getAllDescendants(phase.id, ignoreDelayTasks);
+                          console.log(`Phase ${phase.name} (${phase.id}): ignoreDelayTasks=${ignoreDelayTasks}, descendants=${allPhaseDescendants.length}`);
+                          
+                          for (const desc of allPhaseDescendants) {
                             // Only use non-summary tasks for min/max calculation
                             if (!desc.isSummary && desc.startDate) {
                               const startMs = new Date(desc.startDate).getTime();
