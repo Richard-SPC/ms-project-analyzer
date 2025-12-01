@@ -505,27 +505,28 @@ export default function ProjectDetail() {
         </Badge>
       </div>
 
-      {project?.startDate && project?.endDate && phases.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Project Timeline</CardTitle>
-            <CardDescription>Phase-level schedule visualization</CardDescription>
-          </CardHeader>
-          <CardContent className="px-4 py-2">
-            <div className="flex items-center gap-2 mb-3">
-              <input
-                type="checkbox"
-                id="ignore-delay-tasks"
-                checked={ignoreDelayTasks}
-                onChange={(e) => setIgnoreDelayTasks(e.target.checked)}
-                className="cursor-pointer"
-                data-testid="checkbox-ignore-delay"
-              />
-              <label htmlFor="ignore-delay-tasks" className="text-xs text-muted-foreground cursor-pointer">
-                Detail Delay Tasks
-              </label>
-            </div>
-            <div className="space-y-2">
+      {project?.startDate && project?.endDate && phases.length > 0 && (() => {
+        const timeline = (
+          <Card>
+            <CardHeader>
+              <CardTitle>Project Timeline</CardTitle>
+              <CardDescription>Phase-level schedule visualization</CardDescription>
+            </CardHeader>
+            <CardContent className="px-4 py-2">
+              <div className="flex items-center gap-2 mb-3">
+                <input
+                  type="checkbox"
+                  id="ignore-delay-tasks"
+                  checked={ignoreDelayTasks}
+                  onChange={(e) => setIgnoreDelayTasks(e.target.checked)}
+                  className="cursor-pointer"
+                  data-testid="checkbox-ignore-delay"
+                />
+                <label htmlFor="ignore-delay-tasks" className="text-xs text-muted-foreground cursor-pointer">
+                  Detail Delay Tasks
+                </label>
+              </div>
+              <div className="space-y-2">
               <div className="text-xs">
                 {(() => {
                   // Calculate actual project start/end from tasks instead of project metadata
