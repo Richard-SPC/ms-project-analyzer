@@ -672,12 +672,8 @@ export default function ProjectDetail() {
                           const isOnSite = phase.name?.toLowerCase().includes("on site") || phase.name?.toLowerCase().includes("on-site") || phase.name?.toLowerCase().includes("onsite");
                           const childTasks = isOnSite ? getChildTasks(phase.id) : [];
                           const isExpanded = expandedPhase === phase.id;
-                          const phaseDates = getPhaseStartEndDates(phase);
                           
-                          const durationDays = phaseDates.startDate && phaseDates.endDate 
-                            ? calculateWorkingDays(phaseDates.startDate, phaseDates.endDate, calendarExceptions)
-                            : 0;
-
+                          // Recalculate phase min/max using current timeline
                           let phaseMinStart: number | null = null;
                           let phaseMaxEnd: number | null = null;
                           
@@ -709,6 +705,11 @@ export default function ProjectDetail() {
                               }
                             }
                           }
+                          
+                          // Calculate working days for duration label
+                          const durationDays = phaseMinStart !== null && phaseMaxEnd !== null 
+                            ? calculateWorkingDays(new Date(phaseMinStart), new Date(phaseMaxEnd), calendarExceptions)
+                            : 0;
                           
                           let phaseStyle = { left: "0%", width: "0%" };
                           if (phaseMinStart !== null && phaseMaxEnd !== null) {
