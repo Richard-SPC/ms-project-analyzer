@@ -209,7 +209,7 @@ function ProjectSection({
             <div className="flex-1 flex justify-center min-w-0 items-center gap-4">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="text-xs" data-testid={`button-status-dropdown-${project.id}`}>
+                  <Button variant="outline" size="sm" className="text-xs w-28 flex-shrink-0" data-testid={`button-status-dropdown-${project.id}`}>
                     {project.status || "Not set"}
                   </Button>
                 </DropdownMenuTrigger>
