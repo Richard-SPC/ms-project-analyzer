@@ -149,10 +149,15 @@ export default function Dashboard() {
               </CardHeader>
               <CardContent className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={projectsByPM} layout="vertical" margin={{ top: 5, right: 20, left: 5, bottom: 5 }}>
+                  <BarChart data={projectsByPM} layout="vertical" margin={{ top: 5, right: 20, left: 120, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                     <XAxis type="number" fontSize={11} />
-                    <YAxis type="category" width={0} />
+                    <YAxis 
+                      dataKey="name"
+                      type="category" 
+                      width={115} 
+                      tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }}
+                    />
                     <Tooltip 
                       formatter={(value: number) => [`${value} project${value > 1 ? 's' : ''}`, 'Count']}
                       contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
@@ -162,18 +167,7 @@ export default function Dashboard() {
                       dataKey="value" 
                       fill="#006093" 
                       radius={[0, 4, 4, 0]}
-                      label={({ x, y, width, height, value }) => (
-                        <text 
-                          x={x - 8} 
-                          y={y + height / 2} 
-                          fill="hsl(var(--foreground))" 
-                          fontSize={12}
-                          textAnchor="end"
-                          dominantBaseline="middle"
-                        >
-                          {projectsByPM.find(item => item.value === value)?.name}
-                        </text>
-                      )}
+                      label={{ position: 'right', fontSize: 12, fill: 'hsl(var(--foreground))' }}
                     />
                   </BarChart>
                 </ResponsiveContainer>
