@@ -71,7 +71,7 @@ const getStatusButtonClass = (status?: string | null): string => {
     case "Commissioning":
       return "bg-yellow-100 text-yellow-900 dark:bg-yellow-900 dark:text-yellow-100 border-yellow-300 dark:border-yellow-700";
     case "Complete":
-      return "bg-red-100 text-red-900 dark:bg-red-900 dark:text-red-100 border-red-300 dark:border-red-700";
+      return "bg-red-900 text-red-100 dark:bg-red-950 dark:text-red-100 border-red-800 dark:border-red-900";
     default:
       return "bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700";
   }
