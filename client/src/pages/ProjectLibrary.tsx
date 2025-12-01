@@ -259,9 +259,6 @@ function ProjectSection({
               </DropdownMenu>
             </div>
           </div>
-          {project.description && (
-            <CardDescription className="ml-6 text-xs">{project.description}</CardDescription>
-          )}
         </CardHeader>
         <CollapsibleContent>
           <CardContent className="pt-2 pb-2 space-y-2">
@@ -555,8 +552,7 @@ export default function ProjectLibrary() {
   const filteredProjects = projects?.filter(project => {
     const searchLower = searchText.toLowerCase();
     const matchesProject = project.name.toLowerCase().includes(searchLower) ||
-      project.projectManager?.toLowerCase().includes(searchLower) ||
-      project.description?.toLowerCase().includes(searchLower);
+      project.projectManager?.toLowerCase().includes(searchLower);
     
     if (matchesProject) return true;
     

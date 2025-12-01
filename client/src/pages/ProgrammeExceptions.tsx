@@ -344,11 +344,6 @@ export default function ProgrammeExceptions() {
                       <p className="text-sm font-medium text-foreground truncate">
                         {programme.name}
                       </p>
-                      {programme.description && (
-                        <p className="text-xs text-muted-foreground truncate">
-                          {programme.description}
-                        </p>
-                      )}
                     </div>
                     <span className="w-20 text-xs text-muted-foreground flex-shrink-0 truncate">
                       {programme.startDate ? formatDateUK(programme.startDate) : '-'}

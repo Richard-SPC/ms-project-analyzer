@@ -525,7 +525,6 @@ export default function ProjectDetail() {
           </Link>
           <div>
             <h1 className="text-3xl font-bold text-foreground" data-testid="text-project-name">{project.name}</h1>
-            <p className="text-muted-foreground">{project.description || "No description"}</p>
           </div>
         </div>
         <Badge variant={project.status === "active" ? "default" : "secondary"} data-testid="badge-project-status">
