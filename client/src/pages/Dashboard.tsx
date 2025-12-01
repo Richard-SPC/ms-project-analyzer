@@ -145,19 +145,30 @@ export default function Dashboard() {
           {projectsByPM.length > 0 && (
             <Card data-testid="card-projects-by-pm" className="w-72">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm">By PM</CardTitle>
+                <CardTitle className="text-sm">By Project Manager</CardTitle>
               </CardHeader>
-              <CardContent className="h-40">
+              <CardContent className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={projectsByPM} layout="vertical" margin={{ top: 0, right: 30, left: 80, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="name" type="category" width={75} tick={{ fontSize: 12 }} />
-                    <Tooltip 
-                      formatter={(value: number) => `${value}`}
-                      contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
+                  <BarChart data={projectsByPM} layout="vertical" margin={{ top: 5, right: 20, left: 110, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                    <XAxis type="number" fontSize={11} />
+                    <YAxis 
+                      dataKey="name" 
+                      type="category" 
+                      width={105} 
+                      tick={{ fontSize: 13, fill: 'hsl(var(--foreground))' }}
                     />
-                    <Bar dataKey="value" fill="#006093" radius={[0, 4, 4, 0]} />
+                    <Tooltip 
+                      formatter={(value: number) => [`${value} project${value > 1 ? 's' : ''}`, 'Count']}
+                      contentStyle={{ backgroundColor: 'hsl(var(--background))', border: '1px solid hsl(var(--border))' }}
+                      cursor={{ fill: 'hsl(var(--muted))/0.1' }}
+                    />
+                    <Bar 
+                      dataKey="value" 
+                      fill="#006093" 
+                      radius={[0, 4, 4, 0]}
+                      label={{ position: 'right', fontSize: 12, fill: 'hsl(var(--foreground))' }}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
