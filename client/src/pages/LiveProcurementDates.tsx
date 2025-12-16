@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { formatDateUK } from "@/lib/utils";
 import { useState, useMemo } from "react";
@@ -27,7 +29,7 @@ export default function LiveProcurementDates() {
   });
 
   const [selectedClient, setSelectedClient] = useState<string>("all");
-  const [selectedProject, setSelectedProject] = useState<string>("all");
+  const [selectedProjects, setSelectedProjects] = useState<Set<string>>(new Set());
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
 
   // Group by workspace and project
@@ -68,7 +70,7 @@ export default function LiveProcurementDates() {
       Object.entries(projects).forEach(([projectName, tasks]) => {
         const firstTask = tasks[0];
         const matchesClient = selectedClient === "all" || firstTask?.client === selectedClient;
-        const matchesProject = selectedProject === "all" || projectName === selectedProject;
+        const matchesProject = selectedProjects.size === 0 || selectedProjects.has(projectName);
         
         if (matchesClient && matchesProject) {
           if (!filtered[workspaceName]) {
@@ -80,7 +82,7 @@ export default function LiveProcurementDates() {
     });
     
     return filtered;
-  }, [groupedData, selectedClient, selectedProject]);
+  }, [groupedData, selectedClient, selectedProjects]);
 
   const toggleProject = (key: string) => {
     const newSet = new Set(expandedProjects);
@@ -92,7 +94,17 @@ export default function LiveProcurementDates() {
     setExpandedProjects(newSet);
   };
 
-  const hasActiveFilters = selectedClient !== "all" || selectedProject !== "all";
+  const hasActiveFilters = selectedClient !== "all" || selectedProjects.size > 0;
+
+  const toggleProjectSelection = (projectName: string) => {
+    const newSet = new Set(selectedProjects);
+    if (newSet.has(projectName)) {
+      newSet.delete(projectName);
+    } else {
+      newSet.add(projectName);
+    }
+    setSelectedProjects(newSet);
+  };
 
   return (
     <div className="flex flex-col h-full p-6 space-y-6">
@@ -125,20 +137,50 @@ export default function LiveProcurementDates() {
               </Select>
             </div>
             <div>
-              <label className="text-sm font-medium mb-2 block">Project</label>
-              <Select value={selectedProject} onValueChange={setSelectedProject}>
-                <SelectTrigger data-testid="select-project-filter">
-                  <SelectValue placeholder="All Projects" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Projects</SelectItem>
-                  {uniqueProjects.map((project) => (
-                    <SelectItem key={project} value={project}>
-                      {project}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <label className="text-sm font-medium mb-2 block">Project(s)</label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start" data-testid="button-project-filter">
+                    {selectedProjects.size === 0
+                      ? "All Projects"
+                      : `${selectedProjects.size} selected`}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-3">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium">Select Projects</p>
+                      {selectedProjects.size > 0 && (
+                        <button
+                          onClick={() => setSelectedProjects(new Set())}
+                          className="text-xs text-muted-foreground hover:text-foreground"
+                          data-testid="button-clear-project-selection"
+                        >
+                          Clear
+                        </button>
+                      )}
+                    </div>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {uniqueProjects.map((project) => (
+                        <div key={project} className="flex items-center gap-2">
+                          <Checkbox
+                            id={`project-${project}`}
+                            checked={selectedProjects.has(project)}
+                            onCheckedChange={() => toggleProjectSelection(project)}
+                            data-testid={`checkbox-project-${project.replace(/\s+/g, "-").toLowerCase()}`}
+                          />
+                          <label
+                            htmlFor={`project-${project}`}
+                            className="text-sm cursor-pointer flex-1"
+                          >
+                            {project}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
@@ -148,7 +190,7 @@ export default function LiveProcurementDates() {
               size="sm"
               onClick={() => {
                 setSelectedClient("all");
-                setSelectedProject("all");
+                setSelectedProjects(new Set());
               }}
               data-testid="button-clear-filters"
             >
