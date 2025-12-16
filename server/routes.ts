@@ -339,6 +339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         projectId: number;
         projectName: string;
         workspaceName: string;
+        client: string | undefined;
       }> = [];
 
       for (const workspace of allWorkspaces) {
@@ -366,7 +367,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             percentComplete: parseFloat(task.percentComplete?.toString() || "0"),
             projectId: latestProject.id,
             projectName: latestProject.name,
-            workspaceName: workspace.name
+            workspaceName: workspace.name,
+            client: workspace.client
           }));
         
         liveProcurementData.push(...procurement);
