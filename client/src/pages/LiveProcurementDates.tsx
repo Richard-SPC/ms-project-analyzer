@@ -301,11 +301,21 @@ export default function LiveProcurementDates() {
       });
     });
 
+    // Helper function to calculate lead time in days
+    const calculateLeadTimeDays = (startDate: Date | null, endDate: Date | null): string => {
+      if (!startDate || !endDate) return "N/A";
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const diffTime = end.getTime() - start.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return diffDays.toString();
+    };
+
     // Prepare sheet data
     const sheetData = [
       ["All Filtered Procurement Items"],
       [],
-      ["Project", "Task Name", "Progress", "Order Date", "Delivery Date"]
+      ["Project", "Task Name", "Progress", "Order Date", "Delivery Date", "Lead Time (Days)"]
     ];
 
     // Add tasks grouped by project
@@ -316,14 +326,15 @@ export default function LiveProcurementDates() {
           task.name,
           `${task.percentComplete}%`,
           task.startDate ? formatDateUK(task.startDate) : "N/A",
-          task.endDate ? formatDateUK(task.endDate) : "N/A"
+          task.endDate ? formatDateUK(task.endDate) : "N/A",
+          calculateLeadTimeDays(task.startDate, task.endDate)
         ]);
       });
     });
 
     // Create sheet
     const ws = XLSX.utils.aoa_to_sheet(sheetData);
-    ws["!cols"] = [{ wch: 25 }, { wch: 35 }, { wch: 12 }, { wch: 15 }, { wch: 15 }];
+    ws["!cols"] = [{ wch: 25 }, { wch: 35 }, { wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 16 }];
 
     XLSX.utils.book_append_sheet(wb, ws, "All Items");
 
