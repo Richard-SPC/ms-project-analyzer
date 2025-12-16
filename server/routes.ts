@@ -308,11 +308,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .filter(t => t.wbsCode)
           .map(t => t.wbsCode);
         
+        // Find all "Design" tasks to exclude procurement items under Design
+        const designTasks = tasks.filter(t => 
+          t.name.toLowerCase().includes("design")
+        );
+        
+        // Get WBS prefixes for Design tasks
+        const designPrefixes = designTasks
+          .filter(t => t.wbsCode)
+          .map(t => t.wbsCode);
+        
         // Filter for procurement tasks that are children of Procurement Summary
         const procurement = tasks
           .filter(task => {
             if (task.isSummary || !task.name.toLowerCase().includes("procurement")) {
               return false;
+            }
+            
+            // Exclude if under Design WBS
+            if (task.wbsCode && designPrefixes.length > 0) {
+              const isUnderDesign = designPrefixes.some(prefix => 
+                task.wbsCode?.startsWith(prefix + ".") || task.wbsCode === prefix
+              );
+              if (isUnderDesign) return false;
             }
             
             // If there are Procurement Summary tasks, only include children of those
@@ -394,11 +412,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .filter(t => t.wbsCode)
           .map(t => t.wbsCode);
         
+        // Find all "Design" tasks to exclude procurement items under Design
+        const designTasks = tasks.filter(t => 
+          t.name.toLowerCase().includes("design")
+        );
+        
+        // Get WBS prefixes for Design tasks
+        const designPrefixes = designTasks
+          .filter(t => t.wbsCode)
+          .map(t => t.wbsCode);
+        
         // Filter for procurement tasks that are children of Procurement Summary
         const procurement = tasks
           .filter(task => {
             if (task.isSummary || !task.name.toLowerCase().includes("procurement")) {
               return false;
+            }
+            
+            // Exclude if under Design WBS
+            if (task.wbsCode && designPrefixes.length > 0) {
+              const isUnderDesign = designPrefixes.some(prefix => 
+                task.wbsCode?.startsWith(prefix + ".") || task.wbsCode === prefix
+              );
+              if (isUnderDesign) return false;
             }
             
             // If there are Procurement Summary tasks, only include children of those
