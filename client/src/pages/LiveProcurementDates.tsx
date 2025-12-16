@@ -279,19 +279,26 @@ export default function LiveProcurementDates() {
   const exportAllFilteredToExcel = () => {
     const wb = XLSX.utils.book_new();
 
-    // Gather all filtered tasks
-    const allFilteredTasks: LiveProcurementTask[] = [];
+    // Gather and group all filtered tasks by project
+    const tasksByProject: Record<string, LiveProcurementTask[]> = {};
     Object.values(filteredGroupedData).forEach(projects => {
       Object.values(projects).forEach(tasks => {
-        allFilteredTasks.push(...tasks);
+        tasks.forEach(task => {
+          if (!tasksByProject[task.projectName]) {
+            tasksByProject[task.projectName] = [];
+          }
+          tasksByProject[task.projectName].push(task);
+        });
       });
     });
 
-    // Sort tasks by earliest date (startDate first, then endDate)
-    allFilteredTasks.sort((a, b) => {
-      const dateA = a.startDate ? new Date(a.startDate).getTime() : (a.endDate ? new Date(a.endDate).getTime() : Infinity);
-      const dateB = b.startDate ? new Date(b.startDate).getTime() : (b.endDate ? new Date(b.endDate).getTime() : Infinity);
-      return dateA - dateB;
+    // Sort each project's tasks by earliest date (startDate first, then endDate)
+    Object.keys(tasksByProject).forEach(project => {
+      tasksByProject[project].sort((a, b) => {
+        const dateA = a.startDate ? new Date(a.startDate).getTime() : (a.endDate ? new Date(a.endDate).getTime() : Infinity);
+        const dateB = b.startDate ? new Date(b.startDate).getTime() : (b.endDate ? new Date(b.endDate).getTime() : Infinity);
+        return dateA - dateB;
+      });
     });
 
     // Prepare sheet data
@@ -301,14 +308,17 @@ export default function LiveProcurementDates() {
       ["Project", "Task Name", "Progress", "Order Date", "Delivery Date"]
     ];
 
-    allFilteredTasks.forEach(task => {
-      sheetData.push([
-        task.projectName,
-        task.name,
-        `${task.percentComplete}%`,
-        task.startDate ? formatDateUK(task.startDate) : "N/A",
-        task.endDate ? formatDateUK(task.endDate) : "N/A"
-      ]);
+    // Add tasks grouped by project
+    Object.keys(tasksByProject).sort().forEach(projectName => {
+      tasksByProject[projectName].forEach(task => {
+        sheetData.push([
+          task.projectName,
+          task.name,
+          `${task.percentComplete}%`,
+          task.startDate ? formatDateUK(task.startDate) : "N/A",
+          task.endDate ? formatDateUK(task.endDate) : "N/A"
+        ]);
+      });
     });
 
     // Create sheet
