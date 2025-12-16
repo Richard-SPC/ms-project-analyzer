@@ -21,6 +21,7 @@ interface LiveProcurementTask {
   projectName: string;
   workspaceName: string;
   client?: string;
+  status?: string;
 }
 
 export default function LiveProcurementDates() {
@@ -265,9 +266,21 @@ export default function LiveProcurementDates() {
                             )}
                             <div className="flex items-center gap-2">
                               <Clock className="h-5 w-5" />
-                              <div>
+                              <div className="flex-1">
                                 <CardTitle className="text-lg">{projectName}</CardTitle>
-                                <CardDescription>{tasks.length} procurement task(s)</CardDescription>
+                                <div className="flex gap-2 mt-1 flex-wrap items-center">
+                                  <CardDescription>{tasks.length} procurement task(s)</CardDescription>
+                                  {tasks[0]?.client && (
+                                    <CardDescription className="text-xs bg-muted px-2 py-1 rounded">
+                                      Client: {tasks[0].client}
+                                    </CardDescription>
+                                  )}
+                                  {tasks[0]?.status && (
+                                    <CardDescription className="text-xs bg-muted px-2 py-1 rounded">
+                                      Status: {tasks[0].status}
+                                    </CardDescription>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>

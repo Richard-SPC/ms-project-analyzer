@@ -340,6 +340,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         projectName: string;
         workspaceName: string;
         client: string | undefined;
+        status: string | undefined;
       }> = [];
 
       for (const workspace of allWorkspaces) {
@@ -368,7 +369,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             projectId: latestProject.id,
             projectName: latestProject.name,
             workspaceName: workspace.name,
-            client: workspace.client
+            client: workspace.client,
+            status: workspace.status
           }));
         
         liveProcurementData.push(...procurement);
