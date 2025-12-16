@@ -256,33 +256,31 @@ export default function LiveProcurementDates() {
                 >
                   <Card>
                     <CollapsibleTrigger asChild>
-                      <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 flex-1">
+                      <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors py-3">
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
                             {isExpanded ? (
                               <ChevronDown className="h-5 w-5 flex-shrink-0" />
                             ) : (
                               <ChevronRight className="h-5 w-5 flex-shrink-0" />
                             )}
-                            <div className="flex items-center gap-2">
-                              <Clock className="h-5 w-5" />
-                              <div className="flex-1">
-                                <CardTitle className="text-lg">{projectName}</CardTitle>
-                                <div className="flex gap-2 mt-1 flex-wrap items-center">
-                                  <CardDescription>{tasks.length} procurement task(s)</CardDescription>
-                                  {tasks[0]?.client && (
-                                    <CardDescription className="text-xs bg-muted px-2 py-1 rounded">
-                                      Client: {tasks[0].client}
-                                    </CardDescription>
-                                  )}
-                                  {tasks[0]?.status && (
-                                    <CardDescription className="text-xs bg-muted px-2 py-1 rounded">
-                                      Status: {tasks[0].status}
-                                    </CardDescription>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
+                            <Clock className="h-5 w-5 flex-shrink-0" />
+                            <CardTitle className="text-base truncate">{projectName}</CardTitle>
+                          </div>
+                          <div className="flex items-center gap-2 flex-wrap justify-end flex-shrink-0">
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">
+                              {tasks.length} task{tasks.length !== 1 ? 's' : ''}
+                            </span>
+                            {tasks[0]?.client && (
+                              <span className="text-xs bg-muted px-2 py-1 rounded whitespace-nowrap">
+                                {tasks[0].client}
+                              </span>
+                            )}
+                            {tasks[0]?.status && (
+                              <span className="text-xs bg-muted px-2 py-1 rounded whitespace-nowrap">
+                                {tasks[0].status}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </CardHeader>
