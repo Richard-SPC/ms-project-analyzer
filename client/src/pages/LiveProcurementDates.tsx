@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { formatDateUK } from "@/lib/utils";
 import { useState, useMemo } from "react";
+import { format } from "date-fns";
 
 interface LiveProcurementTask {
   id: number;
@@ -33,6 +34,11 @@ export default function LiveProcurementDates() {
   const [selectedProjects, setSelectedProjects] = useState<Set<string>>(new Set());
   const [selectedProgress, setSelectedProgress] = useState<string>("all");
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
+  
+  // Month selection for the summary cards
+  const [selectedMonth, setSelectedMonth] = useState<string>(
+    format(new Date(), "yyyy-MM")
+  );
 
   // Group by workspace and project
   const groupedData = useMemo(() => {
@@ -124,6 +130,44 @@ export default function LiveProcurementDates() {
     }
     setSelectedProjects(newSet);
   };
+
+  // Get all tasks (unfiltered) for monthly summary cards
+  const allTasks = useMemo(() => {
+    return liveProcurement || [];
+  }, [liveProcurement]);
+
+  // Filter tasks to be ordered in selected month
+  const tasksToBeOrderedThisMonth = useMemo(() => {
+    const [year, month] = selectedMonth.split("-");
+    return allTasks.filter(task => {
+      if (!task.startDate || task.duration === 0) return false;
+      const taskMonth = format(new Date(task.startDate), "yyyy-MM");
+      return taskMonth === selectedMonth;
+    });
+  }, [allTasks, selectedMonth]);
+
+  // Filter tasks to be delivered in selected month
+  const tasksToBeDeliveredThisMonth = useMemo(() => {
+    return allTasks.filter(task => {
+      if (!task.endDate || task.duration === 0) return false;
+      const taskMonth = format(new Date(task.endDate), "yyyy-MM");
+      return taskMonth === selectedMonth;
+    });
+  }, [allTasks, selectedMonth]);
+
+  // Generate list of available months from data
+  const availableMonths = useMemo(() => {
+    const months = new Set<string>();
+    allTasks.forEach(task => {
+      if (task.startDate) {
+        months.add(format(new Date(task.startDate), "yyyy-MM"));
+      }
+      if (task.endDate) {
+        months.add(format(new Date(task.endDate), "yyyy-MM"));
+      }
+    });
+    return Array.from(months).sort().reverse();
+  }, [allTasks]);
 
   return (
     <div className="flex flex-col h-full p-6 space-y-6">
@@ -232,6 +276,82 @@ export default function LiveProcurementDates() {
               Clear Filters
             </Button>
           )}
+        </div>
+      )}
+
+      {!isLoading && liveProcurement && liveProcurement.length > 0 && (
+        <div className="space-y-6">
+          <div>
+            <label className="text-sm font-medium mb-2 block">Select Month</label>
+            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+              <SelectTrigger className="w-48" data-testid="select-month">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {availableMonths.map((month) => (
+                  <SelectItem key={month} value={month}>
+                    {format(new Date(month + "-01"), "MMMM yyyy")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Items to be Ordered</CardTitle>
+                <CardDescription>
+                  {format(new Date(selectedMonth + "-01"), "MMMM yyyy")}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold mb-4" data-testid="text-ordered-count">
+                  {tasksToBeOrderedThisMonth.length}
+                </div>
+                {tasksToBeOrderedThisMonth.length > 0 && (
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {tasksToBeOrderedThisMonth.map((task) => (
+                      <div key={task.id} className="text-sm p-2 bg-muted rounded" data-testid={`item-ordered-${task.id}`}>
+                        <div className="font-medium truncate">{task.name}</div>
+                        <div className="text-xs text-muted-foreground">{task.projectName}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {tasksToBeOrderedThisMonth.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No items to be ordered this month</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Items to be Delivered</CardTitle>
+                <CardDescription>
+                  {format(new Date(selectedMonth + "-01"), "MMMM yyyy")}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold mb-4" data-testid="text-delivered-count">
+                  {tasksToBeDeliveredThisMonth.length}
+                </div>
+                {tasksToBeDeliveredThisMonth.length > 0 && (
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {tasksToBeDeliveredThisMonth.map((task) => (
+                      <div key={task.id} className="text-sm p-2 bg-muted rounded" data-testid={`item-delivered-${task.id}`}>
+                        <div className="font-medium truncate">{task.name}</div>
+                        <div className="text-xs text-muted-foreground">{task.projectName}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {tasksToBeDeliveredThisMonth.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No items to be delivered this month</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
       )}
 
