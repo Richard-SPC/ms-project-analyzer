@@ -59,9 +59,12 @@ export default function LiveProcurementDates() {
 
   const uniqueProjects = useMemo(() => {
     if (!liveProcurement) return [];
-    const projects = [...new Set(liveProcurement.map(t => t.projectName))];
+    const filteredByClient = selectedClient === "all" 
+      ? liveProcurement 
+      : liveProcurement.filter(t => t.client === selectedClient);
+    const projects = [...new Set(filteredByClient.map(t => t.projectName))];
     return projects.sort();
-  }, [liveProcurement]);
+  }, [liveProcurement, selectedClient]);
 
   // Filter grouped data
   const filteredGroupedData = useMemo(() => {
