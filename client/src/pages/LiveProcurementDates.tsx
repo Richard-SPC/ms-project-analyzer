@@ -360,6 +360,9 @@ export default function LiveProcurementDates() {
                         {tasks.map((task) => (
                           <div key={task.id} className="text-sm p-2 bg-muted rounded ml-2" data-testid={`item-ordered-${task.id}`}>
                             <div className="font-medium truncate">{task.name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              Order Date: {task.startDate ? formatDateUK(task.startDate) : "N/A"}
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -393,6 +396,9 @@ export default function LiveProcurementDates() {
                         {tasks.map((task) => (
                           <div key={task.id} className="text-sm p-2 bg-muted rounded ml-2" data-testid={`item-delivered-${task.id}`}>
                             <div className="font-medium truncate">{task.name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              Delivery Date: {task.endDate ? formatDateUK(task.endDate) : "N/A"}
+                            </div>
                           </div>
                         ))}
                       </div>
