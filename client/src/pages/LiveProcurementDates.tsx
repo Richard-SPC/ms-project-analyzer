@@ -301,21 +301,18 @@ export default function LiveProcurementDates() {
       });
     });
 
-    // Helper function to calculate lead time in days
-    const calculateLeadTimeDays = (startDate: Date | null, endDate: Date | null): string => {
-      if (!startDate || !endDate) return "N/A";
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      const diffTime = end.getTime() - start.getTime();
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      return diffDays.toString();
+    // Helper function to calculate lead time in weeks from duration
+    const calculateLeadTimeWeeks = (duration: number | null): string => {
+      if (!duration) return "N/A";
+      const weeks = (duration / 5).toFixed(2);
+      return weeks;
     };
 
     // Prepare sheet data
     const sheetData = [
       ["All Filtered Procurement Items"],
       [],
-      ["Project", "Task Name", "Progress", "Order Date", "Delivery Date", "Lead Time (Days)"]
+      ["Project", "Task Name", "Progress", "Order Date", "Delivery Date", "Lead Time (Weeks)"]
     ];
 
     // Add tasks grouped by project
@@ -327,7 +324,7 @@ export default function LiveProcurementDates() {
           `${task.percentComplete}%`,
           task.startDate ? formatDateUK(task.startDate) : "N/A",
           task.endDate ? formatDateUK(task.endDate) : "N/A",
-          calculateLeadTimeDays(task.startDate, task.endDate)
+          calculateLeadTimeWeeks(task.duration)
         ]);
       });
     });
