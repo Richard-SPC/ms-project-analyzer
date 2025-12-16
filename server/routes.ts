@@ -325,6 +325,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Live procurement dates route - latest version per project
+  app.get("/api/live-procurement-dates", async (req, res) => {
+    try {
+      const allWorkspaces = await storage.getAllWorkspaces();
+      const liveProcurementData: Array<{
+        id: number;
+        name: string;
+        startDate: Date | null;
+        endDate: Date | null;
+        duration: number | null;
+        percentComplete: number;
+        projectId: number;
+        projectName: string;
+        workspaceName: string;
+      }> = [];
+
+      for (const workspace of allWorkspaces) {
+        const workspaceProjects = await storage.getProjectsByWorkspace(workspace.id);
+        
+        // Find latest project by statusDate
+        if (workspaceProjects.length === 0) continue;
+        const latestProject = workspaceProjects.reduce((latest, current) => {
+          const latestDate = latest.statusDate ? new Date(latest.statusDate).getTime() : 0;
+          const currentDate = current.statusDate ? new Date(current.statusDate).getTime() : 0;
+          return currentDate > latestDate ? current : latest;
+        });
+
+        const tasks = await storage.getTasksByProject(latestProject.id);
+        const procurement = tasks
+          .filter(task => 
+            (task.name.includes("Procurement -") || task.wbsCode?.includes("Procurement")) && !task.isSummary
+          )
+          .map(task => ({
+            id: task.id,
+            name: task.name,
+            startDate: task.startDate || null,
+            endDate: task.endDate || null,
+            duration: task.duration,
+            percentComplete: parseFloat(task.percentComplete?.toString() || "0"),
+            projectId: latestProject.id,
+            projectName: latestProject.name,
+            workspaceName: workspace.name
+          }));
+        
+        liveProcurementData.push(...procurement);
+      }
+
+      // Sort by workspace, then project, then task name
+      liveProcurementData.sort((a, b) => {
+        if (a.workspaceName !== b.workspaceName) {
+          return a.workspaceName.localeCompare(b.workspaceName);
+        }
+        if (a.projectName !== b.projectName) {
+          return a.projectName.localeCompare(b.projectName);
+        }
+        return a.name.localeCompare(b.name);
+      });
+
+      res.json(liveProcurementData);
+    } catch (error) {
+      console.error("Error fetching live procurement dates:", error);
+      res.status(500).json({ error: "Failed to fetch live procurement dates" });
+    }
+  });
+
   // DCMA Assessment routes
   app.get("/api/dcma-assessments", async (req, res) => {
     try {
