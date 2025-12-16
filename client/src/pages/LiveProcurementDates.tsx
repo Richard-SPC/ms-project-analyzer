@@ -31,6 +31,7 @@ export default function LiveProcurementDates() {
 
   const [selectedClient, setSelectedClient] = useState<string>("all");
   const [selectedProjects, setSelectedProjects] = useState<Set<string>>(new Set());
+  const [selectedProgress, setSelectedProgress] = useState<string>("all");
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set());
 
   // Group by workspace and project
@@ -66,6 +67,17 @@ export default function LiveProcurementDates() {
     return projects.sort();
   }, [liveProcurement, selectedClient]);
 
+  // Helper function to check if task matches progress filter
+  const matchesProgressFilter = (progress: number): boolean => {
+    if (selectedProgress === "all") return true;
+    if (selectedProgress === "0-25") return progress >= 0 && progress <= 25;
+    if (selectedProgress === "25-50") return progress > 25 && progress <= 50;
+    if (selectedProgress === "50-75") return progress > 50 && progress <= 75;
+    if (selectedProgress === "75-100") return progress > 75 && progress < 100;
+    if (selectedProgress === "100") return progress === 100;
+    return true;
+  };
+
   // Filter grouped data
   const filteredGroupedData = useMemo(() => {
     const filtered: typeof groupedData = {};
@@ -76,17 +88,20 @@ export default function LiveProcurementDates() {
         const matchesClient = selectedClient === "all" || firstTask?.client === selectedClient;
         const matchesProject = selectedProjects.size === 0 || selectedProjects.has(projectName);
         
-        if (matchesClient && matchesProject) {
+        // Filter tasks by progress and keep only matching ones
+        const filteredTasks = tasks.filter(task => matchesProgressFilter(task.percentComplete));
+        
+        if (matchesClient && matchesProject && filteredTasks.length > 0) {
           if (!filtered[workspaceName]) {
             filtered[workspaceName] = {};
           }
-          filtered[workspaceName][projectName] = tasks;
+          filtered[workspaceName][projectName] = filteredTasks;
         }
       });
     });
     
     return filtered;
-  }, [groupedData, selectedClient, selectedProjects]);
+  }, [groupedData, selectedClient, selectedProjects, selectedProgress]);
 
   const toggleProject = (key: string) => {
     const newSet = new Set(expandedProjects);
@@ -98,7 +113,7 @@ export default function LiveProcurementDates() {
     setExpandedProjects(newSet);
   };
 
-  const hasActiveFilters = selectedClient !== "all" || selectedProjects.size > 0;
+  const hasActiveFilters = selectedClient !== "all" || selectedProjects.size > 0 || selectedProgress !== "all";
 
   const toggleProjectSelection = (projectName: string) => {
     const newSet = new Set(selectedProjects);
@@ -123,7 +138,7 @@ export default function LiveProcurementDates() {
 
       {!isLoading && liveProcurement && liveProcurement.length > 0 && (
         <div className="space-y-3">
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid gap-3 md:grid-cols-3">
             <div>
               <label className="text-sm font-medium mb-2 block">Client</label>
               <Select value={selectedClient} onValueChange={setSelectedClient}>
@@ -137,6 +152,22 @@ export default function LiveProcurementDates() {
                       {client || "No Client"}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Progress</label>
+              <Select value={selectedProgress} onValueChange={setSelectedProgress}>
+                <SelectTrigger data-testid="select-progress-filter">
+                  <SelectValue placeholder="All Progress" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Progress</SelectItem>
+                  <SelectItem value="0-25">0 - 25%</SelectItem>
+                  <SelectItem value="25-50">25 - 50%</SelectItem>
+                  <SelectItem value="50-75">50 - 75%</SelectItem>
+                  <SelectItem value="75-100">75 - 99%</SelectItem>
+                  <SelectItem value="100">100% (Completed)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -195,6 +226,7 @@ export default function LiveProcurementDates() {
               onClick={() => {
                 setSelectedClient("all");
                 setSelectedProjects(new Set());
+                setSelectedProgress("all");
               }}
               data-testid="button-clear-filters"
             >
