@@ -200,16 +200,32 @@ export default function LiveProcurementDates() {
     }, {} as Record<string, LiveProcurementTask[]>);
   };
 
-  // Group tasks for each card
-  const orderedTasksByProject = useMemo(() => 
-    groupTasksByProject(tasksToBeOrderedThisMonth), 
-    [tasksToBeOrderedThisMonth]
-  );
+  // Group tasks for each card (sorted by date)
+  const orderedTasksByProject = useMemo(() => {
+    const grouped = groupTasksByProject(tasksToBeOrderedThisMonth);
+    // Sort each project's tasks by startDate (earliest to latest)
+    Object.keys(grouped).forEach(project => {
+      grouped[project].sort((a, b) => {
+        const dateA = a.startDate ? new Date(a.startDate).getTime() : 0;
+        const dateB = b.startDate ? new Date(b.startDate).getTime() : 0;
+        return dateA - dateB;
+      });
+    });
+    return grouped;
+  }, [tasksToBeOrderedThisMonth]);
 
-  const deliveredTasksByProject = useMemo(() => 
-    groupTasksByProject(tasksToBeDeliveredThisMonth), 
-    [tasksToBeDeliveredThisMonth]
-  );
+  const deliveredTasksByProject = useMemo(() => {
+    const grouped = groupTasksByProject(tasksToBeDeliveredThisMonth);
+    // Sort each project's tasks by endDate (earliest to latest)
+    Object.keys(grouped).forEach(project => {
+      grouped[project].sort((a, b) => {
+        const dateA = a.endDate ? new Date(a.endDate).getTime() : 0;
+        const dateB = b.endDate ? new Date(b.endDate).getTime() : 0;
+        return dateA - dateB;
+      });
+    });
+    return grouped;
+  }, [tasksToBeDeliveredThisMonth]);
 
   // Export monthly summary to Excel function
   const exportToExcel = () => {
