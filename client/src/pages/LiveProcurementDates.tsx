@@ -672,7 +672,7 @@ export default function LiveProcurementDates() {
                                   <div className="text-xs text-muted-foreground font-normal">(Delivery Date)</div>
                                 </TableHead>
                                 <TableHead className="text-right text-sm" data-testid="header-duration">
-                                  <div>Duration (days)</div>
+                                  <div>Duration (weeks)</div>
                                   <div className="text-xs text-muted-foreground font-normal">(Lead Time)</div>
                                 </TableHead>
                                 <TableHead className="text-right text-sm" data-testid="header-complete">
@@ -693,7 +693,7 @@ export default function LiveProcurementDates() {
                                     {task.endDate ? formatDateUK(task.endDate) : "N/A"}
                                   </TableCell>
                                   <TableCell className="text-right text-sm py-3" data-testid={`text-duration-${task.id}`}>
-                                    {task.duration ?? "-"}
+                                    {task.duration ? (task.duration / 5).toFixed(2) : "-"}
                                   </TableCell>
                                   <TableCell className="text-right text-sm py-3" data-testid={`text-complete-${task.id}`}>
                                     {task.percentComplete.toFixed(0)}%
