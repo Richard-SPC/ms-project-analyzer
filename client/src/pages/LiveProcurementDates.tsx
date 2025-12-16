@@ -351,17 +351,17 @@ export default function LiveProcurementDates() {
                   {tasksToBeOrderedThisMonth.length}
                 </div>
                 {tasksToBeOrderedThisMonth.length > 0 && (
-                  <div className="space-y-3 max-h-48 overflow-y-auto">
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
                     {Object.entries(orderedTasksByProject).map(([projectName, tasks]) => (
-                      <div key={projectName} className="space-y-1">
+                      <div key={projectName} className="space-y-0.5">
                         <div className="text-xs font-semibold text-muted-foreground uppercase">
                           {projectName}
                         </div>
                         {tasks.map((task) => (
-                          <div key={task.id} className="text-sm p-2 bg-muted rounded ml-2" data-testid={`item-ordered-${task.id}`}>
-                            <div className="font-medium truncate">{task.name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              Order Date: {task.startDate ? formatDateUK(task.startDate) : "N/A"}
+                          <div key={task.id} className="text-sm p-2 bg-muted rounded ml-2 flex items-center justify-between gap-2" data-testid={`item-ordered-${task.id}`}>
+                            <div className="font-medium truncate flex-1">{task.name}</div>
+                            <div className="text-xs text-muted-foreground whitespace-nowrap">
+                              {task.startDate ? formatDateUK(task.startDate) : "N/A"}
                             </div>
                           </div>
                         ))}
@@ -387,17 +387,17 @@ export default function LiveProcurementDates() {
                   {tasksToBeDeliveredThisMonth.length}
                 </div>
                 {tasksToBeDeliveredThisMonth.length > 0 && (
-                  <div className="space-y-3 max-h-48 overflow-y-auto">
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
                     {Object.entries(deliveredTasksByProject).map(([projectName, tasks]) => (
-                      <div key={projectName} className="space-y-1">
+                      <div key={projectName} className="space-y-0.5">
                         <div className="text-xs font-semibold text-muted-foreground uppercase">
                           {projectName}
                         </div>
                         {tasks.map((task) => (
-                          <div key={task.id} className="text-sm p-2 bg-muted rounded ml-2" data-testid={`item-delivered-${task.id}`}>
-                            <div className="font-medium truncate">{task.name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              Delivery Date: {task.endDate ? formatDateUK(task.endDate) : "N/A"}
+                          <div key={task.id} className="text-sm p-2 bg-muted rounded ml-2 flex items-center justify-between gap-2" data-testid={`item-delivered-${task.id}`}>
+                            <div className="font-medium truncate flex-1">{task.name}</div>
+                            <div className="text-xs text-muted-foreground whitespace-nowrap">
+                              {task.endDate ? formatDateUK(task.endDate) : "N/A"}
                             </div>
                           </div>
                         ))}
