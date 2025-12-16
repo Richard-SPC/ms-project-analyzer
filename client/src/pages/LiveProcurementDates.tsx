@@ -305,13 +305,16 @@ export default function LiveProcurementDates() {
                                   Task Name
                                 </TableHead>
                                 <TableHead className="text-sm" data-testid="header-start-date">
-                                  Start Date
+                                  <div>Start Date</div>
+                                  <div className="text-xs text-muted-foreground font-normal">(Order Date)</div>
                                 </TableHead>
                                 <TableHead className="text-sm" data-testid="header-finish-date">
-                                  Finish Date
+                                  <div>Finish Date</div>
+                                  <div className="text-xs text-muted-foreground font-normal">(Delivery Date)</div>
                                 </TableHead>
                                 <TableHead className="text-right text-sm" data-testid="header-duration">
-                                  Duration (days)
+                                  <div>Duration (days)</div>
+                                  <div className="text-xs text-muted-foreground font-normal">(Lead Time)</div>
                                 </TableHead>
                                 <TableHead className="text-right text-sm" data-testid="header-complete">
                                   % Complete
