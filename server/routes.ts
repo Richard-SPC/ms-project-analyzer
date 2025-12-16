@@ -298,7 +298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const project of allProjects) {
         const tasks = await storage.getTasksByProject(project.id);
         const procurement = tasks.filter(task => 
-          task.name.includes("Procurement -") && !task.isSummary
+          task.name.toLowerCase().includes("procurement") && !task.isSummary
         ).map(task => ({
           id: task.id,
           name: task.name,
@@ -357,7 +357,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const tasks = await storage.getTasksByProject(latestProject.id);
         const procurement = tasks
           .filter(task => 
-            (task.name.includes("Procurement -") || task.wbsCode?.includes("Procurement")) && !task.isSummary
+            (task.name.toLowerCase().includes("procurement") || task.wbsCode?.toLowerCase().includes("procurement")) && !task.isSummary
           )
           .map(task => ({
             id: task.id,
