@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { Clock, Package, X, ChevronDown, ChevronRight } from "lucide-react";
+import { Clock, Package, X, ChevronDown, ChevronRight, Download } from "lucide-react";
+import * as XLSX from "xlsx";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -210,6 +211,54 @@ export default function LiveProcurementDates() {
     [tasksToBeDeliveredThisMonth]
   );
 
+  // Export to Excel function
+  const exportToExcel = () => {
+    const wb = XLSX.utils.book_new();
+
+    // Prepare "Items to be Ordered" sheet data
+    const orderedData = [
+      ["Items to be Ordered", format(new Date(selectedMonth + "-01"), "MMMM yyyy")],
+      [],
+      ["Project", "Task Name", "Order Date"]
+    ];
+    tasksToBeOrderedThisMonth.forEach(task => {
+      orderedData.push([
+        task.projectName,
+        task.name,
+        task.startDate ? formatDateUK(task.startDate) : "N/A"
+      ]);
+    });
+
+    // Prepare "Items to be Delivered" sheet data
+    const deliveredData = [
+      ["Items to be Delivered", format(new Date(selectedMonth + "-01"), "MMMM yyyy")],
+      [],
+      ["Project", "Task Name", "Delivery Date"]
+    ];
+    tasksToBeDeliveredThisMonth.forEach(task => {
+      deliveredData.push([
+        task.projectName,
+        task.name,
+        task.endDate ? formatDateUK(task.endDate) : "N/A"
+      ]);
+    });
+
+    // Add sheets to workbook
+    const ws1 = XLSX.utils.aoa_to_sheet(orderedData);
+    const ws2 = XLSX.utils.aoa_to_sheet(deliveredData);
+
+    // Set column widths
+    ws1["!cols"] = [{ wch: 25 }, { wch: 35 }, { wch: 15 }];
+    ws2["!cols"] = [{ wch: 25 }, { wch: 35 }, { wch: 15 }];
+
+    XLSX.utils.book_append_sheet(wb, ws1, "To be Ordered");
+    XLSX.utils.book_append_sheet(wb, ws2, "To be Delivered");
+
+    // Generate filename with month
+    const filename = `Procurement_${format(new Date(selectedMonth + "-01"), "MMM_yyyy")}.xlsx`;
+    XLSX.writeFile(wb, filename);
+  };
+
   return (
     <div className="flex flex-col h-full p-6 space-y-6">
       <div>
@@ -322,20 +371,31 @@ export default function LiveProcurementDates() {
 
       {!isLoading && liveProcurement && liveProcurement.length > 0 && (
         <div className="space-y-6">
-          <div>
-            <label className="text-sm font-medium mb-2 block">Select Month</label>
-            <Select value={selectedMonth} onValueChange={setSelectedMonth}>
-              <SelectTrigger className="w-48" data-testid="select-month">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {availableMonths.map((month) => (
-                  <SelectItem key={month} value={month}>
-                    {format(new Date(month + "-01"), "MMMM yyyy")}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex items-end gap-3">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Select Month</label>
+              <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                <SelectTrigger className="w-48" data-testid="select-month">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableMonths.map((month) => (
+                    <SelectItem key={month} value={month}>
+                      {format(new Date(month + "-01"), "MMMM yyyy")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button 
+              onClick={exportToExcel} 
+              variant="outline" 
+              size="sm"
+              data-testid="button-export-excel"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export to Excel
+            </Button>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
