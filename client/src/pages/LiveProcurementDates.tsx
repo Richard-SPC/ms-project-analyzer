@@ -86,8 +86,10 @@ export default function LiveProcurementDates() {
         const matchesClient = selectedClient === "all" || firstTask?.client === selectedClient;
         const matchesProject = selectedProjects.size === 0 || selectedProjects.has(projectName);
         
-        // Filter tasks by progress and keep only matching ones
-        const filteredTasks = tasks.filter(task => matchesProgressFilter(task.percentComplete));
+        // Filter tasks by progress and duration, keep only matching ones
+        const filteredTasks = tasks.filter(task => 
+          matchesProgressFilter(task.percentComplete) && task.duration !== 0
+        );
         
         if (matchesClient && matchesProject && filteredTasks.length > 0) {
           if (!filtered[workspaceName]) {
