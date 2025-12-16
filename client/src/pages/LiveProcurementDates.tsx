@@ -267,20 +267,20 @@ export default function LiveProcurementDates() {
                             <Clock className="h-6 w-6 flex-shrink-0" />
                             <CardTitle className="text-lg truncate">{projectName}</CardTitle>
                           </div>
-                          <div className="grid grid-cols-3 gap-3 flex-shrink-0">
-                            <div className="flex items-center justify-center">
+                          <div className="flex items-center justify-end gap-4 flex-shrink-0 w-80">
+                            <div className="flex-1 text-center">
                               <span className="text-base text-muted-foreground whitespace-nowrap font-medium">
                                 {tasks.length} task{tasks.length !== 1 ? 's' : ''}
                               </span>
                             </div>
-                            <div className="flex items-center justify-center">
+                            <div className="flex-1 text-center">
                               {tasks[0]?.client && (
                                 <span className="text-sm bg-muted px-3 py-2 rounded whitespace-nowrap">
                                   {tasks[0].client}
                                 </span>
                               )}
                             </div>
-                            <div className="flex items-center justify-center">
+                            <div className="flex-1 text-center">
                               {tasks[0]?.status && (
                                 <span className="text-sm bg-muted px-3 py-2 rounded whitespace-nowrap">
                                   {tasks[0].status}
