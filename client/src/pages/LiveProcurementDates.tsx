@@ -136,24 +136,43 @@ export default function LiveProcurementDates() {
     return liveProcurement || [];
   }, [liveProcurement]);
 
-  // Filter tasks to be ordered in selected month
+  // Filter tasks to be ordered in selected month (respecting client and project filters)
   const tasksToBeOrderedThisMonth = useMemo(() => {
-    const [year, month] = selectedMonth.split("-");
     return allTasks.filter(task => {
       if (!task.startDate || task.duration === 0) return false;
+      
+      // Check client filter
+      const matchesClient = selectedClient === "all" || task.client === selectedClient;
+      if (!matchesClient) return false;
+      
+      // Check project filter
+      const matchesProject = selectedProjects.size === 0 || selectedProjects.has(task.projectName);
+      if (!matchesProject) return false;
+      
+      // Check month
       const taskMonth = format(new Date(task.startDate), "yyyy-MM");
       return taskMonth === selectedMonth;
     });
-  }, [allTasks, selectedMonth]);
+  }, [allTasks, selectedMonth, selectedClient, selectedProjects]);
 
-  // Filter tasks to be delivered in selected month
+  // Filter tasks to be delivered in selected month (respecting client and project filters)
   const tasksToBeDeliveredThisMonth = useMemo(() => {
     return allTasks.filter(task => {
       if (!task.endDate || task.duration === 0) return false;
+      
+      // Check client filter
+      const matchesClient = selectedClient === "all" || task.client === selectedClient;
+      if (!matchesClient) return false;
+      
+      // Check project filter
+      const matchesProject = selectedProjects.size === 0 || selectedProjects.has(task.projectName);
+      if (!matchesProject) return false;
+      
+      // Check month
       const taskMonth = format(new Date(task.endDate), "yyyy-MM");
       return taskMonth === selectedMonth;
     });
-  }, [allTasks, selectedMonth]);
+  }, [allTasks, selectedMonth, selectedClient, selectedProjects]);
 
   // Generate list of available months from data
   const availableMonths = useMemo(() => {
