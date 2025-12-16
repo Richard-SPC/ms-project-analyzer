@@ -188,6 +188,28 @@ export default function LiveProcurementDates() {
     return Array.from(months).sort().reverse();
   }, [allTasks]);
 
+  // Helper function to group tasks by project
+  const groupTasksByProject = (tasks: LiveProcurementTask[]) => {
+    return tasks.reduce((acc, task) => {
+      if (!acc[task.projectName]) {
+        acc[task.projectName] = [];
+      }
+      acc[task.projectName].push(task);
+      return acc;
+    }, {} as Record<string, LiveProcurementTask[]>);
+  };
+
+  // Group tasks for each card
+  const orderedTasksByProject = useMemo(() => 
+    groupTasksByProject(tasksToBeOrderedThisMonth), 
+    [tasksToBeOrderedThisMonth]
+  );
+
+  const deliveredTasksByProject = useMemo(() => 
+    groupTasksByProject(tasksToBeDeliveredThisMonth), 
+    [tasksToBeDeliveredThisMonth]
+  );
+
   return (
     <div className="flex flex-col h-full p-6 space-y-6">
       <div>
@@ -329,11 +351,17 @@ export default function LiveProcurementDates() {
                   {tasksToBeOrderedThisMonth.length}
                 </div>
                 {tasksToBeOrderedThisMonth.length > 0 && (
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {tasksToBeOrderedThisMonth.map((task) => (
-                      <div key={task.id} className="text-sm p-2 bg-muted rounded" data-testid={`item-ordered-${task.id}`}>
-                        <div className="font-medium truncate">{task.name}</div>
-                        <div className="text-xs text-muted-foreground">{task.projectName}</div>
+                  <div className="space-y-3 max-h-48 overflow-y-auto">
+                    {Object.entries(orderedTasksByProject).map(([projectName, tasks]) => (
+                      <div key={projectName} className="space-y-1">
+                        <div className="text-xs font-semibold text-muted-foreground uppercase">
+                          {projectName}
+                        </div>
+                        {tasks.map((task) => (
+                          <div key={task.id} className="text-sm p-2 bg-muted rounded ml-2" data-testid={`item-ordered-${task.id}`}>
+                            <div className="font-medium truncate">{task.name}</div>
+                          </div>
+                        ))}
                       </div>
                     ))}
                   </div>
@@ -356,11 +384,17 @@ export default function LiveProcurementDates() {
                   {tasksToBeDeliveredThisMonth.length}
                 </div>
                 {tasksToBeDeliveredThisMonth.length > 0 && (
-                  <div className="space-y-2 max-h-48 overflow-y-auto">
-                    {tasksToBeDeliveredThisMonth.map((task) => (
-                      <div key={task.id} className="text-sm p-2 bg-muted rounded" data-testid={`item-delivered-${task.id}`}>
-                        <div className="font-medium truncate">{task.name}</div>
-                        <div className="text-xs text-muted-foreground">{task.projectName}</div>
+                  <div className="space-y-3 max-h-48 overflow-y-auto">
+                    {Object.entries(deliveredTasksByProject).map(([projectName, tasks]) => (
+                      <div key={projectName} className="space-y-1">
+                        <div className="text-xs font-semibold text-muted-foreground uppercase">
+                          {projectName}
+                        </div>
+                        {tasks.map((task) => (
+                          <div key={task.id} className="text-sm p-2 bg-muted rounded ml-2" data-testid={`item-delivered-${task.id}`}>
+                            <div className="font-medium truncate">{task.name}</div>
+                          </div>
+                        ))}
                       </div>
                     ))}
                   </div>
