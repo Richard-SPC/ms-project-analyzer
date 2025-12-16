@@ -211,7 +211,7 @@ export default function LiveProcurementDates() {
     [tasksToBeDeliveredThisMonth]
   );
 
-  // Export to Excel function
+  // Export monthly summary to Excel function
   const exportToExcel = () => {
     const wb = XLSX.utils.book_new();
 
@@ -256,6 +256,46 @@ export default function LiveProcurementDates() {
 
     // Generate filename with month
     const filename = `Procurement_${format(new Date(selectedMonth + "-01"), "MMM_yyyy")}.xlsx`;
+    XLSX.writeFile(wb, filename);
+  };
+
+  // Export all filtered procurement items to Excel
+  const exportAllFilteredToExcel = () => {
+    const wb = XLSX.utils.book_new();
+
+    // Gather all filtered tasks
+    const allFilteredTasks: LiveProcurementTask[] = [];
+    Object.values(filteredGroupedData).forEach(projects => {
+      Object.values(projects).forEach(tasks => {
+        allFilteredTasks.push(...tasks);
+      });
+    });
+
+    // Prepare sheet data
+    const sheetData = [
+      ["All Filtered Procurement Items"],
+      [],
+      ["Project", "Task Name", "Progress", "Order Date", "Delivery Date"]
+    ];
+
+    allFilteredTasks.forEach(task => {
+      sheetData.push([
+        task.projectName,
+        task.name,
+        `${task.percentComplete}%`,
+        task.startDate ? formatDateUK(task.startDate) : "N/A",
+        task.endDate ? formatDateUK(task.endDate) : "N/A"
+      ]);
+    });
+
+    // Create sheet
+    const ws = XLSX.utils.aoa_to_sheet(sheetData);
+    ws["!cols"] = [{ wch: 25 }, { wch: 35 }, { wch: 12 }, { wch: 15 }, { wch: 15 }];
+
+    XLSX.utils.book_append_sheet(wb, ws, "All Items");
+
+    // Generate filename
+    const filename = `All_Procurement_Items_${format(new Date(), "dd_MMM_yyyy")}.xlsx`;
     XLSX.writeFile(wb, filename);
   };
 
@@ -394,7 +434,16 @@ export default function LiveProcurementDates() {
               data-testid="button-export-excel"
             >
               <Download className="h-4 w-4 mr-2" />
-              Export to Excel
+              Export Monthly
+            </Button>
+            <Button 
+              onClick={exportAllFilteredToExcel} 
+              variant="outline" 
+              size="sm"
+              data-testid="button-export-all-filtered"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export All Filtered
             </Button>
           </div>
 
