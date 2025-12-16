@@ -373,7 +373,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             status: workspace.status
           }));
         
-        liveProcurementData.push(...procurement);
+        if (procurement.length > 0) {
+          liveProcurementData.push(...procurement);
+        } else {
+          // Include project even if no procurement tasks found
+          liveProcurementData.push({
+            id: -1,
+            name: "No procurement tasks",
+            startDate: null,
+            endDate: null,
+            duration: null,
+            percentComplete: 0,
+            projectId: latestProject.id,
+            projectName: latestProject.name,
+            workspaceName: workspace.name,
+            client: workspace.client,
+            status: workspace.status
+          });
+        }
       }
 
       // Sort by workspace, then project, then task name
