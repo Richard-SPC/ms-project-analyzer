@@ -287,6 +287,13 @@ export default function LiveProcurementDates() {
       });
     });
 
+    // Sort tasks by earliest date (startDate first, then endDate)
+    allFilteredTasks.sort((a, b) => {
+      const dateA = a.startDate ? new Date(a.startDate).getTime() : (a.endDate ? new Date(a.endDate).getTime() : Infinity);
+      const dateB = b.startDate ? new Date(b.startDate).getTime() : (b.endDate ? new Date(b.endDate).getTime() : Infinity);
+      return dateA - dateB;
+    });
+
     // Prepare sheet data
     const sheetData = [
       ["All Filtered Procurement Items"],
