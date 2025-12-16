@@ -297,16 +297,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       for (const project of allProjects) {
         const tasks = await storage.getTasksByProject(project.id);
-        const procurement = tasks.filter(task => 
-          task.name.toLowerCase().includes("procurement") && !task.isSummary
-        ).map(task => ({
-          id: task.id,
-          name: task.name,
-          duration: task.duration,
-          percentComplete: parseFloat(task.percentComplete?.toString() || "0"),
-          projectId: project.id,
-          projectName: project.name
-        }));
+        
+        // Find all "Procurement Summary" tasks
+        const procurementSummaryTasks = tasks.filter(t => 
+          t.name.toLowerCase().includes("procurement summary")
+        );
+        
+        // Get WBS prefixes for Procurement Summary tasks
+        const procurementSummaryPrefixes = procurementSummaryTasks
+          .filter(t => t.wbsCode)
+          .map(t => t.wbsCode);
+        
+        // Filter for procurement tasks that are children of Procurement Summary
+        const procurement = tasks
+          .filter(task => {
+            if (task.isSummary || !task.name.toLowerCase().includes("procurement")) {
+              return false;
+            }
+            
+            // Check if task is under a Procurement Summary (based on WBS hierarchy)
+            if (task.wbsCode && procurementSummaryPrefixes.length > 0) {
+              return procurementSummaryPrefixes.some(prefix => 
+                task.wbsCode?.startsWith(prefix + ".") || task.wbsCode === prefix
+              );
+            }
+            
+            return false;
+          })
+          .map(task => ({
+            id: task.id,
+            name: task.name,
+            duration: task.duration,
+            percentComplete: parseFloat(task.percentComplete?.toString() || "0"),
+            projectId: project.id,
+            projectName: project.name
+          }));
         procurementTasks.push(...procurement);
       }
       
@@ -355,10 +380,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
 
         const tasks = await storage.getTasksByProject(latestProject.id);
+        
+        // Find all "Procurement Summary" tasks
+        const procurementSummaryTasks = tasks.filter(t => 
+          t.name.toLowerCase().includes("procurement summary")
+        );
+        
+        // Get WBS prefixes for Procurement Summary tasks
+        const procurementSummaryPrefixes = procurementSummaryTasks
+          .filter(t => t.wbsCode)
+          .map(t => t.wbsCode);
+        
+        // Filter for procurement tasks that are children of Procurement Summary
         const procurement = tasks
-          .filter(task => 
-            (task.name.toLowerCase().includes("procurement") || task.wbsCode?.toLowerCase().includes("procurement")) && !task.isSummary
-          )
+          .filter(task => {
+            if (task.isSummary || !task.name.toLowerCase().includes("procurement")) {
+              return false;
+            }
+            
+            // Check if task is under a Procurement Summary (based on WBS hierarchy)
+            if (task.wbsCode && procurementSummaryPrefixes.length > 0) {
+              return procurementSummaryPrefixes.some(prefix => 
+                task.wbsCode?.startsWith(prefix + ".") || task.wbsCode === prefix
+              );
+            }
+            
+            return false;
+          })
           .map(task => ({
             id: task.id,
             name: task.name,
