@@ -146,7 +146,7 @@ export default function LiveProcurementDates() {
                       : `${selectedProjects.size} selected`}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-56 p-3">
+                <PopoverContent className="w-96 p-3">
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-medium">Select Projects</p>
