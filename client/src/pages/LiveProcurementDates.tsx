@@ -275,6 +275,18 @@ export default function LiveProcurementDates() {
     XLSX.writeFile(wb, filename);
   };
 
+  // Helper function to format lead time in weeks (1 decimal place only if needed)
+  const formatLeadTimeWeeks = (duration: number | null): string => {
+    if (!duration) return "N/A";
+    const weeks = duration / 5;
+    // Check if it's a whole number
+    if (weeks % 1 === 0) {
+      return weeks.toFixed(0);
+    }
+    // Round to 1 decimal place
+    return weeks.toFixed(1);
+  };
+
   // Export all filtered procurement items to Excel
   const exportAllFilteredToExcel = () => {
     const wb = XLSX.utils.book_new();
@@ -301,13 +313,6 @@ export default function LiveProcurementDates() {
       });
     });
 
-    // Helper function to calculate lead time in weeks from duration
-    const calculateLeadTimeWeeks = (duration: number | null): string => {
-      if (!duration) return "N/A";
-      const weeks = (duration / 5).toFixed(2);
-      return weeks;
-    };
-
     // Prepare sheet data
     const sheetData = [
       ["All Filtered Procurement Items"],
@@ -324,7 +329,7 @@ export default function LiveProcurementDates() {
           `${task.percentComplete}%`,
           task.startDate ? formatDateUK(task.startDate) : "N/A",
           task.endDate ? formatDateUK(task.endDate) : "N/A",
-          calculateLeadTimeWeeks(task.duration)
+          formatLeadTimeWeeks(task.duration)
         ]);
       });
     });
@@ -693,7 +698,7 @@ export default function LiveProcurementDates() {
                                     {task.endDate ? formatDateUK(task.endDate) : "N/A"}
                                   </TableCell>
                                   <TableCell className="text-right text-sm py-3" data-testid={`text-duration-${task.id}`}>
-                                    {task.duration ? (task.duration / 5).toFixed(2) : "-"}
+                                    {task.duration ? formatLeadTimeWeeks(task.duration) : "-"}
                                   </TableCell>
                                   <TableCell className="text-right text-sm py-3" data-testid={`text-complete-${task.id}`}>
                                     {task.percentComplete.toFixed(0)}%
