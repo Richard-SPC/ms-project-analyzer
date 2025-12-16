@@ -315,14 +315,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return false;
             }
             
-            // Check if task is under a Procurement Summary (based on WBS hierarchy)
-            if (task.wbsCode && procurementSummaryPrefixes.length > 0) {
+            // If there are Procurement Summary tasks, only include children of those
+            if (procurementSummaryPrefixes.length > 0) {
+              if (!task.wbsCode) return false;
               return procurementSummaryPrefixes.some(prefix => 
                 task.wbsCode?.startsWith(prefix + ".") || task.wbsCode === prefix
               );
             }
             
-            return false;
+            // If there are NO Procurement Summary tasks, include all procurement tasks
+            // (for projects that might have different structure)
+            return true;
           })
           .map(task => ({
             id: task.id,
@@ -398,14 +401,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
               return false;
             }
             
-            // Check if task is under a Procurement Summary (based on WBS hierarchy)
-            if (task.wbsCode && procurementSummaryPrefixes.length > 0) {
+            // If there are Procurement Summary tasks, only include children of those
+            if (procurementSummaryPrefixes.length > 0) {
+              if (!task.wbsCode) return false;
               return procurementSummaryPrefixes.some(prefix => 
                 task.wbsCode?.startsWith(prefix + ".") || task.wbsCode === prefix
               );
             }
             
-            return false;
+            // If there are NO Procurement Summary tasks, include all procurement tasks
+            // (for projects that might have different structure)
+            return true;
           })
           .map(task => ({
             id: task.id,
