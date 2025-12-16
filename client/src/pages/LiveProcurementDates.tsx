@@ -70,10 +70,8 @@ export default function LiveProcurementDates() {
   // Helper function to check if task matches progress filter
   const matchesProgressFilter = (progress: number): boolean => {
     if (selectedProgress === "all") return true;
-    if (selectedProgress === "0-25") return progress >= 0 && progress <= 25;
-    if (selectedProgress === "25-50") return progress > 25 && progress <= 50;
-    if (selectedProgress === "50-75") return progress > 50 && progress <= 75;
-    if (selectedProgress === "75-100") return progress > 75 && progress < 100;
+    if (selectedProgress === "0") return progress === 0;
+    if (selectedProgress === "1-99") return progress > 0 && progress < 100;
     if (selectedProgress === "100") return progress === 100;
     return true;
   };
@@ -163,11 +161,9 @@ export default function LiveProcurementDates() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Progress</SelectItem>
-                  <SelectItem value="0-25">0 - 25%</SelectItem>
-                  <SelectItem value="25-50">25 - 50%</SelectItem>
-                  <SelectItem value="50-75">50 - 75%</SelectItem>
-                  <SelectItem value="75-100">75 - 99%</SelectItem>
-                  <SelectItem value="100">100% (Completed)</SelectItem>
+                  <SelectItem value="0">0 (Not Ordered)</SelectItem>
+                  <SelectItem value="1-99">1-99 (In Progress)</SelectItem>
+                  <SelectItem value="100">100 (Delivered)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
