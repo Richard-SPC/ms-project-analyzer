@@ -51,7 +51,7 @@ const colorOptions = [
 
 const PROJECT_STATUSES = [
   "Tender",
-  "Tender - Lost/Withdrawn",
+  "Lost/Withdrawn",
   "Pre-Construction",
   "On Site",
   "Off Site",
@@ -63,7 +63,7 @@ const getStatusButtonClass = (status?: string | null): string => {
   switch (status) {
     case "Tender":
       return "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100 border-blue-300 dark:border-blue-700";
-    case "Tender - Lost/Withdrawn":
+    case "Lost/Withdrawn":
       return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 border-gray-300 dark:border-gray-600";
     case "Pre-Construction":
       return "bg-orange-100 text-orange-900 dark:bg-orange-900 dark:text-orange-100 border-orange-300 dark:border-orange-700";
