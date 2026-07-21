@@ -17,6 +17,7 @@ import ProcurementDurations from "@/pages/ProcurementDurations";
 import LiveProcurementDates from "@/pages/LiveProcurementDates";
 import CompareProgrammes from "@/pages/CompareProgrammes";
 import ProgrammeExceptions from "@/pages/ProgrammeExceptions";
+import UserManagement from "@/pages/UserManagement";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/not-found";
 
@@ -71,6 +72,7 @@ function ProtectedRoutes() {
               <Route path="/live-procurement" component={LiveProcurementDates} />
               <Route path="/compare" component={CompareProgrammes} />
               <Route path="/exceptions" component={ProgrammeExceptions} />
+              <Route path="/accounts" component={UserManagement} />
               <Route component={NotFound} />
             </Switch>
           </main>

@@ -149,6 +149,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User management routes (admin)
+  app.get("/api/users", async (req, res) => {
+    try {
+      const currentUser = await getCurrentUser(req);
+      if (!currentUser) return res.status(401).json({ error: "Not authenticated" });
+      const allUsers = await storage.getAllUsers();
+      // Never return passwords
+      const safeUsers = allUsers.map(({ password, ...u }) => u);
+      res.json(safeUsers);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ error: "Failed to fetch users" });
+    }
+  });
+
+  app.post("/api/users", async (req, res) => {
+    try {
+      const currentUser = await getCurrentUser(req);
+      if (!currentUser) return res.status(401).json({ error: "Not authenticated" });
+      const { username, password, name, role } = req.body;
+      if (!username || !password) return res.status(400).json({ error: "Username and password required" });
+      if (password.length < 6) return res.status(400).json({ error: "Password must be at least 6 characters" });
+      const existing = await storage.getUserByUsername(username);
+      if (existing) return res.status(400).json({ error: "Username already exists" });
+      const hashed = await hashPassword(password);
+      const user = await storage.createUser({ username, password: hashed, name: name || null, role: role || "user" });
+      const { password: _, ...safeUser } = user;
+      res.json(safeUser);
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(400).json({ error: error instanceof Error ? error.message : "Failed to create user" });
+    }
+  });
+
+  app.patch("/api/users/:id", async (req, res) => {
+    try {
+      const currentUser = await getCurrentUser(req);
+      if (!currentUser) return res.status(401).json({ error: "Not authenticated" });
+      const id = parseInt(req.params.id);
+      const { name, role, username } = req.body;
+      const updates: Record<string, string> = {};
+      if (name !== undefined) updates.name = name;
+      if (role !== undefined) updates.role = role;
+      if (username !== undefined) {
+        // Check uniqueness
+        const existing = await storage.getUserByUsername(username);
+        if (existing && existing.id !== id) return res.status(400).json({ error: "Username already taken" });
+        updates.username = username;
+      }
+      const updated = await storage.updateUser(id, updates);
+      if (!updated) return res.status(404).json({ error: "User not found" });
+      const { password: _, ...safeUser } = updated;
+      res.json(safeUser);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(400).json({ error: error instanceof Error ? error.message : "Failed to update user" });
+    }
+  });
+
+  app.post("/api/users/:id/change-password", async (req, res) => {
+    try {
+      const currentUser = await getCurrentUser(req);
+      if (!currentUser) return res.status(401).json({ error: "Not authenticated" });
+      const id = parseInt(req.params.id);
+      const { newPassword, currentPassword } = req.body;
+      if (!newPassword) return res.status(400).json({ error: "New password required" });
+      if (newPassword.length < 6) return res.status(400).json({ error: "Password must be at least 6 characters" });
+      // If changing own password, require current password
+      if (currentUser.id === id) {
+        if (!currentPassword) return res.status(400).json({ error: "Current password required" });
+        const user = await storage.getUser(id);
+        if (!user || !(await comparePasswords(currentPassword, user.password))) {
+          return res.status(401).json({ error: "Current password is incorrect" });
+        }
+      }
+      const hashed = await hashPassword(newPassword);
+      const updated = await storage.updateUser(id, { password: hashed });
+      if (!updated) return res.status(404).json({ error: "User not found" });
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error changing password:", error);
+      res.status(400).json({ error: error instanceof Error ? error.message : "Failed to change password" });
+    }
+  });
+
+  app.delete("/api/users/:id", async (req, res) => {
+    try {
+      const currentUser = await getCurrentUser(req);
+      if (!currentUser) return res.status(401).json({ error: "Not authenticated" });
+      const id = parseInt(req.params.id);
+      if (currentUser.id === id) return res.status(400).json({ error: "Cannot delete your own account" });
+      await storage.deleteUser(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ error: "Failed to delete user" });
+    }
+  });
+
   // Workspace routes
   app.get("/api/workspaces", async (req, res) => {
     try {
