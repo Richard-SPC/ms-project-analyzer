@@ -14,6 +14,7 @@ const COLORS = ["#006093", "#159775", "#29CE58", "#494949", "#8B5CF6", "#EC4899"
 
 const PROJECT_STATUSES = [
   "Tender",
+  "Tender - Lost/Withdrawn",
   "Pre-Construction",
   "On Site",
   "Off Site",
@@ -25,6 +26,8 @@ const getStatusBgClass = (status: string): string => {
   switch (status) {
     case "Tender":
       return "bg-blue-100 text-blue-900 dark:bg-blue-900 dark:text-blue-100";
+    case "Tender - Lost/Withdrawn":
+      return "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400";
     case "Pre-Construction":
       return "bg-orange-100 text-orange-900 dark:bg-orange-900 dark:text-orange-100";
     case "On Site":
