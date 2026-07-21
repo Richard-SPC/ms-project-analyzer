@@ -137,10 +137,10 @@ export const insertDcmaAssessmentSchema = createInsertSchema(dcmaAssessments).om
 });
 
 export const insertCalendarExceptionSchema = createInsertSchema(calendarExceptions, {
-  startDate: z.union([z.string(), z.date()]).transform((val) => 
+  startDate: z.union([z.string(), z.date()]).transform((val) =>
     typeof val === 'string' ? new Date(val) : val
   ),
-  endDate: z.union([z.string(), z.date()]).transform((val) => 
+  endDate: z.union([z.string(), z.date()]).transform((val) =>
     typeof val === 'string' ? new Date(val) : val
   ),
 }).omit({
@@ -148,7 +148,25 @@ export const insertCalendarExceptionSchema = createInsertSchema(calendarExceptio
   createdAt: true,
 });
 
+// Users table for authentication
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  name: text("name"),
+  role: text("role").default("user"), // admin, user
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+
 export type Workspace = typeof workspaces.$inferSelect;
 export type InsertWorkspace = z.infer<typeof insertWorkspaceSchema>;
 

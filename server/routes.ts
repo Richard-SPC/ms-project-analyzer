@@ -6,13 +6,31 @@ import { parseMppFile, getProjectNameFromFileName } from "./mppParser";
 import { parseProjectXml } from "./xmlParser";
 import { parseExcelFile } from "./excelParser";
 import { analyzeDcmaCompliance } from "./dcmaAnalyser";
-import { 
-  insertProjectSchema, 
-  insertTaskSchema, 
-  insertDcmaAssessmentSchema, 
+import {
+  insertProjectSchema,
+  insertTaskSchema,
+  insertDcmaAssessmentSchema,
   insertWorkspaceSchema,
-  insertCalendarExceptionSchema
+  insertCalendarExceptionSchema,
+  insertUserSchema,
 } from "@shared/schema";
+import { scrypt, randomBytes, timingSafeEqual } from "crypto";
+import { promisify } from "util";
+
+const scryptAsync = promisify(scrypt);
+
+async function hashPassword(password: string) {
+  const salt = randomBytes(16).toString("hex");
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString("hex")}.${salt}`;
+}
+
+async function comparePasswords(supplied: string, stored: string) {
+  const [hashed, salt] = stored.split(".");
+  const hashedBuf = Buffer.from(hashed, "hex");
+  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+  return timingSafeEqual(hashedBuf, suppliedBuf);
+}
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -33,7 +51,104 @@ const upload = multer({
   },
 });
 
+// Simple in-memory session store
+const sessions = new Map<string, { userId: number; expires: Date }>();
+const SESSION_SECRET = process.env.SESSION_SECRET || "synergy-dashboard-secret-key";
+
+function generateSessionId(): string {
+  return randomBytes(32).toString("hex");
+}
+
+function setSessionCookie(res: any, sessionId: string) {
+  const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+  res.setHeader("Set-Cookie", `sessionId=${sessionId}; HttpOnly; Path=/; Max-Age=${7 * 24 * 60 * 60}; SameSite=Lax`);
+  return expires;
+}
+
+function getSessionId(req: any): string | undefined {
+  const cookieHeader = req.headers.cookie;
+  if (!cookieHeader) return undefined;
+  const match = cookieHeader.match(/sessionId=([^;]+)/);
+  return match ? match[1] : undefined;
+}
+
+async function getCurrentUser(req: any): Promise<{ id: number; username: string; name: string | null; role: string } | undefined> {
+  const sessionId = getSessionId(req);
+  if (!sessionId) return undefined;
+  const session = sessions.get(sessionId);
+  if (!session || session.expires < new Date()) {
+    sessions.delete(sessionId);
+    return undefined;
+  }
+  const user = await storage.getUser(session.userId);
+  if (!user) return undefined;
+  return { id: user.id, username: user.username, name: user.name, role: user.role };
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth routes
+  app.post("/api/register", async (req, res) => {
+    try {
+      const userData = insertUserSchema.parse(req.body);
+      const existingUser = await storage.getUserByUsername(userData.username);
+      if (existingUser) {
+        return res.status(400).json({ error: "Username already exists" });
+      }
+      const hashedPassword = await hashPassword(userData.password);
+      const user = await storage.createUser({
+        ...userData,
+        password: hashedPassword,
+      });
+      const sessionId = generateSessionId();
+      const expires = setSessionCookie(res, sessionId);
+      sessions.set(sessionId, { userId: user.id, expires });
+      res.json({ id: user.id, username: user.username, name: user.name, role: user.role });
+    } catch (error) {
+      console.error("Error registering user:", error);
+      res.status(400).json({ error: error instanceof Error ? error.message : "Failed to register user" });
+    }
+  });
+
+  app.post("/api/login", async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      if (!username || !password) {
+        return res.status(400).json({ error: "Username and password required" });
+      }
+      const user = await storage.getUserByUsername(username);
+      if (!user || !(await comparePasswords(password, user.password))) {
+        return res.status(401).json({ error: "Invalid username or password" });
+      }
+      const sessionId = generateSessionId();
+      const expires = setSessionCookie(res, sessionId);
+      sessions.set(sessionId, { userId: user.id, expires });
+      res.json({ id: user.id, username: user.username, name: user.name, role: user.role });
+    } catch (error) {
+      console.error("Error logging in:", error);
+      res.status(500).json({ error: "Failed to login" });
+    }
+  });
+
+  app.post("/api/logout", async (req, res) => {
+    const sessionId = getSessionId(req);
+    if (sessionId) sessions.delete(sessionId);
+    res.setHeader("Set-Cookie", "sessionId=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax");
+    res.json({ success: true });
+  });
+
+  app.get("/api/user", async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ error: "Failed to fetch user" });
+    }
+  });
+
   // Workspace routes
   app.get("/api/workspaces", async (req, res) => {
     try {

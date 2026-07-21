@@ -9,16 +9,24 @@ import {
   type InsertDcmaAssessment,
   type CalendarException,
   type InsertCalendarException,
+  type User,
+  type InsertUser,
   workspaces,
   projects,
   tasks,
   dcmaAssessments,
   calendarExceptions,
+  users,
 } from "@shared/schema";
 import { db, type DbClient } from "../db";
 import { eq, desc, isNull } from "drizzle-orm";
 
 export interface IStorage {
+  // User operations
+  createUser(user: InsertUser): Promise<User>;
+  getUserByUsername(username: string): Promise<User | undefined>;
+  getUser(id: number): Promise<User | undefined>;
+
   // Workspace operations
   createWorkspace(workspace: InsertWorkspace): Promise<Workspace>;
   getWorkspace(id: number): Promise<Workspace | undefined>;
@@ -27,27 +35,27 @@ export interface IStorage {
   deleteWorkspace(id: number): Promise<void>;
   getProjectsByWorkspace(workspaceId: number): Promise<Project[]>;
   getUnassignedProjects(): Promise<Project[]>;
-  
+
   // Project operations
   createProject(project: InsertProject): Promise<Project>;
   getProject(id: number): Promise<Project | undefined>;
   getAllProjects(): Promise<Project[]>;
   updateProject(id: number, project: Partial<InsertProject>): Promise<Project | undefined>;
   deleteProject(id: number): Promise<void>;
-  
+
   // Task operations
   createTask(task: InsertTask): Promise<Task>;
   getTask(id: number): Promise<Task | undefined>;
   getTasksByProject(projectId: number): Promise<Task[]>;
   updateTask(id: number, task: Partial<InsertTask>): Promise<Task | undefined>;
   deleteTask(id: number): Promise<void>;
-  
+
   // DCMA Assessment operations
   createDcmaAssessment(assessment: InsertDcmaAssessment): Promise<DcmaAssessment>;
   getDcmaAssessmentsByProject(projectId: number): Promise<DcmaAssessment[]>;
   getLatestDcmaAssessment(projectId: number): Promise<DcmaAssessment | undefined>;
   updateDcmaAssessment(id: number, assessment: Partial<InsertDcmaAssessment>): Promise<DcmaAssessment | undefined>;
-  
+
   // Calendar Exception operations
   createCalendarException(exception: InsertCalendarException): Promise<CalendarException>;
   getCalendarExceptionsByProject(projectId: number): Promise<CalendarException[]>;
@@ -60,11 +68,13 @@ export class MemStorage implements IStorage {
   private tasks: Map<number, Task>;
   private dcmaAssessments: Map<number, DcmaAssessment>;
   private calendarExceptions: Map<number, CalendarException>;
+  private users: Map<number, User>;
   private workspaceIdCounter: number;
   private projectIdCounter: number;
   private taskIdCounter: number;
   private dcmaIdCounter: number;
   private exceptionIdCounter: number;
+  private userIdCounter: number;
 
   constructor() {
     this.workspaces = new Map();
@@ -72,11 +82,53 @@ export class MemStorage implements IStorage {
     this.tasks = new Map();
     this.dcmaAssessments = new Map();
     this.calendarExceptions = new Map();
+    this.users = new Map();
     this.workspaceIdCounter = 1;
     this.projectIdCounter = 1;
     this.taskIdCounter = 1;
     this.dcmaIdCounter = 1;
     this.exceptionIdCounter = 1;
+    this.userIdCounter = 1;
+  }
+
+  async seedDefaultUser() {
+    // Pre-hash the password for the default admin
+    const salt = "default_salt_1234567890123456";
+    const { scryptSync } = await import("crypto");
+    const hashed = scryptSync("admin123", salt, 64).toString("hex");
+    const user: User = {
+      id: this.userIdCounter++,
+      username: "admin",
+      password: `${hashed}.${salt}`,
+      name: "Admin User",
+      role: "admin",
+      createdAt: new Date(),
+    };
+    this.users.set(user.id, user);
+  }
+
+  // User operations
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const id = this.userIdCounter++;
+    const user: User = {
+      ...insertUser,
+      id,
+      name: insertUser.name ?? null,
+      role: insertUser.role ?? "user",
+      createdAt: new Date(),
+    };
+    this.users.set(id, user);
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    return Array.from(this.users.values()).find(
+      (user) => user.username === username
+    );
+  }
+
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.get(id);
   }
 
   // Workspace operations
@@ -489,6 +541,22 @@ export class DbStorage implements IStorage {
 
   async deleteCalendarException(id: number): Promise<void> {
     await this.db.delete(calendarExceptions).where(eq(calendarExceptions.id, id));
+  }
+
+  // User operations
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await this.db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await this.db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await this.db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
 }
