@@ -376,9 +376,9 @@ export default function UserManagement() {
           <DialogHeader>
             <DialogTitle>Change Password</DialogTitle>
             <DialogDescription>
-              {isOwnAccount(selectedUser!)
+              {selectedUser && isOwnAccount(selectedUser)
                 ? "Enter your current password then choose a new one."
-                : `Set a new password for ${selectedUser?.username}.`}
+                : `Set a new password for ${selectedUser?.username ?? "this user"}.`}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handlePasswordSubmit}>
