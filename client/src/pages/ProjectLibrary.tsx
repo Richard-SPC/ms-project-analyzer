@@ -327,7 +327,7 @@ export default function ProjectLibrary() {
   const [uploadFiles, setUploadFiles] = useState<File[]>([]);
   const [uploadProjectId, setUploadProjectId] = useState<number | null>(null);
   const [searchText, setSearchText] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<string[]>([]);
   const [sortColumn, setSortColumn] = useState<SortColumn>("status");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
   const { toast } = useToast();
@@ -602,7 +602,7 @@ export default function ProjectLibrary() {
       project.client?.toLowerCase().includes(searchLower) ||
       getProgrammesForProject(project.id).some(p => p.name.toLowerCase().includes(searchLower));
     if (!matchesSearch) return false;
-    if (statusFilter && project.status !== statusFilter) return false;
+    if (statusFilter.length > 0 && !statusFilter.includes(project.status || "")) return false;
     return true;
   })?.sort((a, b) => {
     let valA = "";
@@ -653,30 +653,37 @@ export default function ProjectLibrary() {
       {/* Status filter pills */}
       <div className="flex items-center gap-2 flex-wrap">
         <Button
-          variant={statusFilter === null ? "default" : "outline"}
+          variant={statusFilter.length === 0 ? "default" : "outline"}
           size="sm"
-          onClick={() => setStatusFilter(null)}
+          onClick={() => setStatusFilter([])}
           data-testid="button-filter-all"
         >
           All
         </Button>
-        {statusesInUse.map(status => (
-          <Button
-            key={status}
-            variant={statusFilter === status ? "default" : "outline"}
-            size="sm"
-            onClick={() => setStatusFilter(statusFilter === status ? null : status)}
-            className={statusFilter !== status ? getStatusButtonClass(status) : ""}
-            data-testid={`button-filter-${status.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
-          >
-            {status}
-          </Button>
-        ))}
-        {(searchText || statusFilter) && (
+        {statusesInUse.map(status => {
+          const active = statusFilter.includes(status);
+          return (
+            <Button
+              key={status}
+              variant={active ? "default" : "outline"}
+              size="sm"
+              onClick={() =>
+                setStatusFilter(prev =>
+                  prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]
+                )
+              }
+              className={!active ? getStatusButtonClass(status) : ""}
+              data-testid={`button-filter-${status.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
+            >
+              {status}
+            </Button>
+          );
+        })}
+        {(searchText || statusFilter.length > 0) && (
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => { setSearchText(""); setStatusFilter(null); }}
+            onClick={() => { setSearchText(""); setStatusFilter([]); }}
             data-testid="button-clear-filters"
           >
             <X className="h-3 w-3 mr-1" />
