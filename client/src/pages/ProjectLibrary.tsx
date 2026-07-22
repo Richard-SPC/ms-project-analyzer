@@ -15,7 +15,7 @@ import { insertWorkspaceSchema, insertProjectSchema, type Workspace, type Projec
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatDateUK } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, FolderKanban, Library, ChevronDown, ChevronRight, Trash2, Edit, FolderOpen, Upload, MoreHorizontal, MoveRight, X, GitCompare } from "lucide-react";
+import { Plus, FolderKanban, Library, ChevronDown, ChevronRight, Trash2, Edit, FolderOpen, Upload, MoreHorizontal, MoveRight, X, GitCompare, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Link } from "wouter";
 import { z } from "zod";
@@ -316,6 +316,9 @@ function ProjectSection({
   );
 }
 
+type SortColumn = "name" | "status" | "pm" | "client" | "programmes";
+type SortDir = "asc" | "desc";
+
 export default function ProjectLibrary() {
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
   const [programmeDialogOpen, setProgrammeDialogOpen] = useState(false);
@@ -324,7 +327,26 @@ export default function ProjectLibrary() {
   const [uploadFiles, setUploadFiles] = useState<File[]>([]);
   const [uploadProjectId, setUploadProjectId] = useState<number | null>(null);
   const [searchText, setSearchText] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  const [sortColumn, setSortColumn] = useState<SortColumn>("status");
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
   const { toast } = useToast();
+
+  const handleSort = (col: SortColumn) => {
+    if (sortColumn === col) {
+      setSortDir(d => d === "asc" ? "desc" : "asc");
+    } else {
+      setSortColumn(col);
+      setSortDir("asc");
+    }
+  };
+
+  const SortIcon = ({ col }: { col: SortColumn }) => {
+    if (sortColumn !== col) return <ArrowUpDown className="h-3 w-3 ml-1 opacity-40" />;
+    return sortDir === "asc"
+      ? <ArrowUp className="h-3 w-3 ml-1 text-primary" />
+      : <ArrowDown className="h-3 w-3 ml-1 text-primary" />;
+  };
 
   const { data: projects, isLoading: projectsLoading } = useQuery<Workspace[]>({
     queryKey: ["/api/workspaces"],
@@ -575,22 +597,46 @@ export default function ProjectLibrary() {
 
   const filteredProjects = projects?.filter(project => {
     const searchLower = searchText.toLowerCase();
-    const matchesProject = project.name.toLowerCase().includes(searchLower) ||
-      project.projectManager?.toLowerCase().includes(searchLower);
-    
-    if (matchesProject) return true;
-    
-    // Also include project if any of its programmes match
-    const projectProgrammes = getProgrammesForProject(project.id);
-    return projectProgrammes.some(p => p.name.toLowerCase().includes(searchLower));
+    const matchesSearch = project.name.toLowerCase().includes(searchLower) ||
+      project.projectManager?.toLowerCase().includes(searchLower) ||
+      project.client?.toLowerCase().includes(searchLower) ||
+      getProgrammesForProject(project.id).some(p => p.name.toLowerCase().includes(searchLower));
+    if (!matchesSearch) return false;
+    if (statusFilter && project.status !== statusFilter) return false;
+    return true;
   })?.sort((a, b) => {
-    const statusIndexA = PROJECT_STATUSES.indexOf(a.status || "");
-    const statusIndexB = PROJECT_STATUSES.indexOf(b.status || "");
-    return statusIndexA - statusIndexB;
+    let valA = "";
+    let valB = "";
+    if (sortColumn === "name") {
+      valA = a.name.toLowerCase();
+      valB = b.name.toLowerCase();
+    } else if (sortColumn === "status") {
+      const iA = PROJECT_STATUSES.indexOf(a.status || "");
+      const iB = PROJECT_STATUSES.indexOf(b.status || "");
+      const idxA = iA === -1 ? 999 : iA;
+      const idxB = iB === -1 ? 999 : iB;
+      return sortDir === "asc" ? idxA - idxB : idxB - idxA;
+    } else if (sortColumn === "pm") {
+      valA = (a.projectManager || "").toLowerCase();
+      valB = (b.projectManager || "").toLowerCase();
+    } else if (sortColumn === "client") {
+      valA = (a.client || "").toLowerCase();
+      valB = (b.client || "").toLowerCase();
+    } else if (sortColumn === "programmes") {
+      const cA = getProgrammesForProject(a.id).length;
+      const cB = getProgrammesForProject(b.id).length;
+      return sortDir === "asc" ? cA - cB : cB - cA;
+    }
+    const cmp = valA < valB ? -1 : valA > valB ? 1 : 0;
+    return sortDir === "asc" ? cmp : -cmp;
   }) || [];
 
+  const statusesInUse = PROJECT_STATUSES.filter(s =>
+    projects?.some(p => p.status === s)
+  );
+
   return (
-    <div className="flex flex-col h-full p-6 space-y-6">
+    <div className="flex flex-col h-full p-6 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <h1 className="text-3xl font-bold text-foreground" data-testid="text-library-title">Project Library</h1>
@@ -604,17 +650,89 @@ export default function ProjectLibrary() {
         />
       </div>
 
-      {(searchText) && (
+      {/* Status filter pills */}
+      <div className="flex items-center gap-2 flex-wrap">
         <Button
-          variant="outline"
+          variant={statusFilter === null ? "default" : "outline"}
           size="sm"
-          onClick={() => setSearchText("")}
-          data-testid="button-clear-search"
+          onClick={() => setStatusFilter(null)}
+          data-testid="button-filter-all"
         >
-          <X className="h-4 w-4 mr-2" />
-          Clear Search
+          All
         </Button>
-      )}
+        {statusesInUse.map(status => (
+          <Button
+            key={status}
+            variant={statusFilter === status ? "default" : "outline"}
+            size="sm"
+            onClick={() => setStatusFilter(statusFilter === status ? null : status)}
+            className={statusFilter !== status ? getStatusButtonClass(status) : ""}
+            data-testid={`button-filter-${status.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
+          >
+            {status}
+          </Button>
+        ))}
+        {(searchText || statusFilter) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => { setSearchText(""); setStatusFilter(null); }}
+            data-testid="button-clear-filters"
+          >
+            <X className="h-3 w-3 mr-1" />
+            Clear
+          </Button>
+        )}
+      </div>
+
+      {/* Column sort header */}
+      <div className="grid grid-cols-12 items-center gap-4 px-4 py-1">
+        <div className="col-span-3">
+          <button
+            className="flex items-center text-xs font-semibold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors"
+            onClick={() => handleSort("name")}
+            data-testid="button-sort-name"
+          >
+            Project Name <SortIcon col="name" />
+          </button>
+        </div>
+        <div className="col-span-2">
+          <button
+            className="flex items-center text-xs font-semibold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors"
+            onClick={() => handleSort("status")}
+            data-testid="button-sort-status"
+          >
+            Status <SortIcon col="status" />
+          </button>
+        </div>
+        <div className="col-span-2">
+          <button
+            className="flex items-center text-xs font-semibold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors"
+            onClick={() => handleSort("pm")}
+            data-testid="button-sort-pm"
+          >
+            Project Manager <SortIcon col="pm" />
+          </button>
+        </div>
+        <div className="col-span-3">
+          <button
+            className="flex items-center text-xs font-semibold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors"
+            onClick={() => handleSort("client")}
+            data-testid="button-sort-client"
+          >
+            Client <SortIcon col="client" />
+          </button>
+        </div>
+        <div className="col-span-2 flex justify-end">
+          <button
+            className="flex items-center text-xs font-semibold text-muted-foreground uppercase tracking-wide hover:text-foreground transition-colors"
+            onClick={() => handleSort("programmes")}
+            data-testid="button-sort-programmes"
+          >
+            Programmes <SortIcon col="programmes" />
+          </button>
+        </div>
+      </div>
 
       <div className="flex gap-2 flex-wrap">
           <Dialog open={uploadOpen} onOpenChange={setUploadOpen}>
