@@ -164,17 +164,19 @@ function ProgrammeTile({ programme, projects, onAssign }: { programme: Project; 
               </Button>
             </Link>
           </div>
-          <div className="col-span-2 text-xs text-center">
-            <p className="text-muted-foreground font-bold">Project Start</p>
-            <p className="font-medium text-foreground">
-              {actualStart ? formatDateUK(actualStart) : "N/A"}
-            </p>
-          </div>
-          <div className="col-span-2 text-xs text-center">
-            <p className="text-muted-foreground font-bold">Project End</p>
-            <p className="font-medium text-foreground">
-              {actualEnd ? formatDateUK(actualEnd) : "N/A"}
-            </p>
+          <div className="col-span-4 flex items-center justify-center gap-4">
+            <div className="text-xs text-center">
+              <p className="text-muted-foreground font-bold">Project Start</p>
+              <p className="font-medium text-foreground">
+                {actualStart ? formatDateUK(actualStart) : "N/A"}
+              </p>
+            </div>
+            <div className="text-xs text-center">
+              <p className="text-muted-foreground font-bold">Project End</p>
+              <p className="font-medium text-foreground">
+                {actualEnd ? formatDateUK(actualEnd) : "N/A"}
+              </p>
+            </div>
           </div>
         </div>
       </CardHeader>
