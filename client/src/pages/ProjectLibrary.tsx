@@ -15,7 +15,7 @@ import { insertWorkspaceSchema, insertProjectSchema, type Workspace, type Projec
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatDateUK } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { Plus, FolderKanban, Library, ChevronDown, ChevronRight, Trash2, Edit, FolderOpen, Upload, MoreHorizontal, MoveRight, X, GitCompare, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
+import { Plus, FolderKanban, Library, ChevronDown, ChevronRight, Trash2, Edit, FolderOpen, Upload, MoreHorizontal, MoveRight, X, GitCompare, ArrowUpDown, ArrowUp, ArrowDown, Eye } from "lucide-react";
 import { DropdownMenuSub, DropdownMenuSubTrigger, DropdownMenuSubContent, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Link } from "wouter";
 import { z } from "zod";
@@ -119,7 +119,7 @@ function ProgrammeTile({ programme, projects, onAssign }: { programme: Project; 
     <Card className="hover-elevate" data-testid={`card-programme-${programme.id}`}>
       <CardHeader className="py-1 px-4">
         <div className="grid grid-cols-12 items-center gap-2">
-          <div className="col-span-3 text-sm font-medium truncate text-foreground min-w-0">
+          <div className="col-span-4 text-sm font-medium truncate text-foreground min-w-0">
             {programme.name}
           </div>
           <div className="col-span-2 text-xs text-center">
@@ -134,28 +134,15 @@ function ProgrammeTile({ programme, projects, onAssign }: { programme: Project; 
               {completion?.percentComplete ?? "-"}%
             </p>
           </div>
-          <div className="col-span-2 text-xs text-center">
-            <p className="text-muted-foreground font-bold">Project Start</p>
-            <p className="font-medium text-foreground">
-              {actualStart ? formatDateUK(actualStart) : "N/A"}
-            </p>
-          </div>
-          <div className="col-span-2 text-xs text-center">
-            <p className="text-muted-foreground font-bold">Project End</p>
-            <p className="font-medium text-foreground">
-              {actualEnd ? formatDateUK(actualEnd) : "N/A"}
-            </p>
-          </div>
-          <div className="col-span-2 flex items-center justify-end gap-2">
+          <div className="col-span-1 flex items-center justify-center gap-1">
             {projects && onAssign && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" data-testid={`button-assign-programme-${programme.id}`}>
-                    <MoveRight className="h-3 w-3 mr-1.5" />
-                    Assign
+                  <Button variant="outline" size="icon" data-testid={`button-assign-programme-${programme.id}`}>
+                    <MoveRight className="h-3.5 w-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="center">
                   {projects.length === 0 ? (
                     <DropdownMenuItem disabled>No projects available</DropdownMenuItem>
                   ) : (
@@ -170,10 +157,22 @@ function ProgrammeTile({ programme, projects, onAssign }: { programme: Project; 
               </DropdownMenu>
             )}
             <Link href={`/programmes/${programme.id}`}>
-              <Button variant="outline" size="sm" data-testid={`button-view-programme-${programme.id}`}>
-                View
+              <Button variant="outline" size="icon" data-testid={`button-view-programme-${programme.id}`}>
+                <Eye className="h-3.5 w-3.5" />
               </Button>
             </Link>
+          </div>
+          <div className="col-span-2 text-xs text-center">
+            <p className="text-muted-foreground font-bold">Project Start</p>
+            <p className="font-medium text-foreground">
+              {actualStart ? formatDateUK(actualStart) : "N/A"}
+            </p>
+          </div>
+          <div className="col-span-2 text-xs text-center">
+            <p className="text-muted-foreground font-bold">Project End</p>
+            <p className="font-medium text-foreground">
+              {actualEnd ? formatDateUK(actualEnd) : "N/A"}
+            </p>
           </div>
         </div>
       </CardHeader>
