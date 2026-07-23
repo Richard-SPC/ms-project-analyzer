@@ -118,41 +118,41 @@ function ProgrammeTile({ programme, projects, onAssign }: { programme: Project; 
   return (
     <Card className="hover-elevate" data-testid={`card-programme-${programme.id}`}>
       <CardHeader className="py-1 px-4">
-        <div className="flex items-center justify-between gap-2">
-          <div className="text-sm font-medium truncate text-foreground">{programme.name}</div>
-          <div className="flex-1 flex justify-center gap-4 items-center">
-            <div className="text-xs text-center">
-              <p className="text-muted-foreground font-bold">Status Date</p>
-              <p className="font-medium text-foreground">
-                {programme.statusDate ? formatDateUK(programme.statusDate) : "N/A"}
-              </p>
-            </div>
-            <div className="text-xs text-center">
-              <p className="text-muted-foreground font-bold">% Complete</p>
-              <p className="font-medium text-foreground">
-                {completion?.percentComplete ?? "-"}%
-              </p>
-            </div>
+        <div className="grid grid-cols-12 items-center gap-2">
+          <div className="col-span-3 text-sm font-medium truncate text-foreground min-w-0">
+            {programme.name}
           </div>
-          <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
-            <div className="text-xs text-center">
-              <p className="text-muted-foreground font-bold">Project Start</p>
-              <p className="font-medium text-foreground">
-                {actualStart ? formatDateUK(actualStart) : "N/A"}
-              </p>
-            </div>
-            <div className="text-xs text-center">
-              <p className="text-muted-foreground font-bold">Project End</p>
-              <p className="font-medium text-foreground">
-                {actualEnd ? formatDateUK(actualEnd) : "N/A"}
-              </p>
-            </div>
+          <div className="col-span-2 text-xs text-center">
+            <p className="text-muted-foreground font-bold">Status Date</p>
+            <p className="font-medium text-foreground">
+              {programme.statusDate ? formatDateUK(programme.statusDate) : "N/A"}
+            </p>
+          </div>
+          <div className="col-span-1 text-xs text-center">
+            <p className="text-muted-foreground font-bold">%</p>
+            <p className="font-medium text-foreground">
+              {completion?.percentComplete ?? "-"}%
+            </p>
+          </div>
+          <div className="col-span-2 text-xs text-center">
+            <p className="text-muted-foreground font-bold">Project Start</p>
+            <p className="font-medium text-foreground">
+              {actualStart ? formatDateUK(actualStart) : "N/A"}
+            </p>
+          </div>
+          <div className="col-span-2 text-xs text-center">
+            <p className="text-muted-foreground font-bold">Project End</p>
+            <p className="font-medium text-foreground">
+              {actualEnd ? formatDateUK(actualEnd) : "N/A"}
+            </p>
+          </div>
+          <div className="col-span-2 flex items-center justify-end gap-2">
             {projects && onAssign && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline" size="sm" data-testid={`button-assign-programme-${programme.id}`}>
                     <MoveRight className="h-3 w-3 mr-1.5" />
-                    Assign to Project
+                    Assign
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -171,7 +171,7 @@ function ProgrammeTile({ programme, projects, onAssign }: { programme: Project; 
             )}
             <Link href={`/programmes/${programme.id}`}>
               <Button variant="outline" size="sm" data-testid={`button-view-programme-${programme.id}`}>
-                View Details
+                View
               </Button>
             </Link>
           </div>
