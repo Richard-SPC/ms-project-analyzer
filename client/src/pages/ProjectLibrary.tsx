@@ -136,7 +136,21 @@ function ProgrammeTile({ programme, projects, onAssign }: { programme: Project; 
               </p>
             </div>
           </div>
-          <div className="col-span-1 flex items-center justify-center gap-1">
+          <div className="col-span-4 flex items-center justify-center gap-4">
+            <div className="text-xs text-center">
+              <p className="text-muted-foreground font-bold">Project Start</p>
+              <p className="font-medium text-foreground">
+                {actualStart ? formatDateUK(actualStart) : "N/A"}
+              </p>
+            </div>
+            <div className="text-xs text-center">
+              <p className="text-muted-foreground font-bold">Project End</p>
+              <p className="font-medium text-foreground">
+                {actualEnd ? formatDateUK(actualEnd) : "N/A"}
+              </p>
+            </div>
+          </div>
+          <div className="col-span-1 flex items-center justify-end gap-1">
             {projects && onAssign && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -144,7 +158,7 @@ function ProgrammeTile({ programme, projects, onAssign }: { programme: Project; 
                     <MoveRight className="h-3.5 w-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="center">
+                <DropdownMenuContent align="end">
                   {projects.length === 0 ? (
                     <DropdownMenuItem disabled>No projects available</DropdownMenuItem>
                   ) : (
@@ -163,20 +177,6 @@ function ProgrammeTile({ programme, projects, onAssign }: { programme: Project; 
                 <Eye className="h-3.5 w-3.5" />
               </Button>
             </Link>
-          </div>
-          <div className="col-span-4 flex items-center justify-center gap-4">
-            <div className="text-xs text-center">
-              <p className="text-muted-foreground font-bold">Project Start</p>
-              <p className="font-medium text-foreground">
-                {actualStart ? formatDateUK(actualStart) : "N/A"}
-              </p>
-            </div>
-            <div className="text-xs text-center">
-              <p className="text-muted-foreground font-bold">Project End</p>
-              <p className="font-medium text-foreground">
-                {actualEnd ? formatDateUK(actualEnd) : "N/A"}
-              </p>
-            </div>
           </div>
         </div>
       </CardHeader>
