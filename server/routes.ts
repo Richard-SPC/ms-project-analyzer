@@ -149,6 +149,186 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public Holiday routes
+  app.get("/api/public-holidays", async (req, res) => {
+    try {
+      const { country } = req.query;
+      const holidays = country
+        ? await storage.getPublicHolidaysByCountry(country as string)
+        : await storage.getAllPublicHolidays();
+      res.json(holidays);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch holidays" });
+    }
+  });
+
+  app.post("/api/public-holidays", async (req, res) => {
+    try {
+      const currentUser = await getCurrentUser(req);
+      if (!currentUser) return res.status(401).json({ error: "Not authenticated" });
+      if (currentUser.role !== "admin") return res.status(403).json({ error: "Admin only" });
+
+      const country = req.body.country || "scotland";
+      const lockKey = `${country}_holidays_locked`;
+      const locked = (await storage.getSetting(lockKey)) === "true";
+      if (locked) return res.status(403).json({ error: "Holiday list is locked" });
+
+      const { insertPublicHolidaySchema } = await import("@shared/schema");
+      const parsed = insertPublicHolidaySchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+
+      const holiday = await storage.createPublicHoliday(parsed.data);
+      res.status(201).json(holiday);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to create holiday" });
+    }
+  });
+
+  app.put("/api/public-holidays/:id", async (req, res) => {
+    try {
+      const currentUser = await getCurrentUser(req);
+      if (!currentUser) return res.status(401).json({ error: "Not authenticated" });
+      if (currentUser.role !== "admin") return res.status(403).json({ error: "Admin only" });
+
+      const id = parseInt(req.params.id);
+      const existing = await storage.getAllPublicHolidays().then(all => all.find(h => h.id === id));
+      if (!existing) return res.status(404).json({ error: "Holiday not found" });
+
+      const lockKey = `${existing.country}_holidays_locked`;
+      const locked = (await storage.getSetting(lockKey)) === "true";
+      if (locked) return res.status(403).json({ error: "Holiday list is locked" });
+
+      const updated = await storage.updatePublicHoliday(id, req.body);
+      res.json(updated);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update holiday" });
+    }
+  });
+
+  app.delete("/api/public-holidays/:id", async (req, res) => {
+    try {
+      const currentUser = await getCurrentUser(req);
+      if (!currentUser) return res.status(401).json({ error: "Not authenticated" });
+      if (currentUser.role !== "admin") return res.status(403).json({ error: "Admin only" });
+
+      const id = parseInt(req.params.id);
+      const existing = await storage.getAllPublicHolidays().then(all => all.find(h => h.id === id));
+      if (!existing) return res.status(404).json({ error: "Holiday not found" });
+
+      const lockKey = `${existing.country}_holidays_locked`;
+      const locked = (await storage.getSetting(lockKey)) === "true";
+      if (locked) return res.status(403).json({ error: "Holiday list is locked" });
+
+      await storage.deletePublicHoliday(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to delete holiday" });
+    }
+  });
+
+  app.get("/api/holiday-settings", async (req, res) => {
+    try {
+      const scotlandLocked = (await storage.getSetting("scotland_holidays_locked")) === "true";
+      const englandLocked = (await storage.getSetting("england_holidays_locked")) === "true";
+      res.json({ scotland: scotlandLocked, england: englandLocked });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch holiday settings" });
+    }
+  });
+
+  app.post("/api/holiday-settings/lock", async (req, res) => {
+    try {
+      const currentUser = await getCurrentUser(req);
+      if (!currentUser) return res.status(401).json({ error: "Not authenticated" });
+      if (currentUser.role !== "admin") return res.status(403).json({ error: "Admin only" });
+
+      const { country, locked } = req.body;
+      if (!country || typeof locked !== "boolean") return res.status(400).json({ error: "Invalid request" });
+
+      await storage.setSetting(`${country}_holidays_locked`, locked ? "true" : "false");
+      res.json({ success: true, country, locked });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to update lock state" });
+    }
+  });
+
+  app.post("/api/public-holidays/seed", async (req, res) => {
+    try {
+      const currentUser = await getCurrentUser(req);
+      if (!currentUser) return res.status(401).json({ error: "Not authenticated" });
+      if (currentUser.role !== "admin") return res.status(403).json({ error: "Admin only" });
+
+      const { country } = req.body;
+      if (!country) return res.status(400).json({ error: "Country required" });
+
+      const lockKey = `${country}_holidays_locked`;
+      const locked = (await storage.getSetting(lockKey)) === "true";
+      if (locked) return res.status(403).json({ error: "Holiday list is locked" });
+
+      await storage.deleteAllPublicHolidaysByCountry(country);
+
+      const scotlandHolidays = [
+        { name: "New Year's Day", date: "2025-01-01" }, { name: "2 January", date: "2025-01-02" },
+        { name: "Good Friday", date: "2025-04-18" }, { name: "Easter Monday", date: "2025-04-21" },
+        { name: "Early May Bank Holiday", date: "2025-05-05" }, { name: "Spring Bank Holiday", date: "2025-05-26" },
+        { name: "Summer Bank Holiday", date: "2025-08-04" }, { name: "St Andrew's Day", date: "2025-12-01" },
+        { name: "Christmas Day", date: "2025-12-25" }, { name: "Boxing Day", date: "2025-12-26" },
+        { name: "New Year's Day", date: "2026-01-01" }, { name: "2 January", date: "2026-01-02" },
+        { name: "Good Friday", date: "2026-04-03" }, { name: "Easter Monday", date: "2026-04-06" },
+        { name: "Early May Bank Holiday", date: "2026-05-04" }, { name: "Spring Bank Holiday", date: "2026-05-25" },
+        { name: "Summer Bank Holiday", date: "2026-08-03" }, { name: "St Andrew's Day", date: "2026-11-30" },
+        { name: "Christmas Day", date: "2026-12-25" }, { name: "Boxing Day", date: "2026-12-28" },
+        { name: "New Year's Day", date: "2027-01-01" }, { name: "2 January", date: "2027-01-04" },
+        { name: "Good Friday", date: "2027-03-26" }, { name: "Easter Monday", date: "2027-03-29" },
+        { name: "Early May Bank Holiday", date: "2027-05-03" }, { name: "Spring Bank Holiday", date: "2027-05-31" },
+        { name: "Summer Bank Holiday", date: "2027-08-02" }, { name: "St Andrew's Day", date: "2027-11-30" },
+        { name: "Christmas Day", date: "2027-12-27" }, { name: "Boxing Day", date: "2027-12-28" },
+        { name: "New Year's Day", date: "2028-01-03" }, { name: "2 January", date: "2028-01-04" },
+        { name: "Good Friday", date: "2028-04-14" }, { name: "Easter Monday", date: "2028-04-17" },
+        { name: "Early May Bank Holiday", date: "2028-05-01" }, { name: "Spring Bank Holiday", date: "2028-05-29" },
+        { name: "Summer Bank Holiday", date: "2028-08-07" }, { name: "St Andrew's Day", date: "2028-11-30" },
+        { name: "Christmas Day", date: "2028-12-25" }, { name: "Boxing Day", date: "2028-12-26" },
+        { name: "New Year's Day", date: "2029-01-01" }, { name: "2 January", date: "2029-01-02" },
+        { name: "Good Friday", date: "2029-04-13" }, { name: "Easter Monday", date: "2029-04-16" },
+        { name: "Early May Bank Holiday", date: "2029-05-07" }, { name: "Spring Bank Holiday", date: "2029-05-27" },
+        { name: "Summer Bank Holiday", date: "2029-08-06" }, { name: "St Andrew's Day", date: "2029-12-01" },
+        { name: "Christmas Day", date: "2029-12-25" }, { name: "Boxing Day", date: "2029-12-26" },
+      ];
+
+      const englandHolidays = [
+        { name: "New Year's Day", date: "2025-01-01" }, { name: "Good Friday", date: "2025-04-18" },
+        { name: "Easter Monday", date: "2025-04-21" }, { name: "Early May Bank Holiday", date: "2025-05-05" },
+        { name: "Spring Bank Holiday", date: "2025-05-26" }, { name: "Summer Bank Holiday", date: "2025-08-25" },
+        { name: "Christmas Day", date: "2025-12-25" }, { name: "Boxing Day", date: "2025-12-26" },
+        { name: "New Year's Day", date: "2026-01-01" }, { name: "Good Friday", date: "2026-04-03" },
+        { name: "Easter Monday", date: "2026-04-06" }, { name: "Early May Bank Holiday", date: "2026-05-04" },
+        { name: "Spring Bank Holiday", date: "2026-05-25" }, { name: "Summer Bank Holiday", date: "2026-08-31" },
+        { name: "Christmas Day", date: "2026-12-25" }, { name: "Boxing Day", date: "2026-12-28" },
+        { name: "New Year's Day", date: "2027-01-01" }, { name: "Good Friday", date: "2027-03-26" },
+        { name: "Easter Monday", date: "2027-03-29" }, { name: "Early May Bank Holiday", date: "2027-05-03" },
+        { name: "Spring Bank Holiday", date: "2027-05-31" }, { name: "Summer Bank Holiday", date: "2027-08-30" },
+        { name: "Christmas Day", date: "2027-12-27" }, { name: "Boxing Day", date: "2027-12-28" },
+        { name: "New Year's Day", date: "2028-01-03" }, { name: "Good Friday", date: "2028-04-14" },
+        { name: "Easter Monday", date: "2028-04-17" }, { name: "Early May Bank Holiday", date: "2028-05-01" },
+        { name: "Spring Bank Holiday", date: "2028-05-29" }, { name: "Summer Bank Holiday", date: "2028-08-28" },
+        { name: "Christmas Day", date: "2028-12-25" }, { name: "Boxing Day", date: "2028-12-26" },
+        { name: "New Year's Day", date: "2029-01-01" }, { name: "Good Friday", date: "2029-04-13" },
+        { name: "Easter Monday", date: "2029-04-16" }, { name: "Early May Bank Holiday", date: "2029-05-07" },
+        { name: "Spring Bank Holiday", date: "2029-05-26" }, { name: "Summer Bank Holiday", date: "2029-08-27" },
+        { name: "Christmas Day", date: "2029-12-25" }, { name: "Boxing Day", date: "2029-12-26" },
+      ];
+
+      const list = country === "scotland" ? scotlandHolidays : englandHolidays;
+      for (const h of list) {
+        await storage.createPublicHoliday({ name: h.name, date: new Date(h.date), country });
+      }
+
+      res.json({ success: true, count: list.length });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to seed holidays" });
+    }
+  });
+
   // User management routes (admin)
   app.get("/api/users", async (req, res) => {
     try {

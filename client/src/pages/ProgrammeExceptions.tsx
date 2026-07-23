@@ -1,140 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X, Calendar, AlertCircle, Search } from "lucide-react";
+import { X, Calendar, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatDateUK } from "@/lib/utils";
-import type { Project, CalendarException } from "@shared/schema";
+import type { Project, CalendarException, PublicHoliday } from "@shared/schema";
 import Exceptions from "@/pages/Exceptions";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-
-// Helper function to get substitute day if holiday falls on weekend
-const getSubstituteDate = (date: Date): { date: Date; isSubstitute: boolean } => {
-  const dayOfWeek = date.getDay();
-  const substituteDate = new Date(date);
-  let isSubstitute = false;
-  
-  if (dayOfWeek === 0) {
-    // Sunday -> Monday
-    substituteDate.setDate(substituteDate.getDate() + 1);
-    isSubstitute = true;
-  } else if (dayOfWeek === 6) {
-    // Saturday -> Monday
-    substituteDate.setDate(substituteDate.getDate() + 2);
-    isSubstitute = true;
-  }
-  
-  return { date: substituteDate, isSubstitute };
-};
-
-const SCOTLAND_HOLIDAYS = [
-  // 2025
-  { name: "New Year's Day", ...getSubstituteDate(new Date(2025, 0, 1)) },
-  { name: "2 January", ...getSubstituteDate(new Date(2025, 0, 2)) },
-  { name: "Good Friday", date: new Date(2025, 3, 18), isSubstitute: false },
-  { name: "Easter Monday", date: new Date(2025, 3, 21), isSubstitute: false },
-  { name: "Early May Bank Holiday", date: new Date(2025, 4, 5), isSubstitute: false },
-  { name: "Spring Bank Holiday", date: new Date(2025, 4, 26), isSubstitute: false },
-  { name: "Summer Bank Holiday", date: new Date(2025, 7, 4), isSubstitute: false },
-  { name: "St Andrew's Day", ...getSubstituteDate(new Date(2025, 10, 30)) },
-  { name: "Christmas Day", ...getSubstituteDate(new Date(2025, 11, 25)) },
-  { name: "Boxing Day", ...getSubstituteDate(new Date(2025, 11, 26)) },
-  // 2026
-  { name: "New Year's Day", ...getSubstituteDate(new Date(2026, 0, 1)) },
-  { name: "2 January", ...getSubstituteDate(new Date(2026, 0, 2)) },
-  { name: "Good Friday", date: new Date(2026, 3, 3), isSubstitute: false },
-  { name: "Easter Monday", date: new Date(2026, 3, 6), isSubstitute: false },
-  { name: "Early May Bank Holiday", date: new Date(2026, 4, 4), isSubstitute: false },
-  { name: "Spring Bank Holiday", date: new Date(2026, 4, 25), isSubstitute: false },
-  { name: "Summer Bank Holiday", date: new Date(2026, 7, 3), isSubstitute: false },
-  { name: "St Andrew's Day", ...getSubstituteDate(new Date(2026, 10, 30)) },
-  { name: "Christmas Day", ...getSubstituteDate(new Date(2026, 11, 25)) },
-  { name: "Boxing Day", ...getSubstituteDate(new Date(2026, 11, 28)) },
-  // 2027
-  { name: "New Year's Day", ...getSubstituteDate(new Date(2027, 0, 1)) },
-  { name: "2 January", ...getSubstituteDate(new Date(2027, 0, 4)) },
-  { name: "Good Friday", date: new Date(2027, 3, 26), isSubstitute: false },
-  { name: "Easter Monday", date: new Date(2027, 3, 29), isSubstitute: false },
-  { name: "Early May Bank Holiday", date: new Date(2027, 4, 3), isSubstitute: false },
-  { name: "Spring Bank Holiday", ...getSubstituteDate(new Date(2027, 4, 31)) },
-  { name: "Summer Bank Holiday", date: new Date(2027, 7, 2), isSubstitute: false },
-  { name: "St Andrew's Day", ...getSubstituteDate(new Date(2027, 10, 30)) },
-  { name: "Christmas Day", ...getSubstituteDate(new Date(2027, 11, 25)) },
-  { name: "Boxing Day", ...getSubstituteDate(new Date(2027, 11, 28)) },
-  // 2028
-  { name: "New Year's Day", ...getSubstituteDate(new Date(2028, 0, 1)) },
-  { name: "2 January", ...getSubstituteDate(new Date(2028, 0, 3)) },
-  { name: "Good Friday", date: new Date(2028, 3, 14), isSubstitute: false },
-  { name: "Easter Monday", date: new Date(2028, 3, 17), isSubstitute: false },
-  { name: "Early May Bank Holiday", date: new Date(2028, 4, 1), isSubstitute: false },
-  { name: "Spring Bank Holiday", date: new Date(2028, 4, 29), isSubstitute: false },
-  { name: "Summer Bank Holiday", date: new Date(2028, 7, 7), isSubstitute: false },
-  { name: "St Andrew's Day", ...getSubstituteDate(new Date(2028, 10, 30)) },
-  { name: "Christmas Day", ...getSubstituteDate(new Date(2028, 11, 25)) },
-  { name: "Boxing Day", ...getSubstituteDate(new Date(2028, 11, 26)) },
-  // 2029
-  { name: "New Year's Day", ...getSubstituteDate(new Date(2029, 0, 1)) },
-  { name: "2 January", ...getSubstituteDate(new Date(2029, 0, 2)) },
-  { name: "Good Friday", date: new Date(2029, 3, 30), isSubstitute: false },
-  { name: "Easter Monday", date: new Date(2029, 4, 2), isSubstitute: false },
-  { name: "Early May Bank Holiday", date: new Date(2029, 4, 7), isSubstitute: false },
-  { name: "Spring Bank Holiday", ...getSubstituteDate(new Date(2029, 5, 28)) },
-  { name: "Summer Bank Holiday", date: new Date(2029, 7, 6), isSubstitute: false },
-  { name: "St Andrew's Day", ...getSubstituteDate(new Date(2029, 10, 30)) },
-  { name: "Christmas Day", ...getSubstituteDate(new Date(2029, 11, 25)) },
-  { name: "Boxing Day", ...getSubstituteDate(new Date(2029, 11, 26)) },
-];
-
-const ENGLAND_HOLIDAYS = [
-  // 2025
-  { name: "New Year's Day", ...getSubstituteDate(new Date(2025, 0, 1)) },
-  { name: "Good Friday", date: new Date(2025, 3, 18), isSubstitute: false },
-  { name: "Easter Monday", date: new Date(2025, 3, 21), isSubstitute: false },
-  { name: "Early May Bank Holiday", date: new Date(2025, 4, 5), isSubstitute: false },
-  { name: "Spring Bank Holiday", date: new Date(2025, 4, 26), isSubstitute: false },
-  { name: "Summer Bank Holiday", date: new Date(2025, 7, 25), isSubstitute: false },
-  { name: "Christmas Day", ...getSubstituteDate(new Date(2025, 11, 25)) },
-  { name: "Boxing Day", ...getSubstituteDate(new Date(2025, 11, 26)) },
-  // 2026
-  { name: "New Year's Day", ...getSubstituteDate(new Date(2026, 0, 1)) },
-  { name: "Good Friday", date: new Date(2026, 3, 3), isSubstitute: false },
-  { name: "Easter Monday", date: new Date(2026, 3, 6), isSubstitute: false },
-  { name: "Early May Bank Holiday", date: new Date(2026, 4, 4), isSubstitute: false },
-  { name: "Spring Bank Holiday", date: new Date(2026, 4, 25), isSubstitute: false },
-  { name: "Summer Bank Holiday", ...getSubstituteDate(new Date(2026, 7, 31)) },
-  { name: "Christmas Day", ...getSubstituteDate(new Date(2026, 11, 25)) },
-  { name: "Boxing Day", ...getSubstituteDate(new Date(2026, 11, 28)) },
-  // 2027
-  { name: "New Year's Day", ...getSubstituteDate(new Date(2027, 0, 1)) },
-  { name: "Good Friday", date: new Date(2027, 3, 26), isSubstitute: false },
-  { name: "Easter Monday", date: new Date(2027, 3, 29), isSubstitute: false },
-  { name: "Early May Bank Holiday", date: new Date(2027, 4, 3), isSubstitute: false },
-  { name: "Spring Bank Holiday", ...getSubstituteDate(new Date(2027, 5, 31)) },
-  { name: "Summer Bank Holiday", date: new Date(2027, 7, 30), isSubstitute: false },
-  { name: "Christmas Day", ...getSubstituteDate(new Date(2027, 11, 25)) },
-  { name: "Boxing Day", ...getSubstituteDate(new Date(2027, 11, 28)) },
-  // 2028
-  { name: "New Year's Day", ...getSubstituteDate(new Date(2028, 0, 1)) },
-  { name: "Good Friday", date: new Date(2028, 3, 14), isSubstitute: false },
-  { name: "Easter Monday", date: new Date(2028, 3, 17), isSubstitute: false },
-  { name: "Early May Bank Holiday", date: new Date(2028, 4, 1), isSubstitute: false },
-  { name: "Spring Bank Holiday", date: new Date(2028, 5, 29), isSubstitute: false },
-  { name: "Summer Bank Holiday", date: new Date(2028, 7, 28), isSubstitute: false },
-  { name: "Christmas Day", ...getSubstituteDate(new Date(2028, 11, 25)) },
-  { name: "Boxing Day", ...getSubstituteDate(new Date(2028, 11, 26)) },
-  // 2029
-  { name: "New Year's Day", ...getSubstituteDate(new Date(2029, 0, 1)) },
-  { name: "Good Friday", date: new Date(2029, 3, 30), isSubstitute: false },
-  { name: "Easter Monday", date: new Date(2029, 4, 2), isSubstitute: false },
-  { name: "Early May Bank Holiday", date: new Date(2029, 4, 7), isSubstitute: false },
-  { name: "Spring Bank Holiday", ...getSubstituteDate(new Date(2029, 5, 27)) },
-  { name: "Summer Bank Holiday", date: new Date(2029, 7, 27), isSubstitute: false },
-  { name: "Christmas Day", ...getSubstituteDate(new Date(2029, 11, 25)) },
-  { name: "Boxing Day", ...getSubstituteDate(new Date(2029, 11, 26)) },
-];
 
 export default function ProgrammeExceptions() {
   const { data: allProgrammes, isLoading: programmesLoading } = useQuery<Project[]>({
@@ -152,43 +26,52 @@ export default function ProgrammeExceptions() {
     enabled: !!selectedId,
   });
 
-  const getHolidayStatus = (holiday: { date: Date }): "red" | "green" | "none" => {
+  const { data: holidays = [], isLoading: holidaysLoading } = useQuery<PublicHoliday[]>({
+    queryKey: ["/api/public-holidays", holidayCountry],
+    queryFn: () => fetch(`/api/public-holidays?country=${holidayCountry}`).then(r => r.json()),
+  });
+
+  const getHolidayStatus = (holiday: PublicHoliday): "red" | "green" | "none" => {
     if (!selectedProgramme) return "none";
     if (!selectedProgramme.startDate || !selectedProgramme.endDate) return "none";
 
     const start = new Date(selectedProgramme.startDate);
     const end = new Date(selectedProgramme.endDate);
     const holidayDate = new Date(holiday.date);
-    
-    // Normalize dates to midnight for comparison
+
     start.setHours(0, 0, 0, 0);
     end.setHours(23, 59, 59, 999);
     holidayDate.setHours(0, 0, 0, 0);
-    
-    // Check if holiday falls within programme range
+
     const isInProgrammeRange = holidayDate >= start && holidayDate <= end;
-    
     if (!isInProgrammeRange) return "none";
 
-    // Check if it's listed in the programme's calendar exceptions AND falls within the exception date range
     const isListed = exceptions.some((exc) => {
       const excStart = new Date(exc.startDate);
       const excEnd = new Date(exc.endDate);
       excStart.setHours(0, 0, 0, 0);
       excEnd.setHours(23, 59, 59, 999);
-      
-      // Holiday must fall within the exception's date range
       return holidayDate >= excStart && holidayDate <= excEnd;
     });
 
     return isListed ? "green" : "red";
   };
 
-  const holidays = holidayCountry === "scotland" ? SCOTLAND_HOLIDAYS : ENGLAND_HOLIDAYS;
-
   const holidayStatuses = selectedProgramme ? holidays.map(getHolidayStatus) : [];
   const redCount = holidayStatuses.filter(s => s === "red").length;
   const greenCount = holidayStatuses.filter(s => s === "green").length;
+
+  // Group holidays by year for display
+  const holidaysByYear = useMemo(() => {
+    return holidays.reduce((acc, h) => {
+      const year = new Date(h.date).getFullYear();
+      if (!acc[year]) acc[year] = [];
+      acc[year].push(h);
+      return acc;
+    }, {} as Record<number, PublicHoliday[]>);
+  }, [holidays]);
+
+  const years = Object.keys(holidaysByYear).map(Number).sort();
 
   return (
     <div className="p-6 space-y-4">
@@ -245,44 +128,48 @@ export default function ProgrammeExceptions() {
           </div>
         </CardHeader>
         <CardContent className="pt-1 px-4 pb-2">
-          <div className="grid grid-cols-5 gap-1">
-            {[2025, 2026, 2027, 2028, 2029].map((year) => (
-              <div key={year} className="space-y-0.5">
-                <p className="font-semibold text-xs text-foreground mb-1">{year}</p>
-                <div className="space-y-0.5">
-                  {holidays.filter((h) => h.date.getFullYear() === year).map((holiday, idx) => {
-                    const status = getHolidayStatus(holiday);
-                    const bgColors = {
-                      red: "bg-red-100 dark:bg-red-950 border border-red-300 dark:border-red-700",
-                      green: "bg-green-100 dark:bg-green-950 border border-green-300 dark:border-green-700",
-                      none: "",
-                    };
-                    const textColors = {
-                      red: "text-red-900 dark:text-red-100",
-                      green: "text-green-900 dark:text-green-100",
-                      none: "text-muted-foreground",
-                    };
-                    
-                    return (
-                      <div 
-                        key={`${holiday.name}-${formatDateUK(holiday.date)}-${idx}`} 
-                        className={`text-xs p-0.5 rounded transition-colors ${bgColors[status]}`}
-                        data-testid={`row-holiday-${holiday.name}-${formatDateUK(holiday.date)}`}
-                      >
-                        <p className="font-medium text-foreground leading-none text-xs">
-                          {holiday.name}
-                          {holiday.isSubstitute && <span className="text-xs"> (substitute day)</span>}
-                        </p>
-                        <p className={`leading-none font-medium text-xs ${textColors[status]}`}>
-                          {formatDateUK(holiday.date)}
-                        </p>
-                      </div>
-                    );
-                  })}
+          {holidaysLoading ? (
+            <div className="h-20 flex items-center justify-center text-xs text-muted-foreground">Loading holidays...</div>
+          ) : holidays.length === 0 ? (
+            <div className="text-center py-4 text-xs text-muted-foreground">
+              No holidays configured. Visit Holiday Settings to add them.
+            </div>
+          ) : (
+            <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(${Math.min(years.length, 5)}, 1fr)` }}>
+              {years.map((year) => (
+                <div key={year} className="space-y-0.5">
+                  <p className="font-semibold text-xs text-foreground mb-1">{year}</p>
+                  <div className="space-y-0.5">
+                    {(holidaysByYear[year] || []).map((holiday, idx) => {
+                      const status = getHolidayStatus(holiday);
+                      const bgColors = {
+                        red: "bg-red-100 dark:bg-red-950 border border-red-300 dark:border-red-700",
+                        green: "bg-green-100 dark:bg-green-950 border border-green-300 dark:border-green-700",
+                        none: "",
+                      };
+                      const textColors = {
+                        red: "text-red-900 dark:text-red-100",
+                        green: "text-green-900 dark:text-green-100",
+                        none: "text-muted-foreground",
+                      };
+                      return (
+                        <div
+                          key={`${holiday.id}-${idx}`}
+                          className={`text-xs p-0.5 rounded transition-colors ${bgColors[status]}`}
+                          data-testid={`row-holiday-${holiday.id}`}
+                        >
+                          <p className="font-medium text-foreground leading-none text-xs">{holiday.name}</p>
+                          <p className={`leading-none font-medium text-xs ${textColors[status]}`}>
+                            {formatDateUK(new Date(holiday.date))}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 

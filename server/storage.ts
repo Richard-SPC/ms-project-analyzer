@@ -11,12 +11,16 @@ import {
   type InsertCalendarException,
   type User,
   type InsertUser,
+  type PublicHoliday,
+  type InsertPublicHoliday,
   workspaces,
   projects,
   tasks,
   dcmaAssessments,
   calendarExceptions,
   users,
+  publicHolidays,
+  appSettings,
 } from "@shared/schema";
 import { db, type DbClient } from "../db";
 import { eq, desc, isNull } from "drizzle-orm";
@@ -63,6 +67,18 @@ export interface IStorage {
   createCalendarException(exception: InsertCalendarException): Promise<CalendarException>;
   getCalendarExceptionsByProject(projectId: number): Promise<CalendarException[]>;
   deleteCalendarException(id: number): Promise<void>;
+
+  // Public Holiday operations
+  getAllPublicHolidays(): Promise<PublicHoliday[]>;
+  getPublicHolidaysByCountry(country: string): Promise<PublicHoliday[]>;
+  createPublicHoliday(holiday: InsertPublicHoliday): Promise<PublicHoliday>;
+  updatePublicHoliday(id: number, holiday: Partial<InsertPublicHoliday>): Promise<PublicHoliday | undefined>;
+  deletePublicHoliday(id: number): Promise<void>;
+  deleteAllPublicHolidaysByCountry(country: string): Promise<void>;
+
+  // App Settings operations
+  getSetting(key: string): Promise<string | undefined>;
+  setSetting(key: string, value: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -72,12 +88,15 @@ export class MemStorage implements IStorage {
   private dcmaAssessments: Map<number, DcmaAssessment>;
   private calendarExceptions: Map<number, CalendarException>;
   private users: Map<number, User>;
+  private publicHolidaysMap: Map<number, PublicHoliday>;
+  private appSettingsMap: Map<string, string>;
   private workspaceIdCounter: number;
   private projectIdCounter: number;
   private taskIdCounter: number;
   private dcmaIdCounter: number;
   private exceptionIdCounter: number;
   private userIdCounter: number;
+  private holidayIdCounter: number;
 
   constructor() {
     this.workspaces = new Map();
@@ -86,12 +105,15 @@ export class MemStorage implements IStorage {
     this.dcmaAssessments = new Map();
     this.calendarExceptions = new Map();
     this.users = new Map();
+    this.publicHolidaysMap = new Map();
+    this.appSettingsMap = new Map();
     this.workspaceIdCounter = 1;
     this.projectIdCounter = 1;
     this.taskIdCounter = 1;
     this.dcmaIdCounter = 1;
     this.exceptionIdCounter = 1;
     this.userIdCounter = 1;
+    this.holidayIdCounter = 1;
   }
 
   async seedDefaultUser() {
@@ -407,6 +429,49 @@ export class MemStorage implements IStorage {
     this.calendarExceptions.delete(id);
   }
 
+  async getAllPublicHolidays(): Promise<PublicHoliday[]> {
+    return Array.from(this.publicHolidaysMap.values()).sort((a, b) => a.date.getTime() - b.date.getTime());
+  }
+
+  async getPublicHolidaysByCountry(country: string): Promise<PublicHoliday[]> {
+    return Array.from(this.publicHolidaysMap.values())
+      .filter(h => h.country === country)
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
+  }
+
+  async createPublicHoliday(holiday: InsertPublicHoliday): Promise<PublicHoliday> {
+    const id = this.holidayIdCounter++;
+    const newHoliday: PublicHoliday = { ...holiday, id, createdAt: new Date() };
+    this.publicHolidaysMap.set(id, newHoliday);
+    return newHoliday;
+  }
+
+  async updatePublicHoliday(id: number, updates: Partial<InsertPublicHoliday>): Promise<PublicHoliday | undefined> {
+    const h = this.publicHolidaysMap.get(id);
+    if (!h) return undefined;
+    const updated = { ...h, ...updates };
+    this.publicHolidaysMap.set(id, updated);
+    return updated;
+  }
+
+  async deletePublicHoliday(id: number): Promise<void> {
+    this.publicHolidaysMap.delete(id);
+  }
+
+  async deleteAllPublicHolidaysByCountry(country: string): Promise<void> {
+    for (const [id, h] of this.publicHolidaysMap.entries()) {
+      if (h.country === country) this.publicHolidaysMap.delete(id);
+    }
+  }
+
+  async getSetting(key: string): Promise<string | undefined> {
+    return this.appSettingsMap.get(key);
+  }
+
+  async setSetting(key: string, value: string): Promise<void> {
+    this.appSettingsMap.set(key, value);
+  }
+
 }
 
 // Database storage implementation using Drizzle ORM and PostgreSQL
@@ -562,6 +627,56 @@ export class DbStorage implements IStorage {
 
   async deleteCalendarException(id: number): Promise<void> {
     await this.db.delete(calendarExceptions).where(eq(calendarExceptions.id, id));
+  }
+
+  // Public Holiday operations
+  async getAllPublicHolidays(): Promise<PublicHoliday[]> {
+    return await this.db.select().from(publicHolidays).orderBy(publicHolidays.date);
+  }
+
+  async getPublicHolidaysByCountry(country: string): Promise<PublicHoliday[]> {
+    return await this.db
+      .select()
+      .from(publicHolidays)
+      .where(eq(publicHolidays.country, country))
+      .orderBy(publicHolidays.date);
+  }
+
+  async createPublicHoliday(holiday: InsertPublicHoliday): Promise<PublicHoliday> {
+    const [created] = await this.db.insert(publicHolidays).values(holiday).returning();
+    return created;
+  }
+
+  async updatePublicHoliday(id: number, updates: Partial<InsertPublicHoliday>): Promise<PublicHoliday | undefined> {
+    const [updated] = await this.db
+      .update(publicHolidays)
+      .set(updates)
+      .where(eq(publicHolidays.id, id))
+      .returning();
+    return updated;
+  }
+
+  async deletePublicHoliday(id: number): Promise<void> {
+    await this.db.delete(publicHolidays).where(eq(publicHolidays.id, id));
+  }
+
+  async deleteAllPublicHolidaysByCountry(country: string): Promise<void> {
+    await this.db.delete(publicHolidays).where(eq(publicHolidays.country, country));
+  }
+
+  // App Settings operations
+  async getSetting(key: string): Promise<string | undefined> {
+    const [row] = await this.db.select().from(appSettings).where(eq(appSettings.key, key));
+    return row?.value;
+  }
+
+  async setSetting(key: string, value: string): Promise<void> {
+    const existing = await this.getSetting(key);
+    if (existing !== undefined) {
+      await this.db.update(appSettings).set({ value }).where(eq(appSettings.key, key));
+    } else {
+      await this.db.insert(appSettings).values({ key, value });
+    }
   }
 
   // User operations

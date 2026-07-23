@@ -148,6 +148,31 @@ export const insertCalendarExceptionSchema = createInsertSchema(calendarExceptio
   createdAt: true,
 });
 
+// Public holidays - editable source of truth for holiday compliance checking
+export const publicHolidays = pgTable("public_holidays", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  date: timestamp("date").notNull(),
+  country: text("country").notNull().default("scotland"), // "scotland" | "england"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// App settings - key/value store for things like lock state
+export const appSettings = pgTable("app_settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  value: text("value").notNull(),
+});
+
+export const insertPublicHolidaySchema = createInsertSchema(publicHolidays, {
+  date: z.union([z.string(), z.date()]).transform((val) =>
+    typeof val === "string" ? new Date(val) : val
+  ),
+}).omit({ id: true, createdAt: true });
+
+export type PublicHoliday = typeof publicHolidays.$inferSelect;
+export type InsertPublicHoliday = z.infer<typeof insertPublicHolidaySchema>;
+
 // Users table for authentication
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),

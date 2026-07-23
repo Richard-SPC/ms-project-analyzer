@@ -19,6 +19,7 @@ import LiveDesignDates from "@/pages/LiveDesignDates";
 import CompareProgrammes from "@/pages/CompareProgrammes";
 import ProgrammeExceptions from "@/pages/ProgrammeExceptions";
 import UserManagement from "@/pages/UserManagement";
+import HolidaySettings from "@/pages/HolidaySettings";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/not-found";
 
@@ -75,6 +76,7 @@ function ProtectedRoutes() {
               <Route path="/compare" component={CompareProgrammes} />
               <Route path="/exceptions" component={ProgrammeExceptions} />
               <Route path="/accounts" component={UserManagement} />
+              <Route path="/holiday-settings" component={HolidaySettings} />
               <Route component={NotFound} />
             </Switch>
           </main>

@@ -1,4 +1,4 @@
-import { Home, FileCheck, Library, Folder, Package, Clock, GitCompare, Calendar, LogOut, User, Users, Pencil } from "lucide-react";
+import { Home, FileCheck, Library, Folder, Package, Clock, GitCompare, Calendar, LogOut, User, Users, Pencil, CalendarDays } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -68,6 +68,11 @@ const settingsItems = [
     title: "Manage Accounts",
     url: "/accounts",
     icon: Users,
+  },
+  {
+    title: "Holiday Settings",
+    url: "/holiday-settings",
+    icon: CalendarDays,
   },
 ];
 
