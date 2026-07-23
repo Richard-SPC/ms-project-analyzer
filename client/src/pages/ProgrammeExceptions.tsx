@@ -3,7 +3,8 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { X, Calendar, AlertCircle } from "lucide-react";
+import { X, Calendar, AlertCircle, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { formatDateUK } from "@/lib/utils";
 import type { Project, CalendarException } from "@shared/schema";
 import Exceptions from "@/pages/Exceptions";
@@ -142,6 +143,7 @@ export default function ProgrammeExceptions() {
 
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [holidayCountry, setHolidayCountry] = useState<"scotland" | "england">("scotland");
+  const [programmeSearch, setProgrammeSearch] = useState("");
 
   const selectedProgramme = selectedId ? allProgrammes?.find((p) => p.id === selectedId) : null;
 
@@ -307,6 +309,17 @@ export default function ProgrammeExceptions() {
             </div>
           )}
 
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              placeholder="Search programmes..."
+              value={programmeSearch}
+              onChange={(e) => setProgrammeSearch(e.target.value)}
+              className="pl-9"
+              data-testid="input-programme-search"
+            />
+          </div>
+
           <div className="space-y-2 max-h-64 overflow-y-auto border rounded-md">
             {programmesLoading ? (
               <div className="p-4 text-center text-muted-foreground text-sm">
@@ -329,7 +342,9 @@ export default function ProgrammeExceptions() {
                     <p className="text-muted-foreground">Status Date</p>
                   </div>
                 </div>
-                {allProgrammes.map((programme) => (
+                {allProgrammes
+                  .filter(p => p.name.toLowerCase().includes(programmeSearch.toLowerCase()))
+                  .map((programme) => (
                   <div
                     key={programme.id}
                     className="flex items-center gap-2 p-2 rounded hover:bg-muted cursor-pointer"
