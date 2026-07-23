@@ -1,4 +1,4 @@
-import { Home, FileCheck, Library, Folder, Package, Clock, GitCompare, Calendar, LogOut, User, Users } from "lucide-react";
+import { Home, FileCheck, Library, Folder, Package, Clock, GitCompare, Calendar, LogOut, User, Users, Pencil } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import {
   Sidebar,
@@ -45,6 +45,11 @@ const menuItems = [
     title: "Live Procurement Dates",
     url: "/live-procurement",
     icon: Clock,
+  },
+  {
+    title: "Live Design Dates",
+    url: "/live-design",
+    icon: Pencil,
   },
   {
     title: "Compare Programmes",

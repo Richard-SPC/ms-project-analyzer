@@ -15,6 +15,7 @@ import ProjectDetail from "@/pages/ProjectDetail";
 import DcmaAssessment from "@/pages/DcmaAssessment";
 import ProcurementDurations from "@/pages/ProcurementDurations";
 import LiveProcurementDates from "@/pages/LiveProcurementDates";
+import LiveDesignDates from "@/pages/LiveDesignDates";
 import CompareProgrammes from "@/pages/CompareProgrammes";
 import ProgrammeExceptions from "@/pages/ProgrammeExceptions";
 import UserManagement from "@/pages/UserManagement";
@@ -70,6 +71,7 @@ function ProtectedRoutes() {
               <Route path="/dcma" component={DcmaAssessment} />
               <Route path="/procurement" component={ProcurementDurations} />
               <Route path="/live-procurement" component={LiveProcurementDates} />
+              <Route path="/live-design" component={LiveDesignDates} />
               <Route path="/compare" component={CompareProgrammes} />
               <Route path="/exceptions" component={ProgrammeExceptions} />
               <Route path="/accounts" component={UserManagement} />

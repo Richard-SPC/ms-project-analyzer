@@ -715,6 +715,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/live-design-dates", async (req, res) => {
+    try {
+      const allWorkspaces = await storage.getAllWorkspaces();
+      const liveDesignData: Array<{
+        id: number;
+        name: string;
+        startDate: Date | null;
+        endDate: Date | null;
+        duration: number | null;
+        percentComplete: number;
+        projectId: number;
+        projectName: string;
+        workspaceName: string;
+        client: string | undefined;
+        status: string | undefined;
+      }> = [];
+
+      for (const workspace of allWorkspaces) {
+        const workspaceProjects = await storage.getProjectsByWorkspace(workspace.id);
+        if (workspaceProjects.length === 0) continue;
+
+        const latestProject = workspaceProjects.reduce((latest, current) => {
+          const latestDate = latest.statusDate ? new Date(latest.statusDate).getTime() : 0;
+          const currentDate = current.statusDate ? new Date(current.statusDate).getTime() : 0;
+          return currentDate > latestDate ? current : latest;
+        });
+
+        const tasks = await storage.getTasksByProject(latestProject.id);
+
+        const designTasks = tasks
+          .filter(task => !task.isSummary && task.name.toLowerCase().includes("design -"))
+          .map(task => ({
+            id: task.id,
+            name: task.name,
+            startDate: task.startDate || null,
+            endDate: task.endDate || null,
+            duration: task.duration,
+            percentComplete: parseFloat(task.percentComplete?.toString() || "0"),
+            projectId: latestProject.id,
+            projectName: latestProject.name,
+            workspaceName: workspace.name,
+            client: workspace.client,
+            status: workspace.status
+          }));
+
+        liveDesignData.push(...designTasks);
+      }
+
+      liveDesignData.sort((a, b) => {
+        if (a.workspaceName !== b.workspaceName) return a.workspaceName.localeCompare(b.workspaceName);
+        if (a.projectName !== b.projectName) return a.projectName.localeCompare(b.projectName);
+        return a.name.localeCompare(b.name);
+      });
+
+      res.json(liveDesignData);
+    } catch (error) {
+      console.error("Error fetching live design dates:", error);
+      res.status(500).json({ error: "Failed to fetch live design dates" });
+    }
+  });
+
   // DCMA Assessment routes
   app.get("/api/dcma-assessments", async (req, res) => {
     try {
