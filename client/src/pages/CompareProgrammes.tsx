@@ -5,7 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, AlertCircle } from "lucide-react";
+import { X, AlertCircle, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { formatDateUK } from "@/lib/utils";
 import type { Project, Task } from "@shared/schema";
 
@@ -20,6 +21,7 @@ export default function CompareProgrammes() {
   });
 
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [programmeSearch, setProgrammeSearch] = useState("");
 
   // Fetch tasks for selected programmes
   const taskQueries = selectedIds.map(id => ({
@@ -217,6 +219,13 @@ export default function CompareProgrammes() {
     setSelectedIds([]);
   };
 
+  const filteredProgrammes = useMemo(() => {
+    if (!allProgrammes) return [];
+    const q = programmeSearch.trim().toLowerCase();
+    if (!q) return allProgrammes;
+    return allProgrammes.filter(p => p.name.toLowerCase().includes(q));
+  }, [allProgrammes, programmeSearch]);
+
   const isLoading = programmesLoading || (selectedIds.length > 0 && taskResults.isLoading);
 
   return (
@@ -236,22 +245,34 @@ export default function CompareProgrammes() {
           <CardDescription className="text-xs">Choose programmes to compare their Contract & Key Dates milestones</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2 pt-2 pb-2">
-          {selectedIds.length > 0 && (
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">
-                {selectedIds.length} programme{selectedIds.length !== 1 ? "s" : ""} selected
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={clearSelection}
-                data-testid="button-clear-selection"
-              >
-                <X className="h-4 w-4 mr-2" />
-                Clear
-              </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="relative flex-1 min-w-40">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+              <Input
+                placeholder="Search programmes..."
+                value={programmeSearch}
+                onChange={e => setProgrammeSearch(e.target.value)}
+                className="pl-8 h-8 text-xs"
+                data-testid="input-programme-search"
+              />
             </div>
-          )}
+            {selectedIds.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">
+                  {selectedIds.length} selected
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearSelection}
+                  data-testid="button-clear-selection"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Clear
+                </Button>
+              </div>
+            )}
+          </div>
 
           <div className="space-y-0 max-h-64 overflow-y-auto border rounded-md">
             {allProgrammes && allProgrammes.length > 0 ? (
@@ -265,7 +286,9 @@ export default function CompareProgrammes() {
                     <p className="text-muted-foreground">Status Date</p>
                   </div>
                 </div>
-                {allProgrammes.map((programme) => (
+                {filteredProgrammes.length === 0 ? (
+                  <p className="text-xs text-muted-foreground text-center py-4">No programmes match your search</p>
+                ) : filteredProgrammes.map((programme) => (
                 <div
                   key={programme.id}
                   className="flex items-center gap-2 p-2 rounded hover:bg-muted cursor-pointer"
