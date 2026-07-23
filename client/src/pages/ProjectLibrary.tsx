@@ -80,7 +80,7 @@ const getStatusButtonClass = (status?: string | null): string => {
   }
 };
 
-function ProgrammeTile({ programme }: { programme: Project }) {
+function ProgrammeTile({ programme, projects, onAssign }: { programme: Project; projects?: Workspace[]; onAssign?: (projectId: number) => void }) {
   const { data: completion } = useQuery<{ percentComplete?: number }>({
     queryKey: [`/api/projects/${programme.id}/completion`],
   });
@@ -147,6 +147,28 @@ function ProgrammeTile({ programme }: { programme: Project }) {
                 {actualEnd ? formatDateUK(actualEnd) : "N/A"}
               </p>
             </div>
+            {projects && onAssign && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" data-testid={`button-assign-programme-${programme.id}`}>
+                    <MoveRight className="h-3 w-3 mr-1.5" />
+                    Assign to Project
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {projects.length === 0 ? (
+                    <DropdownMenuItem disabled>No projects available</DropdownMenuItem>
+                  ) : (
+                    projects.map(p => (
+                      <DropdownMenuItem key={p.id} onClick={() => onAssign(p.id)}>
+                        <div className="w-2 h-2 rounded-full mr-2 shrink-0" style={{ backgroundColor: p.color || "#3B82F6" }} />
+                        {p.name}
+                      </DropdownMenuItem>
+                    ))
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             <Link href={`/programmes/${programme.id}`}>
               <Button variant="outline" size="sm" data-testid={`button-view-programme-${programme.id}`}>
                 View Details
@@ -962,6 +984,10 @@ export default function ProjectLibrary() {
                   <ProgrammeTile
                     key={programme.id}
                     programme={programme}
+                    projects={projects || []}
+                    onAssign={(projectId) =>
+                      moveProgrammeMutation.mutate({ programmeId: programme.id, projectId })
+                    }
                   />
                 ))}
               </div>
