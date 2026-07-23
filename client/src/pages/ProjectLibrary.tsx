@@ -122,17 +122,19 @@ function ProgrammeTile({ programme, projects, onAssign }: { programme: Project; 
           <div className="col-span-4 text-sm font-medium truncate text-foreground min-w-0">
             {programme.name}
           </div>
-          <div className="col-span-2 text-xs text-center">
-            <p className="text-muted-foreground font-bold">Status Date</p>
-            <p className="font-medium text-foreground">
-              {programme.statusDate ? formatDateUK(programme.statusDate) : "N/A"}
-            </p>
-          </div>
-          <div className="col-span-1 text-xs text-center">
-            <p className="text-muted-foreground font-bold">%</p>
-            <p className="font-medium text-foreground">
-              {completion?.percentComplete ?? "-"}%
-            </p>
+          <div className="col-span-3 flex items-center justify-center gap-4">
+            <div className="text-xs text-center">
+              <p className="text-muted-foreground font-bold">Status Date</p>
+              <p className="font-medium text-foreground">
+                {programme.statusDate ? formatDateUK(programme.statusDate) : "N/A"}
+              </p>
+            </div>
+            <div className="text-xs text-center">
+              <p className="text-muted-foreground font-bold">% Complete</p>
+              <p className="font-medium text-foreground">
+                {completion?.percentComplete ?? "-"}%
+              </p>
+            </div>
           </div>
           <div className="col-span-1 flex items-center justify-center gap-1">
             {projects && onAssign && (
